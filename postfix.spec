@@ -207,18 +207,17 @@ Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 %prep
 %setup -q %{?with_cdb:-a7}
 zcat %{SOURCE8} | patch -p1 -s
-#patch0 -p1
-#patch1 -p1
+%patch0 -p1
+%patch1 -p1
 #patch2 -p1
 #patch3 -p1
-#patch4 -p1
+%patch4 -p1
 %{?with_polish:%patch5 -p1}
 %{?with_cdb:%patch6 -p1}
 #patch7 -p1
 %patch8 -p1
 %patch9 -p1
 %{?with_cdb:sh dict_cdb.sh}
-#patch10 -p1
 
 %build
 %{__make} -f Makefile.init makefiles
