@@ -1,4 +1,4 @@
-%define		ver	20000507
+%define		ver	20000511
 %define		patchl	06
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
@@ -50,7 +50,7 @@ nie denerwowaæ Twoich u¿ytkowników. Ta wersja wspiera IPv6 oraz LDAP.
 
 %prep
 %setup -q -n snapshot-%{ver}
-%patch0 -p1 -b .wiget
+%patch0 -p1
 %patch5 -p1
 
 %build
