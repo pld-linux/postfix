@@ -23,7 +23,7 @@ Conflicts:   zmail
 Conflicts:   exim
 Conflicts:   qmail
 Prereq:      /sbin/chkconfig
-BuildRoot:   /tmp/buildroot-%{name}-%{version}
+BuildRoot:	/tmp/%{name}-%{version}-root
 Summary(pl): Agent Pocztowy Postfix
 
 %description
