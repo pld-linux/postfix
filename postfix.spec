@@ -18,10 +18,12 @@ Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
 Source5:	%{name}.sysconfig
+Source6:	virtual.tar.gz
 Patch0:		%{name}-config.patch
 Patch1:		http://www.misiek.eu.org/ipv6/%{name}-ver20000922-ipv6-20000922.patch.gz
 Patch2:		%{name}-pl.patch
 Patch3:		%{name}-ldap2.patch
+Patch4:		%{name}-virtual.patch
 URL:		http://www.postfix.org/
 Provides:	smtpdaemon
 Requires:	rc-scripts
@@ -64,10 +66,12 @@ IPv6%{!?no_ldap: oraz LDAP} %{?no_ldap: i nie zawiera wsparcia LDAP}.
 
 %prep
 %setup -q -n snapshot-%{version}
+tar zxf %{SOURCE6}
 %patch0 -p1
 %patch1 -p1 
-%patch2 -p1 
+%patch2 -p1
 %patch3 -p1
+%patch4 -p1
 
 %build
 %{__make} -f Makefile.init makefiles
