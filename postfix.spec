@@ -1,9 +1,5 @@
 #
 # TODO:
-#	- kill all "implicit declaration of function" and "assignment
-#	  makes pointer from integer without a cast" warnings
-#	  (code causing such warnings may be fatal on some
-#	  architectures)
 #	- fix ipv6 patch against IPv4 RBLs
 #	- 0.0.0.0/0 is still being added to mynetworks if any ipv6/ip
 #	  tunnels are present
