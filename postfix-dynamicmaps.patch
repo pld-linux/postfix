@@ -1,5 +1,5 @@
---- postfix-1.1.3.orig/conf/dynamicmaps.cf
-+++ postfix-1.1.3/conf/dynamicmaps.cf
+--- postfix-2.0.16.orig/conf/dynamicmaps.cf	1970-01-01 01:00:00.000000000 +0100
++++ postfix-2.0.16/conf/dynamicmaps.cf	2003-11-08 19:52:14.000000000 +0100
 @@ -0,0 +1,9 @@
 +# Postfix dynamic maps configuration file.
 +#
@@ -10,8 +10,8 @@
 +#type	location of .so file			name of open function
 +#====	================================	=====================
 +*	/usr/lib/postfix/dict_%s.so		dict_%s_open
---- postfix-1.1.3.orig/src/dns/Makefile.in
-+++ postfix-1.1.3/src/dns/Makefile.in
+--- postfix-2.0.16.orig/src/dns/Makefile.in	2003-09-14 02:03:59.000000000 +0200
++++ postfix-2.0.16/src/dns/Makefile.in	2003-11-08 19:52:14.000000000 +0100
 @@ -15,7 +15,7 @@
  LIB_DIR	= ../../lib
  INC_DIR	= ../../include
@@ -21,8 +21,8 @@
  
  all: $(LIB)
  
-@@ -25,12 +25,10 @@
- test:	$(TESTPROG)
+@@ -27,12 +27,10 @@
+ tests:	test
  
  $(LIB):	$(OBJS)
 -	$(AR) $(ARFL) $(LIB) $?
@@ -35,65 +35,8 @@
  
  update: $(LIB_DIR)/$(LIB) $(HDRS)
  	-for i in $(HDRS); \
---- postfix-1.1.3.orig/src/global/Makefile.in
-+++ postfix-1.1.3/src/global/Makefile.in
-@@ -76,8 +76,9 @@
- LIB_DIR	= ../../lib
- INC_DIR	= ../../include
- MAKES	=
-+LDAPSO  = dict_ldap.so
- 
--.c.o:;	$(CC) $(CFLAGS) -c $*.c
-+.c.o:;	$(CC) -fPIC $(CFLAGS) -c $*.c
- 
- all: $(LIB)
- 
-@@ -87,14 +88,21 @@
- test:	$(TESTPROG)
- 
- $(LIB):	$(OBJS)
--	$(AR) $(ARFL) $(LIB) $?
--	$(RANLIB) $(LIB)
-+	gcc -shared -Wl,-soname,libpostfix-global.so.1 -o $(LIB) $(OBJS)
-+
-+$(LDAPSO): dict_ldap.o
-+	gcc -shared -Wl,-soname,dict_ldap.so -o $@ $? -lldap -llber -L../../lib -lutil -L. -lglobal
-+
-+dict_ldap.c:	../util/dict_ldap.c
-+	ln -f $? $@
- 
- $(LIB_DIR)/$(LIB): $(LIB)
- 	cp $(LIB) $(LIB_DIR)
--	$(RANLIB) $(LIB_DIR)/$(LIB)
- 
--update: $(LIB_DIR)/$(LIB) $(HDRS)
-+$(LIB_DIR)/$(LDAPSO): $(LDAPSO)
-+	cp $(LDAPSO) $(LIB_DIR)
-+
-+update: $(LIB_DIR)/$(LIB) $(LIB_DIR)/${LDAPSO} $(HDRS)
- 	-for i in $(HDRS); \
- 	do \
- 	  cmp -s $$i $(INC_DIR)/$$i 2>/dev/null || cp $$i $(INC_DIR); \
-@@ -232,7 +240,7 @@
- 	lint $(DEFS) $(SRCS) $(LINTFIX)
- 
- clean:
--	rm -f *.o $(LIB) *core $(TESTPROG) junk
-+	rm -f *.o $(LIB) $(LDAPSO) dict_ldap.c *core $(TESTPROG) junk
- 	rm -rf printfck
- 
- tidy:	clean
-@@ -508,6 +516,8 @@
- dict_proxy.o: mail_params.h
- dict_proxy.o: clnt_stream.h
- dict_proxy.o: dict_proxy.h
-+dict_ldap.o: dict_ldap.c
-+dict_ldap.o: ../../include/sys_defs.h
- domain_list.o: domain_list.c
- domain_list.o: ../../include/sys_defs.h
- domain_list.o: ../../include/match_list.h
---- postfix-1.1.3.orig/src/global/mail_conf.c
-+++ postfix-1.1.3/src/global/mail_conf.c
+--- postfix-2.0.16.orig/src/global/mail_conf.c	2002-01-14 17:24:35.000000000 +0100
++++ postfix-2.0.16/src/global/mail_conf.c	2003-11-08 19:52:14.000000000 +0100
 @@ -175,6 +175,13 @@
      path = concatenate(var_config_dir, "/", "main.cf", (char *) 0);
      dict_load_file(CONFIG_DICT, path);
@@ -108,26 +51,26 @@
  }
  
  /* mail_conf_eval - expand macros in string */
---- postfix-1.1.3.orig/src/global/mail_params.c
-+++ postfix-1.1.3/src/global/mail_params.c
+--- postfix-2.0.16.orig/src/global/mail_params.c	2003-11-08 19:49:41.000000000 +0100
++++ postfix-2.0.16/src/global/mail_params.c	2003-11-08 19:52:14.000000000 +0100
 @@ -148,6 +148,8 @@
  #ifdef HAS_DB
  #include <dict_db.h>
  #endif
 +#include <safe_open.h>
 +#include <mymalloc.h>
-
+ 
  /* Global library. */
-
-@@ -204,6 +206,7 @@
+ 
+@@ -257,6 +259,7 @@
  char   *var_debug_peer_list;
  int     var_debug_peer_level;
  char   *var_reject_reply_msg_access_denied;
 +int     var_command_maxtime;
  int     var_fault_inj_code;
-
- #define MAIN_CONF_FILE "main.cf"
-@@ -367,6 +370,38 @@
+ char   *var_bounce_service;
+ char   *var_cleanup_service;
+@@ -439,6 +442,38 @@
  		  (long) var_sgid_gid);
  }
  
@@ -166,7 +109,7 @@
  /* mail_params_init - configure built-in parameters */
  
  void    mail_params_init()
-@@ -481,6 +516,9 @@
+@@ -601,6 +636,9 @@
       * Variables that are needed by almost every program.
       */
      get_mail_conf_str_table(other_str_defaults);
@@ -176,8 +119,65 @@
      get_mail_conf_int_table(other_int_defaults);
      get_mail_conf_bool_table(bool_defaults);
      get_mail_conf_time_table(time_defaults);
---- postfix-1.1.3.orig/src/master/Makefile.in
-+++ postfix-1.1.3/src/master/Makefile.in
+--- postfix-2.0.16.orig/src/global/Makefile.in	2003-11-08 19:49:41.000000000 +0100
++++ postfix-2.0.16/src/global/Makefile.in	2003-11-08 19:52:14.000000000 +0100
+@@ -83,8 +83,9 @@
+ LIB_DIR	= ../../lib
+ INC_DIR	= ../../include
+ MAKES	=
++LDAPSO  = dict_ldap.so
+ 
+-.c.o:;	$(CC) $(CFLAGS) -c $*.c
++.c.o:;	$(CC) -fPIC $(CFLAGS) -c $*.c
+ 
+ all: $(LIB)
+ 
+@@ -94,14 +95,21 @@
+ test:	$(TESTPROG)
+ 
+ $(LIB):	$(OBJS)
+-	$(AR) $(ARFL) $(LIB) $?
+-	$(RANLIB) $(LIB)
++	gcc -shared -Wl,-soname,libpostfix-global.so.1 -o $(LIB) $(OBJS)
++
++$(LDAPSO): dict_ldap.o
++	gcc -shared -Wl,-soname,dict_ldap.so -o $@ $? -lldap -llber -L../../lib -lutil -L. -lglobal
++
++dict_ldap.c:	../util/dict_ldap.c
++	ln -f $? $@
+ 
+ $(LIB_DIR)/$(LIB): $(LIB)
+ 	cp $(LIB) $(LIB_DIR)
+-	$(RANLIB) $(LIB_DIR)/$(LIB)
+ 
+-update: $(LIB_DIR)/$(LIB) $(HDRS)
++$(LIB_DIR)/$(LDAPSO): $(LDAPSO)
++	cp $(LDAPSO) $(LIB_DIR)
++
++update: $(LIB_DIR)/$(LIB) $(LIB_DIR)/${LDAPSO} $(HDRS)
+ 	-for i in $(HDRS); \
+ 	do \
+ 	  cmp -s $$i $(INC_DIR)/$$i 2>/dev/null || cp $$i $(INC_DIR); \
+@@ -333,7 +341,7 @@
+ 	lint $(DEFS) $(SRCS) $(LINTFIX)
+ 
+ clean:
+-	rm -f *.o $(LIB) *core $(TESTPROG) junk
++	rm -f *.o $(LIB) $(LDAPSO) dict_ldap.c *core $(TESTPROG) junk
+ 	rm -rf printfck
+ 
+ tidy:	clean
+@@ -508,6 +516,8 @@
+ dict_proxy.o: mail_params.h
+ dict_proxy.o: clnt_stream.h
+ dict_proxy.o: dict_proxy.h
++dict_ldap.o: dict_ldap.c
++dict_ldap.o: ../../include/sys_defs.h
+ domain_list.o: domain_list.c
+ domain_list.o: ../../include/sys_defs.h
+ domain_list.o: ../../include/match_list.h
+--- postfix-2.0.16.orig/src/master/Makefile.in	2003-09-14 02:04:02.000000000 +0200
++++ postfix-2.0.16/src/master/Makefile.in	2003-11-08 19:52:14.000000000 +0100
 @@ -23,7 +23,7 @@
  INC_DIR	= ../../include
  BIN_DIR	= ../../libexec
@@ -187,8 +187,8 @@
  
  all:	$(PROG) $(LIB)
  
-@@ -36,12 +36,10 @@
- test:	$(TESTPROG)
+@@ -38,12 +38,10 @@
+ tests:	test
  
  $(LIB):	$(LIB_OBJ)
 -	$(AR) $(ARFL) $(LIB) $?
@@ -201,115 +201,9 @@
  
  $(BIN_DIR)/$(PROG): $(PROG)
  	 cp $(PROG) $(BIN_DIR)
---- postfix-1.1.5.orig/src/util/Makefile.in
-+++ postfix-1.1.5/src/util/Makefile.in
-@@ -3,7 +3,7 @@
- 	attr_scan0.c attr_scan64.c base64_code.c basename.c binhash.c \
- 	chroot_uid.c clean_env.c close_on_exec.c concatenate.c ctable.c \
- 	dict.c dict_alloc.c dict_db.c dict_dbm.c dict_debug.c dict_env.c \
--	dict_ht.c dict_ldap.c dict_mysql.c dict_ni.c dict_nis.c \
-+	dict_ht.c dict_mysql.c dict_ni.c dict_nis.c \
- 	dict_nisplus.c dict_open.c dict_pcre.c dict_regexp.c dict_static.c \
- 	dict_tcp.c dict_unix.c dir_forest.c doze.c duplex_pipe.c \
- 	environ.c events.c exec_command.c fifo_listen.c fifo_trigger.c \
-@@ -26,13 +26,13 @@
- 	unix_connect.c unix_listen.c unix_trigger.c unsafe.c username.c \
- 	valid_hostname.c vbuf.c vbuf_print.c vstream.c vstream_popen.c \
- 	vstring.c vstring_vstream.c watchdog.c writable.c write_buf.c \
--	write_wait.c strcasecmp.c nvtable.c host_port.c dict_sdbm.c sdbm.c
-+	write_wait.c strcasecmp.c nvtable.c host_port.c dict_sdbm.c sdbm.c load_lib.c
- OBJS	= alldig.o argv.o argv_split.o attr_print0.o attr_print64.o \
- 	attr_scan0.o attr_scan64.o base64_code.o basename.o binhash.o \
- 	chroot_uid.o clean_env.o close_on_exec.o concatenate.o ctable.o \
- 	dict.o dict_alloc.o dict_db.o dict_dbm.o dict_debug.o dict_env.o \
--	dict_ht.o dict_ldap.o dict_mysql.o dict_ni.o dict_nis.o \
--	dict_nisplus.o dict_open.o dict_pcre.o dict_regexp.o dict_static.o \
-+	dict_ht.o dict_ni.o dict_nis.o \
-+	dict_nisplus.o dict_open.o dict_regexp.o dict_static.o \
- 	dict_tcp.o dict_unix.o dir_forest.o doze.o duplex_pipe.o \
- 	environ.o events.o exec_command.o fifo_listen.o fifo_trigger.o \
- 	file_limit.o find_inet.o fsspace.o fullname.o get_domainname.o \
-@@ -54,7 +54,7 @@
- 	unix_connect.o unix_listen.o unix_trigger.o unsafe.o username.o \
- 	valid_hostname.o vbuf.o vbuf_print.o vstream.o vstream_popen.o \
- 	vstring.o vstring_vstream.o watchdog.o writable.o write_buf.o \
--	write_wait.o nvtable.o $(STRCASE) host_port.o dict_sdbm.o sdbm.o
-+	write_wait.o nvtable.o $(STRCASE) host_port.o dict_sdbm.o sdbm.o load_lib.o
- HDRS	= argv.h attr.h base64_code.h binhash.h chroot_uid.h clean_env.h \
- 	connect.h ctable.h dict.h dict_db.h dict_dbm.h dict_env.h \
- 	dict_ht.h dict_ldap.h dict_mysql.h dict_ni.h dict_nis.h \
-@@ -71,7 +71,7 @@
- 	scan_dir.h set_eugid.h set_ugid.h sigdelay.h spawn_command.h \
- 	split_at.h stat_as.h stringops.h sys_defs.h timed_connect.h \
- 	timed_wait.h trigger.h username.h valid_hostname.h vbuf.h \
--	vbuf_print.h vstream.h vstring.h vstring_vstream.h watchdog.h \
-+	vbuf_print.h vstream.h vstring.h vstring_vstream.h watchdog.h load_lib.h \
- 	nvtable.h host_port.h dict_sdbm.h sdbm.h
- TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
- 	stream_test.c dup2_pass_on_exec.c
-@@ -82,6 +82,8 @@
- CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
- FILES	= Makefile $(SRCS) $(HDRS)
- INCL	=
-+PCRESO  = dict_pcre.so
-+MYSQLSO = dict_mysql.so
- LIB	= libutil.a
- TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
- 	fifo_rdonly_bug fifo_rdwr_bug fifo_trigger fsspace fullname \
-@@ -94,8 +96,9 @@
- 
- LIB_DIR	= ../../lib
- INC_DIR	= ../../include
-+LIBS    = $(LIB_DIR)/$(LIB) $(LIB_DIR)/$(PCRESO) $(LIB_DIR)/$(MYSQLSO)
- 
--.c.o:;	$(CC) $(CFLAGS) -c $*.c
-+.c.o:;	$(CC) -fPIC $(CFLAGS) -c $*.c
- 
- all: $(LIB)
- 
-@@ -104,15 +107,25 @@
- 
- test:	$(TESTPROG)
- 
-+$(PCRESO): dict_pcre.o
-+	gcc -shared -Wl,-soname,dict_pcre.so -o $@ $? -lpcre -L. -lutil
-+
-+$(MYSQLSO): dict_mysql.o
-+	gcc -shared -Wl,-soname,dict_mysql.so -o $@ $? -lmysqlclient -L. -lutil
-+
- $(LIB):	$(OBJS)
--	$(AR) $(ARFL) $(LIB) $?
--	$(RANLIB) $(LIB)
-+	gcc -shared -Wl,-soname,libpostfix-util.so.1 -o $(LIB) $(OBJS) -ldl
- 
- $(LIB_DIR)/$(LIB): $(LIB)
- 	cp $(LIB) $(LIB_DIR)
--	$(RANLIB) $(LIB_DIR)/$(LIB)
- 
--update: $(LIB_DIR)/$(LIB) $(HDRS)
-+$(LIB_DIR)/$(PCRESO): $(PCRESO)
-+	cp $(PCRESO) $(LIB_DIR)
-+
-+$(LIB_DIR)/$(MYSQLSO): $(MYSQLSO)
-+	cp $(MYSQLSO) $(LIB_DIR)
-+
-+update: $(LIBS) $(HDRS)
- 	-for i in $(HDRS); \
- 	do \
- 	  cmp -s $$i $(INC_DIR)/$$i 2>/dev/null || cp $$i $(INC_DIR); \
-@@ -134,7 +147,8 @@
- 	lint $(SRCS)
- 
- clean:
--	rm -f *.o $(LIB) *core $(TESTPROG) junk $(MAKES) *.tmp
-+	rm -f *.o $(LIB) $(PCRESO) $(MYSQLSO) *core $(TESTPROG) \
-+		junk $(MAKES) *.tmp
- 	rm -rf printfck
- 
- tidy:	clean
---- postfix-1.1.3.orig/src/util/dict.h
-+++ postfix-1.1.3/src/util/dict.h
-@@ -74,6 +74,20 @@
+--- postfix-2.0.16.orig/src/util/dict.h	2003-01-05 02:03:28.000000000 +0100
++++ postfix-2.0.16/src/util/dict.h	2003-11-08 19:52:14.000000000 +0100
+@@ -80,6 +80,20 @@
    */
  extern ARGV *dict_mapnames(void);
  
@@ -330,9 +224,9 @@
   /*
    * High-level interface, with logical dictionary names.
    */
---- postfix-1.1.3.orig/src/util/dict_open.c
-+++ postfix-1.1.3/src/util/dict_open.c
-@@ -150,6 +150,9 @@
+--- postfix-2.0.16.orig/src/util/dict_open.c	2003-11-08 19:49:41.000000000 +0100
++++ postfix-2.0.16/src/util/dict_open.c	2003-11-08 19:52:14.000000000 +0100
+@@ -158,6 +158,9 @@
  #include <strings.h>
  #endif
  
@@ -342,7 +236,7 @@
  /* Utility library. */
  
  #include <argv.h>
-@@ -173,6 +176,14 @@
+@@ -182,6 +185,14 @@
  #include <split_at.h>
  #include <htable.h>
  
@@ -357,7 +251,7 @@
   /*
    * lookup table for available map types.
    */
-@@ -203,6 +214,7 @@
+@@ -213,6 +224,7 @@
  #ifdef HAS_NETINFO
      DICT_TYPE_NETINFO, dict_ni_open,
  #endif
@@ -365,7 +259,7 @@
  #ifdef HAS_LDAP
      DICT_TYPE_LDAP, dict_ldap_open,
  #endif
-@@ -212,6 +224,7 @@
+@@ -222,6 +234,7 @@
  #ifdef HAS_PCRE
      DICT_TYPE_PCRE, dict_pcre_open,
  #endif
@@ -373,7 +267,7 @@
  #ifdef HAS_POSIX_REGEXP
      DICT_TYPE_REGEXP, dict_regexp_open,
  #endif
-@@ -264,8 +277,38 @@
+@@ -275,8 +288,38 @@
  
      if (dict_open_hash == 0)
  	dict_open_init();
@@ -414,11 +308,10 @@
      if ((dict = dp->open(dict_name, open_flags, dict_flags)) == 0)
  	msg_fatal("opening %s:%s %m", dict_type, dict_name);
      if (msg_verbose)
-@@ -311,6 +354,76 @@
-     argv_terminate(mapnames);
+@@ -323,6 +366,76 @@
      return mapnames;
  }
-+
+ 
 +#ifndef NO_DYNAMIC_MAPS
 +static DLINFO  *dict_dlinfo;
 +
@@ -488,11 +381,12 @@
 +    return NULL;
 +}
 +#endif /* !NO_DYNAMIC_MAPS */
- 
++
  #ifdef TEST
  
---- postfix-1.1.3.orig/src/util/load_lib.c
-+++ postfix-1.1.3/src/util/load_lib.c
+  /*
+--- postfix-2.0.16.orig/src/util/load_lib.c	1970-01-01 01:00:00.000000000 +0100
++++ postfix-2.0.16/src/util/load_lib.c	2003-11-08 19:52:14.000000000 +0100
 @@ -0,0 +1,135 @@
 +/*++
 +/* NAME
@@ -629,8 +523,8 @@
 +#endif
 +    return 0;
 +}
---- postfix-1.1.3.orig/src/util/load_lib.h
-+++ postfix-1.1.3/src/util/load_lib.h
+--- postfix-2.0.16.orig/src/util/load_lib.h	1970-01-01 01:00:00.000000000 +0100
++++ postfix-2.0.16/src/util/load_lib.h	2003-11-08 19:52:14.000000000 +0100
 @@ -0,0 +1,41 @@
 +#ifndef _LOAD_LIB_H_INCLUDED_
 +#define _LOAD_LIB_H_INCLUDED_
@@ -673,9 +567,115 @@
 +/*--*/
 +
 +#endif
---- postfix-1.1.3.orig/src/util/sys_defs.h
-+++ postfix-1.1.3/src/util/sys_defs.h
-@@ -498,6 +498,7 @@
+--- postfix-2.0.16.orig/src/util/Makefile.in	2003-11-08 19:49:41.000000000 +0100
++++ postfix-2.0.16/src/util/Makefile.in	2003-11-08 19:55:55.000000000 +0100
+@@ -3,7 +3,7 @@
+ 	attr_scan0.c attr_scan64.c base64_code.c basename.c binhash.c \
+ 	chroot_uid.c clean_env.c close_on_exec.c concatenate.c ctable.c \
+ 	dict.c dict_alloc.c dict_db.c dict_dbm.c dict_debug.c dict_env.c \
+-	dict_ht.c dict_ldap.c dict_mysql.c dict_ni.c dict_nis.c \
++	dict_ht.c dict_mysql.c dict_ni.c dict_nis.c \
+ 	dict_nisplus.c dict_open.c dict_pcre.c dict_regexp.c dict_static.c \
+ 	dict_tcp.c dict_unix.c dir_forest.c doze.c duplex_pipe.c \
+ 	environ.c events.c exec_command.c fifo_listen.c fifo_trigger.c \
+@@ -27,13 +27,13 @@
+ 	valid_hostname.c vbuf.c vbuf_print.c vstream.c vstream_popen.c \
+ 	vstring.c vstring_vstream.c watchdog.c writable.c write_buf.c \
+ 	write_wait.c strcasecmp.c nvtable.c host_port.c sane_connect.c \
+-	dict_sdbm.c sdbm.c
++	dict_sdbm.c sdbm.c load_lib.c
+ OBJS	= alldig.o argv.o argv_split.o attr_print0.o attr_print64.o \
+ 	attr_scan0.o attr_scan64.o base64_code.o basename.o binhash.o \
+ 	chroot_uid.o clean_env.o close_on_exec.o concatenate.o ctable.o \
+ 	dict.o dict_alloc.o dict_db.o dict_dbm.o dict_debug.o dict_env.o \
+-	dict_ht.o dict_ldap.o dict_mysql.o dict_ni.o dict_nis.o \
+-	dict_nisplus.o dict_open.o dict_pcre.o dict_regexp.o dict_static.o \
++	dict_ht.o dict_ni.o dict_nis.o \
++	dict_nisplus.o dict_open.o dict_regexp.o dict_static.o \
+ 	dict_tcp.o dict_unix.o dir_forest.o doze.o duplex_pipe.o \
+ 	environ.o events.o exec_command.o fifo_listen.o fifo_trigger.o \
+ 	file_limit.o find_inet.o fsspace.o fullname.o get_domainname.o \
+@@ -56,7 +56,7 @@
+ 	valid_hostname.o vbuf.o vbuf_print.o vstream.o vstream_popen.o \
+ 	vstring.o vstring_vstream.o watchdog.o writable.o write_buf.o \
+ 	write_wait.o nvtable.o host_port.o sane_connect.o \
+-	dict_sdbm.o sdbm.o $(STRCASE)
++	dict_sdbm.o sdbm.o load_lib.o $(STRCASE)
+ HDRS	= argv.h attr.h base64_code.h binhash.h chroot_uid.h clean_env.h \
+ 	connect.h ctable.h dict.h dict_db.h dict_dbm.h dict_env.h \
+ 	dict_ht.h dict_ldap.h dict_mysql.h dict_ni.h dict_nis.h \
+@@ -74,7 +74,7 @@
+ 	split_at.h stat_as.h stringops.h sys_defs.h timed_connect.h \
+ 	timed_wait.h trigger.h username.h valid_hostname.h vbuf.h \
+ 	vbuf_print.h vstream.h vstring.h vstring_vstream.h watchdog.h \
+-	nvtable.h host_port.h sane_connect.h dict_sdbm.h sdbm.h
++	load_lib.h nvtable.h host_port.h sane_connect.h dict_sdbm.h sdbm.h
+ TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
+ 	stream_test.c dup2_pass_on_exec.c
+ WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
+@@ -84,6 +84,8 @@
+ CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
+ FILES	= Makefile $(SRCS) $(HDRS)
+ INCL	=
++PCRESO  = dict_pcre.so
++MYSQLSO = dict_mysql.so
+ LIB	= libutil.a
+ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
+ 	fifo_rdonly_bug fifo_rdwr_bug fifo_trigger fsspace fullname \
+@@ -96,8 +98,9 @@
+ 
+ LIB_DIR	= ../../lib
+ INC_DIR	= ../../include
++LIBS    = $(LIB_DIR)/$(LIB) $(LIB_DIR)/$(PCRESO) $(LIB_DIR)/$(MYSQLSO)
+ 
+-.c.o:;	$(CC) $(CFLAGS) -c $*.c
++.c.o:;	$(CC) -fPIC $(CFLAGS) -c $*.c
+ 
+ all: $(LIB)
+ 
+@@ -106,15 +109,25 @@
+ 
+ test:	$(TESTPROG)
+ 
++$(PCRESO): dict_pcre.o
++	gcc -shared -Wl,-soname,dict_pcre.so -o $@ $? -lpcre -L. -lutil
++
++$(MYSQLSO): dict_mysql.o
++	gcc -shared -Wl,-soname,dict_mysql.so -o $@ $? -lmysqlclient -L. -lutil
++
+ $(LIB):	$(OBJS)
+-	$(AR) $(ARFL) $(LIB) $?
+-	$(RANLIB) $(LIB)
++	gcc -shared -Wl,-soname,libpostfix-util.so.1 -o $(LIB) $(OBJS) -ldl
+ 
+ $(LIB_DIR)/$(LIB): $(LIB)
+ 	cp $(LIB) $(LIB_DIR)
+-	$(RANLIB) $(LIB_DIR)/$(LIB)
+ 
+-update: $(LIB_DIR)/$(LIB) $(HDRS)
++$(LIB_DIR)/$(PCRESO): $(PCRESO)
++	cp $(PCRESO) $(LIB_DIR)
++
++$(LIB_DIR)/$(MYSQLSO): $(MYSQLSO)
++	cp $(MYSQLSO) $(LIB_DIR)
++
++update: $(LIBS) $(HDRS)
+ 	-for i in $(HDRS); \
+ 	do \
+ 	  cmp -s $$i $(INC_DIR)/$$i 2>/dev/null || cp $$i $(INC_DIR); \
+@@ -136,7 +149,8 @@
+ 	lint $(SRCS)
+ 
+ clean:
+-	rm -f *.o $(LIB) *core $(TESTPROG) junk $(MAKES) *.tmp
++	rm -f *.o $(LIB) $(PCRESO) $(MYSQLSO) *core $(TESTPROG) \
++		junk $(MAKES) *.tmp
+ 	rm -rf printfck
+ 
+ tidy:	clean
+--- postfix-2.0.16.orig/src/util/sys_defs.h	2003-11-08 19:49:41.000000000 +0100
++++ postfix-2.0.16/src/util/sys_defs.h	2003-11-08 19:52:14.000000000 +0100
+@@ -501,6 +501,7 @@
  #define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT
  #define PREPEND_PLUS_TO_OPTSTRING
  #define HAS_POSIX_REGEXP
@@ -683,7 +683,7 @@
  #define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
  #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
  #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
-@@ -526,6 +527,7 @@
+@@ -529,6 +530,7 @@
  #define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT	/* unverified */
  #define PREPEND_PLUS_TO_OPTSTRING
  #define HAS_POSIX_REGEXP
@@ -691,7 +691,7 @@
  #define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
  #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
  #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
-@@ -564,6 +566,7 @@
+@@ -567,6 +569,7 @@
  #define USE_STATFS
  #define STATFS_IN_SYS_VFS_H
  #define HAS_POSIX_REGEXP
@@ -699,7 +699,7 @@
  #define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
  #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
  #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
-@@ -599,6 +602,7 @@
+@@ -602,6 +605,7 @@
  #define USE_STATFS
  #define STATFS_IN_SYS_VFS_H
  #define HAS_POSIX_REGEXP
