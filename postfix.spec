@@ -25,10 +25,11 @@ Patch3:		%{name}-ldap2.patch
 URL:		http://www.postfix.org/
 Provides:	smtpdaemon
 Requires:	rc-scripts
-%{!?no_ldap:BuildRequires:	openldap-devel}
+%{!?no_ldap:BuildRequires:	openldap-devel >= 2.0.0}
 BuildRequires:	openssl-devel >= 0.9.4-2
 %{!?no_pcre:BuildRequires:	pcre-devel}
 %{!?no_sasl:BuildRequires:	cyrus-sasl-devel}
+BuildRequires:	db3-devel
 BuildRequires:	grep
 Obsoletes:	smtpdaemon
 Obsoletes:	exim
@@ -70,22 +71,23 @@ IPv6%{!?no_ldap: oraz LDAP} %{?no_ldap: i nie zawiera wsparcia LDAP}.
 %build
 %{__make} -f Makefile.init makefiles
 %{__make} tidy
-%{__make} DEBUG="" OPT="-g $RPM_OPT_FLAGS" \
-     CCARGS="%{!?no_ldap:-DHAS_LDAP} %{!?no_pcre:-DHAS_PCRE} %{!?no_sasl:-DUSE_SASL_AUTH } " AUXLIBS="%{!?no_ldap:-llber -lldap} -lnsl -ldb -lresolv %{!?no_pcre:-lpcre} %{!?no_sasl:-lsasl}"
+%{__make} DEBUG="" OPT="%{!?debug:$RPM_OPT_FLAGS}%{?debug:-O -g}" \
+	CCARGS="%{!?no_ldap:-DHAS_LDAP} %{!?no_pcre:-DHAS_PCRE} %{!?no_sasl:-DUSE_SASL_AUTH}" \
+	AUXLIBS="%{!?no_ldap:-llber -lldap} -lnsl -ldb -lresolv %{!?no_pcre:-lpcre} %{!?no_sasl:-lsasl}"
 
 %install
 rm -rf $RPM_BUILD_ROOT
-rm -f {html,man}/Makefile.in conf/{LICENSE,main.cf.default}
-
 install -d $RPM_BUILD_ROOT%{_sysconfdir}/{mail,cron.daily,rc.d/init.d,sysconfig} \
 	   $RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,%{_mandir}/man{1,5,8}} \
 	   $RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public} \
 	   pfixtls
 
+rm -f {html,man}/Makefile.in conf/{LICENSE,main.cf.default}
+
 install -d sample-conf; mv -f conf/sample* sample-conf/ || :
 
-install -s bin/* $RPM_BUILD_ROOT%{_sbindir}
-install -s libexec/* $RPM_BUILD_ROOT%{_libdir}/postfix
+install bin/* $RPM_BUILD_ROOT%{_sbindir}
+install libexec/* $RPM_BUILD_ROOT%{_libdir}/postfix
 #install bin/* $RPM_BUILD_ROOT%{_sbindir}
 #install libexec/* $RPM_BUILD_ROOT%{_libdir}/postfix
 install conf/* $RPM_BUILD_ROOT%{_sysconfdir}/mail
@@ -109,12 +111,10 @@ rm -f $RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script-{diff,nosgid}
 touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 	{aliases,access,canonical,relocated,transport,virtual}{,.db}
 
-gzip -9nf $RPM_BUILD_ROOT%{_mandir}/man*/* \
-	LDAP_README HISTORY MYSQL_README UUCP_README \
-	0README BEWARE COMPATIBILITY DEBUG_README LICENSE LMTP_README \
-	PCRE_README  \
+gzip -9nf LDAP_README HISTORY MYSQL_README UUCP_README 0README BEWARE \
+	COMPATIBILITY DEBUG_README LICENSE LMTP_README PCRE_README \
 	RELEASE_NOTES RESTRICTION_CLASS SASL_README TODO FILTER_README
-		
+
 touch $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
 %pre
