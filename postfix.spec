@@ -18,16 +18,18 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	1.1.12
-Release:	3
+Release:	4
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
+# Source0-md5:	d1d0f9792ec6ea063ccca59184e54212
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
 Source5:	%{name}.sysconfig
 Source6:	ftp://ftp.aet.tu-cottbus.de/pub/pfixtls/old/pfixtls-%{tls_ver}.tar.gz
+# Source6-md5:	8ca05709d753b4e767c0fc4ba857350f
 Source7:	%{name}.sasl
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
@@ -36,6 +38,7 @@ Patch3:		%{name}-pgsql.patch
 Patch4:		%{name}-master.cf_cyrus.patch
 Patch5:		%{name}-ipv6.patch
 Patch6:		%{name}-pl.patch
+Patch7:		%{name}-loop.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{!?_without_sasl:BuildRequires:	cyrus-sasl-devel}
@@ -44,24 +47,25 @@ BuildRequires:	grep
 %{!?_without_ipv6:BuildRequires:	libinet6 >= 0.20030228}
 %{!?_without_mysql:BuildRequires:	mysql-devel}
 %{!?_without_ldap:BuildRequires:	openldap-devel >= 2.0.0}
-%{!?_without_ssl:BuildRequires:	openssl-devel >= 0.9.6i}
+%{!?_without_ssl:BuildRequires:	openssl-devel >= 0.9.6j}
 BuildRequires:	pcre-devel
 %{!?_without_pgsql:BuildRequires:	postgresql-devel}
 PreReq:		rc-scripts
 PreReq:		sed
+Requires(pre):	/bin/id
+Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/useradd
 Requires(pre):	/usr/sbin/groupadd
-Requires(pre):	/usr/bin/getgid
-Requires(pre):	/bin/id
 Requires(post):	/bin/hostname
-Requires(post,postun):/sbin/ldconfig
 Requires(post,preun):/sbin/chkconfig
-Requires(postun):	/usr/sbin/userdel
+Requires(post,postun):/sbin/ldconfig
 Requires(postun):	/usr/sbin/groupdel
-%{!?_without_ssl:Requires:	openssl >= 0.9.6i}
-BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
+Requires(postun):	/usr/sbin/userdel
+%{!?_without_ssl:Requires:	openssl >= 0.9.6j}
+Requires:	diffutils
+Requires:	findutils
 Provides:	smtpdaemon
-Obsoletes:	smtpdaemon
+BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 Obsoletes:	exim
 Obsoletes:	masqmail
 Obsoletes:	omta
@@ -70,9 +74,8 @@ Obsoletes:	sendmail
 Obsoletes:	sendmail-cf
 Obsoletes:	sendmail-doc
 Obsoletes:	smail
+Obsoletes:	smtpdaemon
 Obsoletes:	zmailer
-Requires:	diffutils
-Requires:	findutils
 
 %description
 Postfix is attempt to provide an alternative to the widely-used
@@ -203,6 +206,7 @@ patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 %patch4 -p1
 %{!?_without_ipv6:%patch5 -p1}
 %{?_with_polish:%patch6 -p1}
+%patch7 -p1
 
 %build
 %{__make} -f Makefile.init makefiles
@@ -325,9 +329,7 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 
 %files
 %defattr(644,root,root,755)
-%doc html *README COMPATIBILITY HISTORY LICENSE RELEASE_NOTES
-%doc README_FILES/*README
-%doc sample-conf
+%doc html *README COMPATIBILITY HISTORY LICENSE RELEASE_NOTES README_FILES/*README sample-conf
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/access
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/aliases
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/canonical
