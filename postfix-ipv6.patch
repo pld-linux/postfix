@@ -1676,7 +1676,7 @@ diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/util/in
  
  #ifndef INADDR_NONE
  #define INADDR_NONE 0xffffffff
-@@ -48,15 +51,45 @@
+@@ -48,15 +51,47 @@
  
  #include <inet_addr_list.h>
  #include <inet_addr_host.h>
@@ -1708,6 +1708,8 @@ diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/util/in
 +    error = getaddrinfo(hostname, NULL, &hints, &res0);
 +    if (error == 0) {
 +	for (res = res0; res; res = res->ai_next) {
++	    if(res->ai_family != AF_INET && res->ai_family != AF_INET6)
++		continue;
 +	    /* filter out address families that are not supported */
 +	    s = socket(res->ai_family, SOCK_DGRAM, 0);
 +	    if (s < 0)
