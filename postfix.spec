@@ -5,8 +5,8 @@
 %bcond_without	pgsql	# without PostgreSQL map module
 %bcond_without	sasl	# without SMTP AUTH support
 %bcond_without	ssl	# without SSL/TLS support
+%bcond_without	cdb	# with cdb map support
 %bcond_with	polish	# with double English+Polish messages
-%bcond_with	cdb	# with cdb map support
 #
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
@@ -17,7 +17,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.0.18
-Release:	1.1
+Release:	1
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
