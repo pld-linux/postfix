@@ -5,7 +5,7 @@ Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
 Name:		postfix
 Version:	%{ver}_pl%{patchl}
-Release:	1
+Release:	2
 Group:		Networking/Daemons
 Group(pl):	Sieciowe/Serwery
 Copyright:	Distributable
@@ -78,6 +78,12 @@ install -s bin/* $RPM_BUILD_ROOT%{_sbindir}
 install -s libexec/* $RPM_BUILD_ROOT%{_libdir}/postfix
 install conf/* $RPM_BUILD_ROOT%{_sysconfdir}/mail
 
+sed -e "s/^#myhostname = host.domain.name/myhostname = @HOSTNAME@ /" \
+	<$RPM_BUILD_ROOT%{_sysconfdir}/mail/main.cf \
+	>$RPM_BUILD_ROOT%{_sysconfdir}/mail/main.cf.work
+mv -f $RPM_BUILD_ROOT%{_sysconfdir}/mail/main.cf.work \
+      $RPM_BUILD_ROOT%{_sysconfdir}/mail/main.cf
+
 (cd man; tar cf - .) | (cd $RPM_BUILD_ROOT%{_mandir}; tar xf -)
 
 install %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/mail/aliases
@@ -144,6 +150,12 @@ if ! grep -q "^postmaster:" /etc/mail/aliases; then
         echo "Adding Entry for postmaster in /etc/mail/aliases" >&2
         echo "postmaster:       root" >>/etc/mail/aliases
 fi
+if grep -q "@HOSTNAME@" /etc/mail/main.cf; then
+	sed -e "s/@HOSTNAME@/`hostname -f`/" /etc/mail/main.cf \
+	       >/etc/mail/main.cf.work
+	mv -f /etc/mail/main.cf.work /etc/main/main.cf
+fi
+
 newaliases
 /sbin/chkconfig --add postfix
 if [ -r /var/lock/subsys/postfix ]; then
