@@ -73,6 +73,7 @@ Provides:	smtpdaemon
 Obsoletes:	courier
 Obsoletes:	exim
 Obsoletes:	masqmail
+Obsoletes:	nullmailer
 Obsoletes:	omta
 Obsoletes:	qmail
 Obsoletes:	sendmail
