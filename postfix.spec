@@ -215,8 +215,8 @@ zcat %{SOURCE8} | patch -p1 -s
 %{?with_polish:%patch5 -p1}
 %{?with_cdb:%patch6 -p1}
 #patch7 -p1
-#patch8 -p1
-#patch9 -p1
+%patch8 -p1
+%patch9 -p1
 %{?with_cdb:sh dict_cdb.sh}
 #patch10 -p1
 
