@@ -10,7 +10,7 @@ Summary:	Postfix Mail Transport Agent
 Summary(pl):	Serwer SMTP Postfix
 Name:		postfix
 Version:	20010329
-Release:	3
+Release:	4
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
 Group(pl):	Sieciowe/Serwery
@@ -30,7 +30,7 @@ URL:		http://www.postfix.org/
 Provides:	smtpdaemon
 Prereq:		rc-scripts
 %{!?bcond_off_ldap:BuildRequires:	openldap-devel >= 2.0.0}
-%{!?bcond_off_ssl:BuildRequires:	openssl-devel >= 0.9.6-2}
+%{!?bcond_off_ssl:BuildRequires:	openssl-devel >= 0.9.6a}
 %{!?bcond_off_pcre:BuildRequires:	pcre-devel}
 %{!?bcond_off_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db3-devel
