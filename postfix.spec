@@ -24,6 +24,7 @@ Patch0:		%{name}-config.patch
 Patch1:		%{name}-pl.patch
 Patch2:		%{name}-ssl.patch
 Patch3:		%{name}-ipv6.patch.gz
+Patch4:		%{name}-script.patch
 URL:		http://www.postfix.org/
 Provides:	smtpdaemon
 Prereq:		rc-scripts
@@ -72,6 +73,7 @@ IPv6%{!?bcond_off_ldap: oraz LDAP}.
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
+%patch4 -p1
 
 %build
 %{__make} -f Makefile.init makefiles
