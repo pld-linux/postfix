@@ -3,7 +3,7 @@
 # postfix       This shell script takes care of starting and stopping
 #               postfix.
 #
-# chkconfig:	2345 80 30
+# chkconfig:	345 80 30
 #
 # description:	Postfix is a Mail Transport Agent, which is the program
 #		that moves mail from one machine to another.
