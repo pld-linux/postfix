@@ -13,7 +13,7 @@
 %bcond_without	sasl	# without SMTP AUTH support
 %bcond_without	ssl	# without SSL/TLS support
 %bcond_with	polish	# with double English+Polish messages
-%bcond_with	cdb	# tinycdb mapfile support
+%bcond_with	cdb	# with cdb map support
 #
 %define	tls_ver 0.8.16-2.0.16-0.9.7b
 Summary:	Postfix Mail Transport Agent
@@ -228,8 +228,8 @@ patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 	%{!?with_ldap:LDAPSO=""} \
 	%{!?with_mysql:MYSQLSO=""} \
 	%{!?with_pgsql:PGSQLSO=""} \
-	CCARGS="%{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL -I/usr/include/postgresql} %{?with_ssl:-DHAS_SSL -I/usr/include/openssl} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB -I/usr/include/cdb.h}" \
-	AUXLIBS="-ldb -lresolv %{?with_sasl:-lsasl} %{?with_ssl:-lssl -lcrypto} %{?with_cdb:-L/usr/lib/libcdb.a -lcdb}"
+	CCARGS="%{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL -I/usr/include/postgresql} %{?with_ssl:-DHAS_SSL -I/usr/include/openssl} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB}" \
+	AUXLIBS="-ldb -lresolv %{?with_sasl:-lsasl} %{?with_ssl:-lssl -lcrypto} %{?with_cdb:-lcdb}"
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -241,7 +241,7 @@ install -d $RPM_BUILD_ROOT/etc/{cron.daily,rc.d/init.d,sysconfig} \
 
 rm -f {html,man}/Makefile.in conf/{LICENSE,main.cf.default}
 
-install -d sample-conf; mv -f conf/sample* sample-conf/ || :
+install -d sample-conf; mv -f conf/sample* sample-conf || :
 
 install bin/* $RPM_BUILD_ROOT%{_sbindir}
 install libexec/* $RPM_BUILD_ROOT%{_libdir}/postfix
