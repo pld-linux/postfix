@@ -236,7 +236,7 @@
  /* Utility library. */
  
  #include <argv.h>
-@@ -182,6 +185,14 @@
+@@ -181,6 +184,14 @@
  #include <split_at.h>
  #include <htable.h>
  
@@ -251,15 +251,11 @@
   /*
    * lookup table for available map types.
    */
-@@ -213,6 +224,7 @@
+@@ -212,9 +223,11 @@
  #ifdef HAS_NETINFO
      DICT_TYPE_NETINFO, dict_ni_open,
  #endif
 +#ifndef MAX_DYNAMIC_MAPS
- #ifdef HAS_LDAP
-     DICT_TYPE_LDAP, dict_ldap_open,
- #endif
-@@ -222,6 +234,7 @@
  #ifdef HAS_PCRE
      DICT_TYPE_PCRE, dict_pcre_open,
  #endif
@@ -267,7 +263,7 @@
  #ifdef HAS_POSIX_REGEXP
      DICT_TYPE_REGEXP, dict_regexp_open,
  #endif
-@@ -275,8 +288,38 @@
+@@ -269,8 +282,38 @@
  
      if (dict_open_hash == 0)
  	dict_open_init();
@@ -308,7 +304,7 @@
      if ((dict = dp->open(dict_name, open_flags, dict_flags)) == 0)
  	msg_fatal("opening %s:%s %m", dict_type, dict_name);
      if (msg_verbose)
-@@ -323,6 +366,76 @@
+@@ -317,6 +360,76 @@
      return mapnames;
  }
  
