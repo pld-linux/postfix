@@ -35,8 +35,7 @@ Source3:	%{name}.init
 Source5:	%{name}.sysconfig
 Source6:	ftp://ftp.aet.tu-cottbus.de/pub/pfixtls/pfixtls-%{tls_ver}.tar.gz
 Source7:	%{name}.sasl
-# ftp://ftp.corpit.ru/pub/postfix/%{name}-dict_cdb-1.1.11-20021104.tar.gz
-%{?_with_cdb:Source8:%{name}-dict_cdb-1.1.11-20021104.tar.gz}
+Source8:	ftp://ftp.corpit.ru/pub/postfix/%{name}-dict_cdb-1.1.11-20021104.tar.gz
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
@@ -44,7 +43,7 @@ Patch3:		%{name}-pgsql.patch
 Patch4:		%{name}-master.cf_cyrus.patch
 Patch5:		%{name}-ipv6.patch
 Patch6:		%{name}-pl.patch
-%{?_with_cdb:Patch7:%{name}-cdb_man.patch}
+Patch7:		%{name}-cdb_man.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{!?_without_sasl:BuildRequires:	cyrus-sasl-devel}
