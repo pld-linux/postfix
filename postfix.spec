@@ -21,6 +21,7 @@ Source5:	%{name}.sysconfig
 Patch0:		%{name}-config.patch
 Patch1:		http://www.misiek.eu.org/ipv6/%{name}-ver20000922-ipv6-20000922.patch.gz
 Patch2:		%{name}-pl.patch
+Patch3:		%{name}-ldap2.patch
 URL:		http://www.postfix.org/
 Provides:	smtpdaemon
 Requires:	rc-scripts
@@ -64,6 +65,7 @@ IPv6%{!?no_ldap: oraz LDAP} %{?no_ldap: i nie zawiera wsparcia LDAP}.
 %patch0 -p1
 %patch1 -p1 
 %patch2 -p1 
+%patch3 -p1
 
 %build
 %{__make} -f Makefile.init makefiles
