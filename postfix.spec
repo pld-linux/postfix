@@ -25,6 +25,7 @@ Patch1:		%{name}-pl.patch
 Patch2:		%{name}-ssl.patch
 Patch3:		%{name}-ipv6.patch.gz
 Patch4:		%{name}-script.patch
+Patch5:		%{name}-conf_msg.patch
 URL:		http://www.postfix.org/
 Provides:	smtpdaemon
 Prereq:		rc-scripts
@@ -74,6 +75,7 @@ IPv6%{!?bcond_off_ldap: oraz LDAP}.
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
+%patch5 -p1 -b .wiget
 
 %build
 %{__make} -f Makefile.init makefiles
