@@ -1,10 +1,11 @@
 #
 # Conditional build:
+# _without_ipv6		- without IPv6 support
 # _without_ldap		- without LDAP map module
+# _without_mysql	- without MySQL map module
 # _without_pgsql	- without PostgreSQL map module
 # _without_sasl		- without SMTP AUTH support
 # _without_ssl		- without SSL/TLS support
-# _without_ipv6		- without IPv6 support
 # _with_polish		- with double English+Polish messages
 #
 %define	tls_ver 0.8.12-1.1.12-0.9.6h
