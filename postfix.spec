@@ -59,19 +59,22 @@ BuildRequires:	pcre-devel
 %{?with_cdb:BuildRequires:	tinycdb-devel}
 PreReq:		rc-scripts
 PreReq:		sed
-Requires(pre):	/usr/sbin/useradd
-Requires(pre):	/usr/sbin/groupadd
-Requires(pre):	/usr/bin/getgid
-Requires(pre):	/bin/id
+BuildRequires:	rpmbuild(macros) >= 1.159
 Requires(post):	/bin/hostname
-Requires(post,postun):	/sbin/ldconfig
+Requires(pre):	/bin/id
+Requires(pre):	/usr/bin/getgid
+Requires(pre):	/usr/sbin/groupadd
+Requires(pre):	/usr/sbin/useradd
 Requires(post,preun):	/sbin/chkconfig
-Requires(postun):	/usr/sbin/userdel
+Requires(post,postun):	/sbin/ldconfig
 Requires(postun):	/usr/sbin/groupdel
+Requires(postun):	/usr/sbin/userdel
 Requires:	diffutils
 Requires:	findutils
 %{?with_cdb:Requires:tinycdb}
+Provides:	group(postfix)
 Provides:	smtpdaemon
+Provides:	user(postfix)
 Obsoletes:	courier
 Obsoletes:	exim
 Obsoletes:	masqmail
@@ -293,7 +296,7 @@ if [ -n "`/usr/bin/getgid maildrop`" ]; then
 		exit 1
 	fi
 else
-	/usr/sbin/groupadd -g 63 -r -f maildrop
+	/usr/sbin/groupadd -g 63 maildrop
 fi
 if [ -n "`/bin/id -u postfix 2>/dev/null`" ]; then
 	if [ "`/bin/id -u postfix`" != "62" ]; then
@@ -301,7 +304,7 @@ if [ -n "`/bin/id -u postfix 2>/dev/null`" ]; then
 		exit 1
 	fi
 else
-	/usr/sbin/useradd -u 62 -r -d /var/spool/postfix -s /bin/false -c "Postfix User" -g postfix postfix 1>&2
+	/usr/sbin/useradd -u 62 -d /var/spool/postfix -s /bin/false -c "Postfix User" -g postfix postfix 1>&2
 fi
 
 %post
@@ -338,9 +341,9 @@ fi
 %postun
 /sbin/ldconfig
 if [ "$1" = "0" ]; then
-	/usr/sbin/groupdel maildrop 2> /dev/null
-	/usr/sbin/userdel postfix 2> /dev/null
-	/usr/sbin/groupdel postfix 2> /dev/null
+	%groupremove maildrop
+	%userremove postfix
+	%groupremove postfix
 fi
 
 %triggerpostun -- postfix < 1:1.1.2
