@@ -66,7 +66,7 @@ diff -dur postfix-2.1.3.orig/conf/main.cf postfix-2.1.3/conf/main.cf
  
  # The mailbox_transport specifies the optional transport in master.cf
  # to use after processing aliases and .forward files. This parameter
-@@ -588,44 +588,14 @@
+@@ -588,44 +588,22 @@
  #	echo where) | gdb $daemon_directory/$process_name $process_id 2>&1
  #	>$config_directory/$process_name.$process_id.log & sleep 5
  
@@ -113,6 +113,14 @@ diff -dur postfix-2.1.3.orig/conf/main.cf postfix-2.1.3/conf/main.cf
 -# readme_directory: The location of the Postfix README files.
 -#
 -readme_directory =
++# The unknown_address_reject_code parameter specifies the SMTP server
++# response when a client violates the reject_unknown_sender_domain
++# or reject_unknown_recipient_domain restrictions.
++#
++# Contrary to what Vietse thinks (450) this should be 550
++#
++unknown_address_reject_code = 550
++
 diff -dur postfix-2.1.3.orig/man/man1/postconf.1 postfix-2.1.3/man/man1/postconf.1
 --- postfix-2.1.3.orig/man/man1/postconf.1	2004-04-22 21:27:05.000000000 +0200
 +++ postfix-2.1.3/man/man1/postconf.1	2004-06-22 14:25:06.710151423 +0200
