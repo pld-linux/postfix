@@ -44,7 +44,7 @@ BuildRequires:	grep
 %{!?_without_ipv6:BuildRequires:	libinet6 >= 0.20010420-3}
 %{!?_without_mysql:BuildRequires:	mysql-devel}
 %{!?_without_ldap:BuildRequires:	openldap-devel >= 2.0.0}
-%{!?_without_ssl:BuildRequires:	openssl-devel >= 0.9.6a}
+%{!?_without_ssl:BuildRequires:	openssl-devel >= 0.9.6i}
 BuildRequires:	pcre-devel
 %{!?_without_pgsql:BuildRequires:	postgresql-devel}
 PreReq:		rc-scripts
@@ -58,6 +58,7 @@ Requires(post,postun):/sbin/ldconfig
 Requires(post,preun):/sbin/chkconfig
 Requires(postun):	/usr/sbin/userdel
 Requires(postun):	/usr/sbin/groupdel
+Requires:	openssl >= 0.9.6i
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 Provides:	smtpdaemon
 Obsoletes:	smtpdaemon
