@@ -5,7 +5,7 @@ Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
 Name:		postfix
 Version:	%{ver}_pl%{patchl}
-Release:	1
+Release:	2
 Group:		Networking/Daemons
 Group(pl):	Sieciowe/Serwery
 Copyright:	Distributable
