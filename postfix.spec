@@ -235,7 +235,8 @@ patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/{cron.daily,rc.d/init.d,sysconfig} \
 	$RPM_BUILD_ROOT%{_sysconfdir}/{mail,sasl} \
-	$RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,%{_includedir}/postfix,%{_mandir}/man{1,5,8}} \
+	$RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,/usr/lib}\
+	$RPM_BUILD_ROOT{%{_includedir}/postfix,%{_mandir}/man{1,5,8}} \
 	$RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public} \
 	pfixtls
 
@@ -265,7 +266,7 @@ install auxiliary/rmail/rmail $RPM_BUILD_ROOT%{_bindir}/rmail
 
 ln -sf /usr/sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
 ln -sf /usr/sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/newaliases
-ln -sf /usr/sbin/sendmail $RPM_BUILD_ROOT%{_libdir}/sendmail
+ln -sf /usr/sbin/sendmail $RPM_BUILD_ROOT/usr/lib/sendmail
 
 touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 	{aliases,access,canonical,relocated,transport,virtual}{,.db}
@@ -380,7 +381,7 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %attr(755,root,root) %{_sbindir}/postsuper
 %attr(2755,root,maildrop) %{_sbindir}/postdrop
 %attr(755,root,root) %{_sbindir}/qmqp-source
-%attr(755,root,root) %{_libdir}/sendmail
+%attr(755,root,root) /usr/lib/sendmail
 %dir %{_libdir}/postfix
 %attr(755,root,root) %{_libdir}/postfix/[!d]*
 %attr(755,root,root) %dir %{_var}/spool/postfix
