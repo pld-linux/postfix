@@ -1,0 +1,1 @@
+remove Requires: procmail (now we do not use it in default config)
