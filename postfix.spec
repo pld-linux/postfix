@@ -12,7 +12,7 @@ Summary(pl):	Serwer SMTP Postfix
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	1.1.3
-Release:	3
+Release:	4
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -49,7 +49,6 @@ Requires(post,postun):/sbin/ldconfig
 Requires(post,preun):/sbin/chkconfig
 Requires(postun):	/usr/sbin/userdel
 Requires(postun):	/usr/sbin/groupdel
-%{!?_without_ldap:PreReq:	openldap >= 2.0.0}
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 Provides:	smtpdaemon
 Obsoletes:	smtpdaemon
@@ -127,6 +126,7 @@ Summary:	LDAP map support for Postfix
 Summary(pl):	Obs³uga map LDAP dla Postfiksa
 Group:		Networking/Daemons
 Requires:	%{name} = %{version}
+Requires:	openldap >= 2.0.0
 
 %description dict-ldap
 This package provides support for LDAP maps in Postfix.
