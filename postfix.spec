@@ -48,7 +48,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	1.1.13
-Release:	2
+Release:	3
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -76,7 +76,7 @@ BuildRequires:	grep
 %{!?_without_ipv6:BuildRequires:	libinet6 >= 0.20030228}
 %{!?_without_mysql:BuildRequires:	mysql-devel}
 %{!?_without_ldap:BuildRequires:	openldap-devel >= 2.0.0}
-%{!?_without_ssl:BuildRequires:	openssl-devel >= 0.9.6j}
+%{!?_without_ssl:BuildRequires:	openssl-devel >= 0.9.6k}
 BuildRequires:	pcre-devel
 %{!?_without_pgsql:BuildRequires:	postgresql-devel}
 PreReq:		rc-scripts
@@ -90,7 +90,7 @@ Requires(post,preun):/sbin/chkconfig
 Requires(post,postun):/sbin/ldconfig
 Requires(postun):	/usr/sbin/groupdel
 Requires(postun):	/usr/sbin/userdel
-%{!?_without_ssl:Requires:	openssl >= 0.9.6j}
+%{!?_without_ssl:Requires:	openssl >= 0.9.6k}
 Requires:	diffutils
 Requires:	findutils
 Provides:	smtpdaemon
