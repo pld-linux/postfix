@@ -14,7 +14,7 @@
 # _with_polish		- with double English+Polish messages
 # _with_cdb		- tinycdb mapfile support
 #
-%define	tls_ver 0.8.15-2.0.13-0.9.7b
+%define	tls_ver 0.8.16-2.0.15-0.9.7b
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
 Summary(es):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -24,7 +24,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.0.15
-Release:	1
+Release:	2
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -47,6 +47,7 @@ Patch4:		%{name}-master.cf_cyrus.patch
 Patch5:		%{name}-ipv6.patch
 Patch6:		%{name}-pl.patch
 Patch7:		%{name}-cdb_man.patch
+Patch8:         %{name}-ns-mx-acl.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{!?_without_sasl:BuildRequires:	cyrus-sasl-devel}
@@ -216,6 +217,7 @@ patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 %{!?_without_ipv6:%patch5 -p1}
 %{?_with_polish:%patch6 -p1}
 %{?_with_cdb:%patch7 -p1}
+%patch8 -p1
 %{?_with_cdb:sh dict_cdb.sh}
 
 %build
