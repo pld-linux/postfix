@@ -1,9 +1,4 @@
 #
-# TODO:
-#	- fix ipv6 patch against IPv4 RBLs
-#	- 0.0.0.0/0 is still being added to mynetworks if any ipv6/ip
-#	  tunnels are present
-#
 # Conditional build:
 %bcond_without	ldap	# without LDAP map module
 %bcond_without	mysql	# without MySQL map module
@@ -13,7 +8,6 @@
 %bcond_with	polish	# with double English+Polish messages
 %bcond_with	cdb	# with cdb map support
 #
-%define	tls_ver 0.8.16-2.0.16-0.9.7b
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
 Summary(es):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
