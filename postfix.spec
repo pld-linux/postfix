@@ -71,7 +71,7 @@ IPv6%{!?bcond_off_ldap: oraz LDAP} %{?bcond_off_ldap: i nie zawiera wsparcia LDA
 %build
 %{__make} -f Makefile.init makefiles
 %{__make} tidy
-%{__make} DEBUG="" OPT="%{?debug:-O -g}%{!?debug:$RPM_OPT_FLAGS}" \
+%{__make} DEBUG="" OPT="%{?debug:-O0 -g}%{!?debug:$RPM_OPT_FLAGS}" \
 	CCARGS="%{!?bcond_off_ldap:-DHAS_LDAP} %{!?bcond_off_pcre:-DHAS_PCRE} %{!?bcond_off_sasl:-DUSE_SASL_AUTH} %{?bcond_on_mysql:-DHAS_MYSQL -I/usr/include/mysql}" \
 	AUXLIBS="%{!?bcond_off_ldap:-llber -lldap} -lnsl -ldb -lresolv %{!?bcond_off_pcre:-lpcre} %{!?bcond_off_sasl:-lsasl} %{?bcond_on_mysql:-lmysqlclient}"
 
