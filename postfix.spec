@@ -382,7 +382,7 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %attr(755,root,root) %{_sbindir}/qmqp-source
 %attr(755,root,root) %{_libdir}/sendmail
 %dir %{_libdir}/postfix
-%attr(755,root,root) %{_libdir}/postfix/[^d]*
+%attr(755,root,root) %{_libdir}/postfix/[!d]*
 %attr(755,root,root) %dir %{_var}/spool/postfix
 %attr(700, postfix,root) %dir %{_var}/spool/postfix/active
 %attr(700, postfix,root) %dir %{_var}/spool/postfix/bounce
