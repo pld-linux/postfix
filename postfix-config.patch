@@ -56,7 +56,7 @@
 -#myorigin = $myhostname
 -#myorigin = $mydomain
 +myorigin = $myhostname
-+myorigin = $mydomain
++#myorigin = $mydomain
  
  # RECEIVING MAIL
  
