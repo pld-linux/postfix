@@ -59,7 +59,7 @@ Postfix is attempt to provide an alternative to the widely-used
 Sendmail program. Postfix attempts to be fast, easy to administer, and
 hopefully secure, while at the same time being sendmail compatible
 enough to not upset your users. This version have IPv6 support and
-%{!?bcond_off_ldap:no } LDAP support.
+%{!?bcond_off_ldap:no }LDAP support.
 
 %description -l pl
 Postfix jest prób± dostarczenia alternatywnego MTA w stosunku do
@@ -128,7 +128,7 @@ touch $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 %pre
 if [ -n "`/usr/bin/getgid postfix`" ]; then
 	if [ "`getgid postfix`" != "62" ]; then
-		echo "Warning: group postfix haven't gid=62. Corect this before install postfix" 1>&2
+		echo "Warning: group postfix haven't gid=62. Correct this before installing postfix" 1>&2
 		exit 1
 	fi
 else
@@ -136,7 +136,7 @@ else
 fi
 if [ -n "`/usr/bin/getgid maildrop`" ]; then
 	if [ "`/usr/bin/getgid maildrop`" != "63" ]; then
-		echo "Warning: group maildrop haven't gid=63. Corect this before install postfix" 1>&2
+		echo "Warning: group maildrop haven't gid=63. Correct this before installing postfix" 1>&2
 		exit 1
 	fi
 else
@@ -144,7 +144,7 @@ else
 fi
 if [ -n "`/bin/id -u postfix 2>/dev/null`" ]; then
 	if [ "`/bin/id -u postfix`" != "62" ]; then
-		echo "Warning: user postfix haven't uid=62. Corect this before install postfix" 1>&2
+		echo "Warning: user postfix haven't uid=62. Correct this before installing postfix" 1>&2
 		exit 1
 	fi
 else
