@@ -143,7 +143,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc html sample 0README COMPATIBILITY HISTORY LICENSE RELEASE_NOTES TODO
 %config(noreplace) %verify(not size mtime md5) /etc/mail/aliases
 %ghost /etc/mail/aliases.db
-%attr(740, root, root) /etc/cron.daily/postfix
+%attr(740,root,root) /etc/cron.daily/postfix
 %dir /etc/mail
 %config(noreplace) %verify(not size mtime md5) /etc/mail/access
 %ghost /etc/mail/access.db
@@ -151,33 +151,33 @@ rm -rf $RPM_BUILD_ROOT
 %ghost /etc/mail/canonical.db
 %config(noreplace) %verify(not size mtime md5) /etc/mail/main.cf
 %config(noreplace) %verify(not size mtime md5) /etc/mail/master.cf
-%attr(755, root, root) %config(noreplace) %verify(not size mtime md5) /etc/mail/postfix-script
+%attr(755,root,root) %config(noreplace) %verify(not size mtime md5) /etc/mail/postfix-script
 %config(noreplace) %verify(not size mtime md5) /etc/mail/relocated
 %ghost /etc/mail/relocated.db
 %config(noreplace) %verify(not size mtime md5) /etc/mail/transport
 %ghost /etc/mail/transport.db
 %config(noreplace) %verify(not size mtime md5) /etc/mail/virtual
 %ghost /etc/mail/virtual.db
-%attr(740, root, root) /etc/rc.d/init.d/postfix
-%attr(755, root, root) /etc/profile.d/mail.sh
-%attr(755, root, root) /usr/bin/*
-%attr(755, root, root) /usr/sbin/*
-%attr(755, root, root) /usr/lib/sendmail
-%attr(644, root, man) /usr/man/*/*
-%attr(755, root, root, 755) /usr/lib/postfix
-%attr(755, root, root, 755) %dir /var/spool/postfix
-%dir %attr(700, postfix, root, 700) %dir /var/spool/postfix/active
-%dir %attr(700, postfix, root, 700) %dir /var/spool/postfix/bounce
-%dir %attr(700, postfix, root, 700) %dir /var/spool/postfix/corrupt
-%dir %attr(700, postfix, root, 700) %dir /var/spool/postfix/defer
-%dir %attr(700, postfix, root, 700) %dir /var/spool/postfix/deferred
-%dir %attr(700, postfix, root, 700) %dir /var/spool/postfix/incoming
-%dir %attr(1733,postfix, root,1733) %dir /var/spool/postfix/maildrop
-%dir %attr(755, postfix, root, 755) %dir /var/spool/postfix/pid
-%dir %attr(700, postfix, root, 700) %dir /var/spool/postfix/private
-%dir %attr(755, postfix, root, 755) %dir /var/spool/postfix/public
-%dir %attr(700, postfix, root, 700) %dir /var/spool/postfix/saved
-%attr(644, postfix, root) /var/spool/postfix/.nofinger
+%attr(740,root,root) /etc/rc.d/init.d/postfix
+%attr(755,root,root) /etc/profile.d/mail.sh
+%attr(755,root,root) /usr/bin/*
+%attr(755,root,root) /usr/sbin/*
+%attr(755,root,root) /usr/lib/sendmail
+%attr(644,root, man) /usr/man/*/*
+%attr(755,root,root,755) /usr/lib/postfix
+%attr(755,root,root,755) %dir /var/spool/postfix
+%dir %attr(700, postfix,root, 700) %dir /var/spool/postfix/active
+%dir %attr(700, postfix,root, 700) %dir /var/spool/postfix/bounce
+%dir %attr(700, postfix,root, 700) %dir /var/spool/postfix/corrupt
+%dir %attr(700, postfix,root, 700) %dir /var/spool/postfix/defer
+%dir %attr(700, postfix,root, 700) %dir /var/spool/postfix/deferred
+%dir %attr(700, postfix,root, 700) %dir /var/spool/postfix/incoming
+%dir %attr(1733,postfix,root,1733) %dir /var/spool/postfix/maildrop
+%dir %attr(755, postfix,root,755) %dir /var/spool/postfix/pid
+%dir %attr(700, postfix,root, 700) %dir /var/spool/postfix/private
+%dir %attr(755, postfix,root,755) %dir /var/spool/postfix/public
+%dir %attr(700, postfix,root, 700) %dir /var/spool/postfix/saved
+%attr(644, postfix,root) /var/spool/postfix/.nofinger
 
 %changelog
 * Thu Feb 25 1999 Arkadiusz Mi¶kiewicz <misiek@pld.org.pl>
