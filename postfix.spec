@@ -38,6 +38,7 @@ Prereq:		rc-scripts
 %{!?_without_ipv6:BuildRequires:	libinet6 >= 0.20010420-3}
 BuildRequires:	db3-devel
 BuildRequires:	grep
+BuildRequires:	awk
 Prereq:		/sbin/chkconfig
 Prereq:		/usr/sbin/useradd
 Prereq:		/usr/sbin/groupadd
