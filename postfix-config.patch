@@ -1,6 +1,6 @@
---- postfix-19990906-pl05/global/mail_params.h.wiget	Sun Sep  5 23:27:00 1999
-+++ postfix-19990906-pl05/global/mail_params.h	Tue Oct 12 18:31:31 1999
-@@ -180,7 +180,7 @@
+--- postfix-19991231-pl01/global/mail_params.h.wiget	Mon Jan  3 17:30:43 2000
++++ postfix-19991231-pl01/global/mail_params.h	Mon Jan  3 17:30:43 2000
+@@ -187,7 +187,7 @@
    */
  #define VAR_CONFIG_DIR		"config_directory"
  #ifndef DEF_CONFIG_DIR
@@ -9,8 +9,8 @@
  #endif
  extern char *var_config_dir;
  
---- postfix-19990906-pl05/util/sys_defs.h.wiget	Sat Sep  4 23:27:00 1999
-+++ postfix-19990906-pl05/util/sys_defs.h	Tue Oct 12 18:31:31 1999
+--- postfix-19991231-pl01/util/sys_defs.h.wiget	Thu Nov 18 03:33:35 1999
++++ postfix-19991231-pl01/util/sys_defs.h	Mon Jan  3 17:30:43 2000
 @@ -31,7 +31,7 @@
  #define HAS_DB
  #define HAS_SA_LEN
@@ -20,7 +20,7 @@
  #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
  #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
  #define USE_STATFS
-@@ -329,7 +329,7 @@
+@@ -331,7 +331,7 @@
  #define HAS_FSYNC
  #define HAS_DB
  #define DEF_DB_TYPE	"hash"
@@ -29,18 +29,9 @@
  #define HAS_NIS
  #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
  #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
---- postfix-19990906-pl05/conf/main.cf.wiget	Mon Sep  6 22:20:55 1999
-+++ postfix-19990906-pl05/conf/main.cf	Tue Oct 12 18:34:01 1999
-@@ -18,7 +18,7 @@
- # Postfix support programs and daemons. This setting can be overruled
- # with the command_directory and daemon_directory parameters.
- #
--program_directory = /some/where/postfix/bin
-+#program_directory = /usr/lib/postfix
- 
- # The command_directory parameter specifies the location of all
- # postXXX commands.  The default value is $program_directory.
-@@ -30,7 +30,7 @@
+--- postfix-19991231-pl01/conf/main.cf.wiget	Sun Jan  2 20:19:11 2000
++++ postfix-19991231-pl01/conf/main.cf	Mon Jan  3 17:48:19 2000
+@@ -24,7 +24,7 @@
  # default value is $program_directory. This directory must be owned
  # by root.
  #
@@ -49,7 +40,7 @@
  
  # QUEUE AND PROCESS OWNERSHIP
  #
-@@ -47,7 +47,7 @@
+@@ -41,7 +41,7 @@
  # These rights are used in the absence of a recipient user context.
  # DO NOT SPECIFY A PRIVILEGED USER OR THE POSTFIX OWNER.
  #
@@ -58,7 +49,7 @@
  
  # INTERNET HOST AND DOMAIN NAMES
  # 
-@@ -75,8 +75,8 @@
+@@ -69,8 +69,8 @@
  # a domain-wide alias database that aliases each user to
  # user@that.users.mailhost.
  #
@@ -69,7 +60,7 @@
  
  # RECEIVING MAIL
  
-@@ -179,7 +179,7 @@
+@@ -168,7 +168,7 @@
  # "postfix reload" to eliminate the delay.
  #
  #alias_maps = dbm:/etc/aliases
@@ -78,7 +69,7 @@
  #alias_maps = hash:/etc/aliases, nis:mail.aliases
  #alias_maps = netinfo:/aliases
  
-@@ -190,7 +190,7 @@
+@@ -179,7 +179,7 @@
  #
  #alias_database = dbm:/etc/aliases
  #alias_database = dbm:/etc/mail/aliases
@@ -86,8 +77,8 @@
 +alias_database = hash:/etc/mail/aliases
  #alias_database = hash:/etc/aliases, hash:/opt/majordomo/aliases
  
- # DELIVERED-TO
-@@ -230,7 +230,7 @@
+ # ADDRESS EXTENSIONS (e.g., user+foo)
+@@ -207,7 +207,7 @@
  # UNIX-style mailboxes are kept. The default setting depends on the
  # system type.
  #
@@ -96,7 +87,18 @@
  # mail_spool_directory = /var/spool/mail
  
  # The mailbox_command parameter specifies the optional external
-@@ -389,3 +389,4 @@
+@@ -229,8 +229,8 @@
+ # IF YOU USE THIS TO DELIVER MAIL SYSTEM-WIDE, YOU MUST SET UP AN
+ # ALIAS THAT FORWARDS MAIL FOR ROOT TO A REAL USER.
+ #
+-#mailbox_command = /some/where/procmail
+-#mailbox_command = /some/where/procmail -a "$EXTENSION"
++#mailbox_command = /usr/bin/procmail
++mailbox_command = /usr/bin/procmail -a "$EXTENSION"
+ 
+ # The mailbox_transport specifies the optional transport in master.cf
+ # to use after processing aliases and .forward files. This parameter
+@@ -381,3 +381,4 @@
  	 xxgdb $daemon_directory/$process_name $process_id & sleep 5
  
  # Other configurable parameters.
