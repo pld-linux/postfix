@@ -147,7 +147,7 @@ popísané kroky potrebné pred a po in¹talácii Postfixu.
 Summary:	Postfix loadable modules development package
 Summary(pl):	Pakiet dla programistów ³adowanych modu³ów do postfiksa
 Group:		Development/Libraries
-Requires:	%{name} = %{epoch}:%{version}
+Requires:	%{name} = %{epoch}:%{version}-%{release}
 
 %description devel
 Header files to build additional map types for Postfix.
@@ -159,8 +159,8 @@ Pliki nag³ówkowe do tworzenia dodatkowych typów map dla Postfiksa.
 Summary:	LDAP map support for Postfix
 Summary(pl):	Obs³uga map LDAP dla Postfiksa
 Group:		Networking/Daemons
-Requires:	%{name} = %{epoch}:%{version}
-Requires:	openldap >= 2.0.0
+Requires:	%{name} = %{epoch}:%{version}-%{release}
+Requires:	openldap >= 2.2.0
 
 %description dict-ldap
 This package provides support for LDAP maps in Postfix.
@@ -172,7 +172,7 @@ Ten pakiet dodaje obs³ugê map LDAP do Postfiksa.
 Summary:	MySQL map support for Postfix
 Summary(pl):	Obs³uga map MySQL dla Postfiksa
 Group:		Networking/Daemons
-Requires:	%{name} = %{epoch}:%{version}
+Requires:	%{name} = %{epoch}:%{version}-%{release}
 
 %description dict-mysql
 This package provides support for MySQL maps in Postfix.
@@ -184,7 +184,7 @@ Ten pakiet dodaje obs³ugê map MySQL do Postfiksa.
 Summary:	PCRE map support for Postfix
 Summary(pl):	Obs³uga map PCRE dla Postfiksa
 Group:		Networking/Daemons
-Requires:	%{name} = %{epoch}:%{version}
+Requires:	%{name} = %{epoch}:%{version}-%{release}
 
 %description dict-pcre
 This package provides support for PCRE maps in Postfix.
@@ -196,7 +196,7 @@ Ten pakiet dodaje obs³ugê map PCRE do Postfiksa.
 Summary:	PostgreSQL map support for Postfix
 Summary(pl):	Obs³uga map PostgreSQL dla Postfiksa
 Group:		Networking/Daemons
-Requires:	%{name} = %{epoch}:%{version}
+Requires:	%{name} = %{epoch}:%{version}-%{release}
 
 %description dict-pgsql
 This package provides support for PostgreSQL maps in Postfix.
