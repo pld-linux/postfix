@@ -31,10 +31,6 @@ BuildRequires:	openssl-devel >= 0.9.4-2
 %{!?no_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db3-devel
 BuildRequires:	grep
-Obsoletes:	smtpdaemon
-Obsoletes:	exim
-Obsoletes:	sendmail
-Obsoletes:	sendmail-cf
 Prereq:		/sbin/chkconfig
 Prereq:		/usr/sbin/useradd
 Prereq:		/usr/sbin/groupadd
@@ -44,6 +40,11 @@ Prereq:		/usr/bin/getgid
 Prereq:		/bin/id
 Prereq:		/bin/hostname
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
+Obsoletes:	smtpdaemon
+Obsoletes:	exim
+Obsoletes:	sendmail
+Obsoletes:	sendmail-cf
+Obsoletes:	sendmail-doc
 
 %define		_sysconfdir	/etc
 
