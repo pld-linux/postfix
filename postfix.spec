@@ -17,10 +17,10 @@ Patch2:		%{name}-pl.patch
 URL:		http://www.postfix.org/
 Provides:	smtpdaemon
 Requires:	rc-scripts
-BuildRequires:	openldap-devel
+%{!?noldap:BuildRequires:	openldap-devel}
 BuildRequires:	openssl-devel >= 0.9.4-2
-BuildRequires:	pcre-devel
-BuildRequires:	cyrus-sasl-devel
+%{!?nopcre:BuildRequires:	pcre-devel}
+%{!?nosasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	grep
 Obsoletes:	smtpdaemon
 Obsoletes:	exim
@@ -40,14 +40,14 @@ Postfix is attempt to provide an alternative to the widely-used
 Sendmail program. Postfix attempts to be fast, easy to administer, and
 hopefully secure, while at the same time being sendmail compatible
 enough to not upset your users. This version have IPv6 support and
-LDAP support.
+%{!?noldap:no }LDAP support.
 
 %description -l pl
 Postfix jest prób± dostarczenia alternatywnego MTA w stosunku do
 szeroko u¿ywanego sendmaila. Postfix w zamierzeniu ma byæ szybki,
 ³atwy w administrowaniu, bezpieczny oraz ma byæ na tyle kompatybilny z
 sendmailem by nie denerwowaæ Twoich u¿ytkowników. Ta wersja wspiera
-IPv6 oraz LDAP.
+IPv6%{!?noldap: oraz LDAP} %{?noldap: i nie zawiera wsparcia LDAP}.
 
 %prep
 %setup -q -n snapshot-%{version}
@@ -59,8 +59,7 @@ IPv6 oraz LDAP.
 %{__make} -f Makefile.init makefiles
 %{__make} tidy
 %{__make} DEBUG="" OPT="-g $RPM_OPT_FLAGS" \
-     CCARGS="-DHAS_LDAP -DHAS_PCRE -DUSE_SASL_AUTH" \
-     AUXLIBS="-llber -lldap -lnsl -ldb -lresolv -lpcre -lsasl"
+     CCARGS="%{!?noldap:-DHAS_LDAP} %{!?nopcre:-DHAS_PCRE} %{!?nosasl:-DUSE_SASL_AUTH } " AUXLIBS="%{!?noldap:-llber -lldap} -lnsl -ldb -lresolv %{!?nopcre:-lpcre} %{!?nosasl:-lsasl}"
 
 %install
 rm -rf $RPM_BUILD_ROOT
