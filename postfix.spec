@@ -45,7 +45,7 @@ Patch2:		%{name}-dynamicmaps.patch
 Patch3:		%{name}-pgsql.patch
 Patch4:		%{name}-master.cf_cyrus.patch
 Patch5:		%{name}-ipv6.patch
-Patch6:		%{name}-pl.patch
+Patch6:		%{name}2-pl.patch
 Patch7:		%{name}-cdb_man.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
