@@ -126,9 +126,30 @@ gzip -9nf *README HISTORY COMPATIBILITY LICENSE RELEASE_NOTES \
 touch $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
 %pre
-GID=62; %groupadd
-UID=62; HOMEDIR=/var/spool/postfix; COMMENT="Postfix User"; %useradd
-GROUP=maildrop; GID=63; %groupadd
+if [ -n "`/usr/bin/getgid postfix`" ]; then
+	if [ "`getgid postfix`" != "62" ]; then
+		echo "Warning: group postfix haven't gid=62. Correct this before installing postfix" 1>&2
+		exit 1
+	fi
+else
+	/usr/sbin/groupadd -g 62 -r -f postfix
+fi
+if [ -n "`/usr/bin/getgid maildrop`" ]; then
+	if [ "`/usr/bin/getgid maildrop`" != "63" ]; then
+		echo "Warning: group maildrop haven't gid=63. Correct this before installing postfix" 1>&2
+		exit 1
+	fi
+else
+	/usr/sbin/groupadd -g 63 -r -f maildrop
+fi
+if [ -n "`/bin/id -u postfix 2>/dev/null`" ]; then
+	if [ "`/bin/id -u postfix`" != "62" ]; then
+		echo "Warning: user postfix haven't uid=62. Correct this before installing postfix" 1>&2
+		exit 1
+	fi
+else
+	/usr/sbin/useradd -u 62 -r -d /var/spool/postfix -s /bin/false -c "Postfix User" -g postfix postfix 1>&2
+fi
 
 %post
 if ! grep -q "^postmaster:" /etc/mail/aliases; then
@@ -140,15 +161,27 @@ if ! grep -q "^myhostname" /etc/mail/main.cf; then
 fi
 
 newaliases
-DESC="postfix daemon"; %chkconfig_add
+/sbin/chkconfig --add postfix
+if [ -f /var/lock/subsys/postfix ]; then
+	/etc/rc.d/init.d/postfix restart >&2
+else
+	echo "Run \"/etc/rc.d/init.d/postfix start\" to start postfix daemon." >&2
+fi
 
 %preun
-%chkconfig_del
+if [ "$1" = "0" ]; then
+	if [ -f /var/lock/subsys/postfix ]; then
+		/etc/rc.d/init.d/postfix stop >&2
+	fi
+	/sbin/chkconfig --del postfix
+fi
 
 %postun
-%userdel
-%groupdel
-GROUP=maildrop; %groupdel
+if [ $1 = 0 ]; then
+	/usr/sbin/groupdel maildrop 2> /dev/null
+	/usr/sbin/userdel postfix 2> /dev/null
+	/usr/sbin/groupdel postfix 2> /dev/null
+fi
 
 %clean
 rm -rf $RPM_BUILD_ROOT
