@@ -5,20 +5,21 @@ Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
 Name:		postfix
 Version:	%{ver}_pl%{patchl}
-Release:	0.1
-URL:		http://www.postfix.org/
-Source0:	ftp://postfix.cloud9.net/postfix-%{ver}-pl%{patchl}.tar.gz
+Release:	1
+Group:		Networking/Daemons
+Group(pl):	Sieciowe/Serwery
+Copyright:	Distributable
+Source0:	ftp://postfix.cloud9.net/%{name}-%{ver}-pl%{patchl}.tar.gz
 Source1:	postfix.aliases
 Source2:	postfix.cron
 Source3:	postfix.init
 Source4:	ftp://ftp.aet.tu-cottbus.de/pub/pfixtls/pfixtls-%{pfixtls}.tar.gz
+Source5:	postfix.sysconfig
 Patch0:		postfix-config.patch
 Patch1:		http://www.xaa.iae.nl/~xaa/postfix6/patch.19990727.txt
 Patch2:		postfix-tls.patch
 Patch3:		postfix-glibc.patch
-Copyright:	Distributable
-Group:		Networking/Daemons
-Group(pl):	Sieciowe/Serwery
+URL:		http://www.postfix.org/
 Provides:	smtpdaemon
 Requires:	rc-scripts
 BuildRequires:	openldap-devel
@@ -32,19 +33,19 @@ Prereq:		%{_sbindir}/userdel
 Prereq:		%{_sbindir}/groupdel
 BuildRoot:	/tmp/%{name}-%{version}-root
 
+%define		_sysconfdir	/etc
+
 %description
-Postfix is attempt to provide an alternative to the widely-used
-Sendmail program. Postfix attempts to be fast, easy to administer,
-and hopefully secure, while at the same time being sendmail
-compatible enough to not upset your users. This version have IPv6
-support and LDAP support.
+Postfix is attempt to provide an alternative to the widely-used Sendmail
+program. Postfix attempts to be fast, easy to administer, and hopefully
+secure, while at the same time being sendmail compatible enough to not upset
+your users. This version have IPv6 support and LDAP support.
 	 
 %description -l pl
-Postfix jest prób± dostarczenia alternatywnego MTA w stosunku
-do szeroko u¿ywanego sendmaila. Postfix w zamierzeniu ma byæ szybki,
-³atwy w administrowaniu, bezpieczny oraz ma byæ na tyle kompatybilny
-z sendmailem by nie denerwowaæ Twoich u¿ytkowników. Ta wersja
-wspiera IPv6 oraz LDAP.
+Postfix jest prób± dostarczenia alternatywnego MTA w stosunku do szeroko
+u¿ywanego sendmaila. Postfix w zamierzeniu ma byæ szybki, ³atwy w
+administrowaniu, bezpieczny oraz ma byæ na tyle kompatybilny z sendmailem by
+nie denerwowaæ Twoich u¿ytkowników. Ta wersja wspiera IPv6 oraz LDAP.
 
 %prep
 %setup -q -n postfix-%{ver}-pl%{patchl} -a 4
@@ -61,25 +62,27 @@ make DEBUG="" OPT="$RPM_OPT_FLAGS" CCARGS="-DHAS_LDAP -DHAS_SSL" \
      AUXLIBS="-llber -lldap -lssl -lsslcrypto"
 
 %install
-%define _sysconfdir	/etc
 rm -rf $RPM_BUILD_ROOT
 rm -f {html,man}/Makefile.in conf/{LICENSE,main.cf.default}
 
-install -d $RPM_BUILD_ROOT%{_sysconfdir}/{mail,cron.daily,rc.d/init.d} \
+install -d $RPM_BUILD_ROOT%{_sysconfdir}/{mail,cron.daily,rc.d/init.d,sysconfig} \
 	   $RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,%{_mandir}/man{1,5,8}} \
 	   $RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public} \
 	   pfixtls
 
 install -d sample-conf; mv -f conf/sample* sample-conf/ || :
 mv -f pfixtls-%{pfixtls}/{doc,README,TODO,CHANGES} pfixtls
-install bin/*							$RPM_BUILD_ROOT%{_sbindir}
-install libexec/*						$RPM_BUILD_ROOT%{_libdir}/postfix
-install conf/*							$RPM_BUILD_ROOT%{_sysconfdir}/mail
+
+install -s bin/* $RPM_BUILD_ROOT%{_sbindir}
+install -s libexec/* $RPM_BUILD_ROOT%{_libdir}/postfix
+install conf/* $RPM_BUILD_ROOT%{_sysconfdir}/mail
+
 (cd man; tar cf - .) | (cd $RPM_BUILD_ROOT%{_mandir}; tar xf -)
 
-install %{SOURCE1}	$RPM_BUILD_ROOT%{_sysconfdir}/mail/aliases
-install %{SOURCE2}	$RPM_BUILD_ROOT%{_sysconfdir}/cron.daily/postfix
-install %{SOURCE3}	$RPM_BUILD_ROOT%{_sysconfdir}/rc.d/init.d/postfix
+install %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/mail/aliases
+install %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.daily/postfix
+install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/postfix
+install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/postfix
 
 ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
 ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/newaliases
@@ -93,12 +96,11 @@ rm -f	$RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script-{diff,nosgid}
 touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 {aliases,access,canonical,relocated,transport,virtual}{,.db}
 
-strip		$RPM_BUILD_ROOT{%{_bindir}/*,%{_libdir}/*} || :
-gzip -9nf	$RPM_BUILD_ROOT%{_mandir}/man*/* \
-		LDAP_README HISTORY MYSQL_README UUCP_README \
-		pfixtls/{README,TODO,CHANGES}
+gzip -9nf $RPM_BUILD_ROOT%{_mandir}/man*/* \
+	LDAP_README HISTORY MYSQL_README UUCP_README \
+	pfixtls/{README,TODO,CHANGES}
 		
-touch		$RPM_BUILD_ROOT/var/spool/postfix/.nofinger
+touch $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
 %pre
 if [ -f /var/lock/subsys/postfix ]; then
@@ -109,13 +111,17 @@ fi
 %{_sbindir}/groupadd -f -g 63 maildrop
 
 %post
-/sbin/chkconfig --add postfix
-
 if ! grep -q "^hostmaster:" /etc/mail/aliases; then
         echo "Adding Entry for hostmaster in /etc/mail/aliases"
         echo "hostmaster:       root" >>/etc/mail/aliases
 fi
 newaliases
+/sbin/chkconfig --add postfix
+if [ -r /var/lock/subsys/postfix]; then
+	/etc/rc.d/init.d/postfix restart >&2
+else
+	echo "Run \"/etc/rc.d/init.d/postfix start\" to start postfix daemon."
+fi
 
 %preun
 if [ $1 = 0 ]; then
@@ -136,6 +142,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(644,root,root,755)
 %doc html {LDAP_README,HISTORY,MYSQL_README,UUCP_README}.gz pfixtls
+%doc sample-conf
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/access
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/aliases
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/canonical
@@ -147,8 +154,9 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/main.cf
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/master.cf
 %attr(755,root,root) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/postfix-script
-%attr(740,root,root) %{_sysconfdir}/cron.daily/postfix
-%attr(740,root,root) %{_sysconfdir}/rc.d/init.d/postfix
+%attr(740,root,root) /etc//cron.daily/postfix
+%attr(754,root,root) /etc/rc.d/init.d/postfix
+%attr(640,root,root) %config(noreplace) /etc/sysconfig/postfix
 %attr(755,root,root) %{_bindir}/*
 %attr(755,root,root) %{_sbindir}/s*
 %attr(755,root,root) %{_sbindir}/post*i*
@@ -158,7 +166,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_sbindir}/postsuper
 %attr(2755,root,maildrop) %{_sbindir}/postdrop
 %attr(755,root,root) %{_libdir}/sendmail
-%attr(644,root,root) %{_mandir}/man*/*
 %attr(755,root,root) %{_libdir}/postfix
 %attr(755,root,root) %dir %{_var}/spool/postfix
 %attr(700, postfix,root) %dir %{_var}/spool/postfix/active
@@ -173,3 +180,4 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755, postfix,root) %dir %{_var}/spool/postfix/public
 %attr(700, postfix,root) %dir %{_var}/spool/postfix/saved
 %attr(644, postfix,root) %{_var}/spool/postfix/.nofinger
+%{_mandir}/man*/*
