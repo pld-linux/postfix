@@ -1,64 +1,63 @@
-diff -urN postfix-beta-19990122-pl01.orig/conf/access postfix-beta-19990122-pl01/conf/access
---- postfix-beta-19990122-pl01.orig/conf/access	Sat Feb 27 23:32:55 1999
-+++ postfix-beta-19990122-pl01/conf/access	Sat Feb 27 23:33:03 1999
-@@ -4,7 +4,7 @@
- # SUMMARY
- #	format of Postfix access table
- # SYNOPSIS
--#	\fBpostmap /etc/postfix/access\fR
-+#	\fBpostmap /etc/mail/access\fR
- # DESCRIPTION
- #	The optional \fBaccess\fR table directs the Postfix SMTP server
- #	to selectively reject or accept mail from or to specific hosts,
-diff -urN postfix-beta-19990122-pl01.orig/conf/canonical postfix-beta-19990122-pl01/conf/canonical
---- postfix-beta-19990122-pl01.orig/conf/canonical	Sat Feb 27 23:32:55 1999
-+++ postfix-beta-19990122-pl01/conf/canonical	Sat Feb 27 23:33:03 1999
-@@ -4,7 +4,7 @@
- # SUMMARY
- #	format of Postfix canonical table
- # SYNOPSIS
--#	\fBpostmap /etc/postfix/canonical\fR
-+#	\fBpostmap /etc/mail/canonical\fR
- # DESCRIPTION
- #	The optional \fBcanonical\fR file specifies an address mapping for
- #	local and non-local addresses. The mapping is used by the
-diff -urN postfix-beta-19990122-pl01.orig/conf/main.cf postfix-beta-19990122-pl01/conf/main.cf
---- postfix-beta-19990122-pl01.orig/conf/main.cf	Sat Feb 27 23:32:55 1999
-+++ postfix-beta-19990122-pl01/conf/main.cf	Sat Feb 27 23:33:13 1999
-@@ -5,6 +5,7 @@
- # that begin with whitespace continue the previous line. A value can
- # contain references to other $names or ${name}s.
- 
-+#######################################################################
- # LOCAL PATHNAME INFORMATION
+diff -urN snapshot-19990518.orig/conf/aliases snapshot-19990518/conf/aliases
+--- snapshot-19990518.orig/conf/aliases	Mon May 24 07:07:03 1999
++++ snapshot-19990518/conf/aliases	Mon May 24 07:10:13 1999
+@@ -5,26 +5,29 @@
  #
- # The queue_directory specifies the location of the Postfix queue.
-@@ -18,20 +19,21 @@
+ 
+ # Basic system aliases -- these MUST be present
++
++# Main system alias
++hostmaster: root
++
+ MAILER-DAEMON: postmaster
+-postmaster: root
++postmaster: hostmaster
+ 
+ # General redirections for pseudo accounts
+-bin:    root
+-daemon: root
+-named:  root
+-nobody: root
+-operator: root
+-uucp:   root
+-www:    root
+-ftp-bugs: root
++bin:    hostmaster
++daemon: hostmaster
++named:  hosmaster
++nobody: hosmaster
++operator: hosmaster
++uucp:   hostmaster
++www:    hosmaster
++ftp-bugs: hostmaster
++ircmaster: hostmaster
++newsmaster: hostmaster
++webmaster: hostmaster
++sysadm: hostmaster
+ 
+ # Put your local aliases here.
+ 
+-# Well-known aliases -- these should be filled in!
+-# root:
+-# manager:
+-# dumper:
+-# operator:
+ 
+ #++
+ # NAME
+diff -urN snapshot-19990518.orig/conf/main.cf snapshot-19990518/conf/main.cf
+--- snapshot-19990518.orig/conf/main.cf	Mon May 24 07:07:03 1999
++++ snapshot-19990518/conf/main.cf	Mon May 24 07:17:14 1999
+@@ -18,7 +18,7 @@
  # Postfix support programs and daemons. This setting can be overruled
  # with the command_directory and daemon_directory parameters.
  #
 -program_directory = /some/where/postfix/bin
-+#program_directory = /usr/libexec/postfix
++program_directory = /usr/sbin
  
  # The command_directory parameter specifies the location of all
  # postXXX commands.  The default value is $program_directory.
- #
--#command_directory = /usr/sbin
-+command_directory = /usr/sbin
- 
- # The daemon_directory parameter specifies the location of all Postfix
- # daemon programs (i.e. programs listed in the master.cf file). The
- # default value is $program_directory. This directory must be owned
- # by root.
- #
--#daemon_directory = /usr/libexec/postfix
-+daemon_directory = /usr/lib/postfix
- 
-+#######################################################################
- # QUEUE AND PROCESS OWNERSHIP
- #
- # The mail_owner parameter specifies the owner of the Postfix queue
-@@ -40,14 +42,14 @@
+@@ -40,14 +40,14 @@
  # OWNS NO OTHER FILES OR PROCESSES ON THE SYSTEM.  In particular,
  # don't specify nobody or daemon. PLEASE USE A DEDICATED USER.
  #
@@ -75,216 +74,38 @@ diff -urN postfix-beta-19990122-pl01.orig/conf/main.cf postfix-beta-19990122-pl0
  
  # INTERNET HOST AND DOMAIN NAMES
  # 
-@@ -66,6 +68,7 @@
+@@ -75,8 +75,8 @@
+ # a domain-wide alias database that aliases each user to
+ # user@that.users.mailhost.
  #
- #mydomain = domain.name
+-#myorigin = $myhostname
+-#myorigin = $mydomain
++myorigin = $myhostname
++myorigin = $mydomain
  
-+#######################################################################
- # SENDING MAIL
- # 
- # The myorigin parameter specifies the domain that locally-posted
-@@ -78,6 +81,7 @@
- #myorigin = $myhostname
- #myorigin = $mydomain
- 
-+#######################################################################
  # RECEIVING MAIL
  
- # The inet_interfaces parameter specifies the network interface
-@@ -113,6 +117,7 @@
- #mydestination = $myhostname, localhost.$mydomain, $mydomain,
- #	mail.$mydomain, www.$mydomain, ftp.$mydomain
+@@ -85,7 +85,7 @@
+ # the software claims all active interfaces on the machine. The
+ # parameter also controls delivery of mail to user@[ip.address].
+ #
+-#inet_interfaces = all
++inet_interfaces = all
+ #inet_interfaces = $myhostname
+ #inet_interfaces = $myhostname, localhost
  
-+#######################################################################
+@@ -110,8 +110,8 @@
+ #
+ #mydestination = $myhostname, localhost.$mydomain
+ #mydestination = $myhostname, localhost.$mydomain $mydomain
+-#mydestination = $myhostname, localhost.$mydomain, $mydomain,
+-#	mail.$mydomain, www.$mydomain, ftp.$mydomain
++mydestination = $myhostname, localhost.$mydomain, $mydomain,
++	mail.$mydomain, www.$mydomain, ftp.$mydomain
+ 
  # INTERNET VERSUS INTRANET
  #
- # The relayhost parameter specifies the default host to send mail to
-@@ -132,6 +137,7 @@
- #relayhost = uucphost
- #relayhost = [mail.$mydomain:9999]
- 
-+#######################################################################
- # DEFAULT TRANSPORT
- #
- # The default_transport parameter specifies the default message
-@@ -141,28 +147,167 @@
- #default_transport = smtp
- #default_transport = uucp
- 
-+#######################################################################
- # ADDRESS REWRITING
- #
--# Insert text from sample-rewrite.cf if you need to do address
--# masquerading.
-+# address masquerading
-+# ^^^^^^^^^^^^^^^^^^^^
-+# The allow_percent_hack parameter controls the rewriting of the form
-+# "user%domain" to "user@domain". This is enabled by default.
- #
--# Insert text from sample-canonical.cf if you need to do address
--# rewriting, or if you need username->Firstname.Lastname mapping.
-+# allow_percent_hack = no
-+allow_percent_hack = yes
- 
-+# The append_at_myorigin controls the rewriting of the form "user" to
-+# "user@$mydomain". This should not be turned off.
-+#
-+append_at_myorigin = yes
-+
-+# The append_dot_mydomain controls the rewriting of the form
-+# "user@host" to "user@host.$mydomain". This is enabled by default.
-+#
-+# append_dot_mydomain = no
-+append_dot_mydomain = yes
-+
-+# The empty_address_recipient specifies the destination for mail from
-+# <> that is undeliverable (typically, bounce notifications and
-+# other notifications). By default, such mail is sent to MAILER-DAEMON.
-+#
-+empty_address_recipient = MAILER-DAEMON
-+
-+# The masquerade_domains parameter gives an optional list of domains
-+# that must have their subdomain structure stripped off.
-+#
-+# By default, address masquerading is disabled.
-+#
-+# masquerade_domains = $mydomain
-+masquerade_domains = 
-+
-+# The masquerade_exceptions parameter gives an optional list of user
-+# names that are not subjected to address masquerading.
-+# 
-+# By default, address masquerading makes no exceptions.
-+# 
-+#masquerade_exceptions = root
-+masquerade_exceptions =
-+
-+# The swap_bangpath parameter controls the rewriting of the form
-+# "site!user" to "user@site".  This is necessary if your machine is
-+# connected to UUCP networks. It is enabled by default.
-+#
-+# swap_bangpath = no
-+swap_bangpath = yes
-+
-+# address rewriting, or if you need username->Firstname.Lastname mapping
-+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-+# The canonical_maps parameter specifies optional address mapping
-+# lookup tables. The mapping is applied to both sender and recipient
-+# addresses, in both envelopes and in headers. This is typically used
-+# to clean up dirty addresses from legacy mail systems, or to replace
-+# login names by Firstname.Lastname. See canonical(5) for details.
-+# 
-+# By default, no canonical address mapping is done.
-+#
-+# If you use this feature, run "postmap /etc/mail/canonical" to
-+# build the necessary DBM or DB file after every change. The changes
-+# will become visible after a minute or so.  Use "postfix reload"
-+# to eliminate the delay.
-+#
-+# canonical_maps = dbm:/etc/mail/canonical
-+# canonical_maps = hash:/etc/mail/canonical
-+# canonical_maps = hash:/etc/mail/canonical, nis:canonical
-+# canonical_maps = hash:/etc/mail/canonical, netinfo:/canonical
-+canonical_maps = 
-+
-+# The recipient_canonical_maps parameter specifies optional address
-+# mapping lookup tables for envelope and header RECIPIENT addresses.
-+#
-+# By default, no recipient-only address mapping is done.
-+#
-+# $recipient_canonical_maps is used before $canonical_maps lookups.
-+#
-+# recipient_canonical_maps = hash:/etc/mail/recipient_canonical
-+recipient_canonical_maps = 
-+
-+# The sender_canonical_maps parameter specifies optional address
-+# mapping lookup tables for envelope and header SENDER addresses.
-+# 
-+# For example, you want to rewrite the SENDER address user@ugly.domain
-+# to user@pretty.domain, while still being able to send mail to the
-+# RECIPIENT address user@ugly.domain.
-+#
-+# By default, no sender-only address mapping is done.
-+# 
-+# $sender_canonical_maps is used before $canonical_maps lookups.
-+#
-+# sender_canonical_maps = hash:/etc/mail/sender_canonical
-+sender_canonical_maps = 
-+
-+#######################################################################
- # ADDRESS REDIRECTION (VIRTUAL DOMAIN)
- #
--# Insert text from sample-virtual.cf if you need virtual domain support.
-+# This file contains example settings of Postfix configuration
-+# parameters that control virtual database lookups.
- 
-+# The virtual_maps parameter specifies optional lookup tables to
-+# redirect specific addresses or even complete domains to another
-+# address. This is typically used to implement virtual domain support.
-+# 
-+# By default, no address redirection is done. 
-+#
-+# If you use this feature, run "postmap /etc/mail/virtual" to 
-+# build the necessary DBM or DB file after change.
-+#
-+# It will take a minute or so before the change becomes visible.
-+# Use "postfix reload" to eliminate the delay.
-+#
-+# virtual_maps = dbm:/etc/mail/virtual
-+# virtual_maps = hash:/etc/mail/virtual
-+# virtual_maps = hash:/etc/mail/virtual, nis:virtual
-+# virtual_maps = hash:/etc/mail/virtual, netinfo:/virtual
-+virtual_maps = 
-+
-+#######################################################################
- # "USER HAS MOVED" BOUNCE MESSAGES
- #
--# Insert text from sample-relocated.cf if you need "user has moved"
--# style bounce messages. Alternatively, you can bounce recipients
--# with an SMTP server access table. See sample-smtpd.cf.
-+# This file contains example settings of Postfix configuration
-+# parameters that control relocated database lookups.
-+
-+# The relocated_maps parameter specifies optional lookup tables with
-+# new contact information for users or even domains that no longer
-+# exist.
-+# 
-+# By default, this feature is disabled.
-+#
-+# If you use this feature, run "postmap /etc/mail/relocated" to 
-+# build the necessary DBM or DB file after change, then "postfix
-+# reload" to make the changes visible.
-+#
-+# relocated_maps = dbm:/etc/mail/relocated
-+# relocated_maps = hash:/etc/mail/relocated
-+# relocated_maps = hash:/etc/mail/relocated, nis:virtual
-+# relocated_maps = hash:/etc/mail/relocated, netinfo:/relocated
-+relocated_maps = 
- 
-+#######################################################################
- # TRANSPORT MAP
- #
--# Insert text from sample-transport.cf if you need explicit routing.
-+# This file contains example settings of Postfix configuration
-+# parameters that control the optional transport table lookups.
- 
-+# The transport_maps parameter specifies optional tables with domain
-+# to (transport, nexthop) mappings. See transport(5) for syntax details.
-+#
-+# By default, this feature is disabled. Specify the types of databases
-+# to use.  If you use this feature, run "postmap /etc/mail/transport"
-+# after change, then "postfix reload".
-+# 
-+# transport_maps = dbm:/etc/mail/transport
-+# transport_maps = hash:/etc/mail/transport
-+# transport_maps = hash:/etc/mail/transport, nis:transport
-+# transport_maps = hash:/etc/mail/transport, netinfo:/transport
-+transport_maps = 
-+#######################################################################
- # ALIAS DATABASE
- #
- # The alias_maps parameter specifies the list of alias databases used
-@@ -179,7 +324,7 @@
+@@ -179,7 +179,7 @@
  # "postfix reload" to eliminate the delay.
  #
  #alias_maps = dbm:/etc/aliases
@@ -293,239 +114,37 @@ diff -urN postfix-beta-19990122-pl01.orig/conf/main.cf postfix-beta-19990122-pl0
  #alias_maps = hash:/etc/aliases, nis:mail.aliases
  
  # The alias_database parameter specifies the alias database(s) that
-@@ -192,6 +337,7 @@
- #alias_database = hash:/etc/aliases
- #alias_database = hash:/etc/aliases, hash:/opt/majordomo/aliases
+@@ -217,7 +217,7 @@
+ # UNIX-style mailboxes are kept. The default setting depends on the
+ # system type.
+ #
+-# mail_spool_directory = /var/mail
++mail_spool_directory = /var/mail
+ # mail_spool_directory = /var/spool/mail
  
-+#######################################################################
- # ADDRESS EXTENSIONS (e.g., user+foo)
+ # The mailbox_command parameter specifies the optional external
+diff -urN snapshot-19990518.orig/conf/sample-aliases.cf snapshot-19990518/conf/sample-aliases.cf
+--- snapshot-19990518.orig/conf/sample-aliases.cf	Mon May 24 07:07:03 1999
++++ snapshot-19990518/conf/sample-aliases.cf	Mon May 24 07:16:53 1999
+@@ -12,7 +12,7 @@
  #
- # The recipient_delimiter parameter specifies the separator between
-@@ -203,6 +349,7 @@
- #
- # recipient_delimiter = +
+ # alias_database = dbm:/etc/aliases
+ # alias_database = dbm:/etc/mail/aliases
+-alias_database = hash:/etc/aliases
++alias_database = hash:/etc/mail/aliases
  
-+#######################################################################
- # DELIVERY TO MAILBOX
- #
- # The home_mailbox parameter specifies the optional pathname of a
-@@ -210,7 +357,7 @@
- # deliver to the UNIX-style /var/spool/mail/user or /var/mail/user.
- # Specify "Maildir/" for qmail-style delivery (the / is required).
- #
--#home_mailbox = Mailbox
-+home_mailbox = Mailbox
- #home_mailbox = Maildir/
- 
- # The mailbox_command specifies the optional external command to use
-@@ -222,6 +369,7 @@
- #
- #mailbox_command = /some/where/procmail
- 
-+#######################################################################
- # JUNK MAIL CONTROLS
+ # The alias_maps parameter specifies the list of alias databases used
+ # by the local delivery agent. The default list is system dependent.
+@@ -29,4 +29,4 @@
  # 
- # The controls listed here are only a very small subset. See the file
-@@ -260,7 +408,9 @@
- #
- #mynetworks = 168.100.189.0/28, 127.0.0.0/8
- #mynetworks = $config_directory/mynetworks
-+mynetworks = 127.0.0.0/8
- 
-+#######################################################################
- # SHOW SOFTWARE VERSION OR NOT
- #
- # The smtpd_banner parameter specifies the text that follows the 220
-@@ -273,8 +423,9 @@
- # having a machine meltdown.
- #
- #smtpd_banner = $myhostname ESMTP $mail_name
--#smtpd_banner = $myhostname ESMTP $mail_name ($mail_version)
-+smtpd_banner = $myhostname ESMTP $mail_name from PLD (www.pld.org.pl)
- 
-+#######################################################################
- # PARALLEL DELIVERY TO THE SAME DESTINATION
- #
- # How many parallel deliveries to the same user or domain? With local
-@@ -291,6 +442,7 @@
- local_destination_concurrency_limit = 2
- default_destination_concurrency_limit = 10
- 
-+#######################################################################
- # DEBUGGING CONTROL
- #
- # The debug_peer_level parameter specifies the increment in verbose
-diff -urN postfix-beta-19990122-pl01.orig/conf/relocated postfix-beta-19990122-pl01/conf/relocated
---- postfix-beta-19990122-pl01.orig/conf/relocated	Sat Feb 27 23:32:55 1999
-+++ postfix-beta-19990122-pl01/conf/relocated	Sat Feb 27 23:33:03 1999
-@@ -4,7 +4,7 @@
- # SUMMARY
- #	format of Postfix relocated table
- # SYNOPSIS
--#	\fBpostmap /etc/postfix/relocated\fR
-+#	\fBpostmap /etc/mail/relocated\fR
- # DESCRIPTION
- #	The optional \fBrelocated\fR file provides the information that is
- #	used in "user has moved to \fInew_location\fR" bounce messages.
-diff -urN postfix-beta-19990122-pl01.orig/conf/sample-canonical.cf postfix-beta-19990122-pl01/conf/sample-canonical.cf
---- postfix-beta-19990122-pl01.orig/conf/sample-canonical.cf	Sat Feb 27 23:32:55 1999
-+++ postfix-beta-19990122-pl01/conf/sample-canonical.cf	Sat Feb 27 23:33:03 1999
-@@ -9,15 +9,15 @@
- # 
- # By default, no canonical address mapping is done.
- #
--# If you use this feature, run "postmap /etc/postfix/canonical" to
-+# If you use this feature, run "postmap /etc/mail/canonical" to
- # build the necessary DBM or DB file after every change. The changes
- # will become visible after a minute or so.  Use "postfix reload"
- # to eliminate the delay.
- #
--# canonical_maps = dbm:/etc/postfix/canonical
--# canonical_maps = hash:/etc/postfix/canonical
--# canonical_maps = hash:/etc/postfix/canonical, nis:canonical
--# canonical_maps = hash:/etc/postfix/canonical, netinfo:/canonical
-+# canonical_maps = dbm:/etc/mail/canonical
-+# canonical_maps = hash:/etc/mail/canonical
-+# canonical_maps = hash:/etc/mail/canonical, nis:canonical
-+# canonical_maps = hash:/etc/mail/canonical, netinfo:/canonical
- canonical_maps = 
- 
- # The recipient_canonical_maps parameter specifies optional address
-@@ -27,7 +27,7 @@
- #
- # $recipient_canonical_maps is used before $canonical_maps lookups.
- #
--# recipient_canonical_maps = hash:/etc/postfix/recipient_canonical
-+# recipient_canonical_maps = hash:/etc/mail/recipient_canonical
- recipient_canonical_maps = 
- 
- # The sender_canonical_maps parameter specifies optional address
-@@ -41,5 +41,5 @@
- # 
- # $sender_canonical_maps is used before $canonical_maps lookups.
- #
--# sender_canonical_maps = hash:/etc/postfix/sender_canonical
-+# sender_canonical_maps = hash:/etc/mail/sender_canonical
- sender_canonical_maps = 
-diff -urN postfix-beta-19990122-pl01.orig/conf/sample-misc.cf postfix-beta-19990122-pl01/conf/sample-misc.cf
---- postfix-beta-19990122-pl01.orig/conf/sample-misc.cf	Sat Feb 27 23:32:55 1999
-+++ postfix-beta-19990122-pl01/conf/sample-misc.cf	Sat Feb 27 23:33:03 1999
-@@ -220,9 +220,9 @@
- # By default, this feature is disabled. 
- #
- # Specify the types and names of databases to use.  After change,
--# run "postmap /etc/postfix/relocated", then "postfix reload".
-+# run "postmap /etc/mail/relocated", then "postfix reload".
- #
--# relocated_maps = hash:/etc/postfix/relocated
-+# relocated_maps = hash:/etc/mail/relocated
- relocated_maps =
- 
- # The trigger_timeout parameter limits the time to send a trigger to
-diff -urN postfix-beta-19990122-pl01.orig/conf/sample-relocated.cf postfix-beta-19990122-pl01/conf/sample-relocated.cf
---- postfix-beta-19990122-pl01.orig/conf/sample-relocated.cf	Sat Feb 27 23:32:55 1999
-+++ postfix-beta-19990122-pl01/conf/sample-relocated.cf	Sat Feb 27 23:33:03 1999
-@@ -7,12 +7,12 @@
- # 
- # By default, this feature is disabled.
- #
--# If you use this feature, run "postmap /etc/postfix/relocated" to 
-+# If you use this feature, run "postmap /etc/mail/relocated" to 
- # build the necessary DBM or DB file after change, then "postfix
- # reload" to make the changes visible.
- #
--# relocated_maps = dbm:/etc/postfix/relocated
--# relocated_maps = hash:/etc/postfix/relocated
--# relocated_maps = hash:/etc/postfix/relocated, nis:virtual
--# relocated_maps = hash:/etc/postfix/relocated, netinfo:/relocated
-+# relocated_maps = dbm:/etc/mail/relocated
-+# relocated_maps = hash:/etc/mail/relocated
-+# relocated_maps = hash:/etc/mail/relocated, nis:virtual
-+# relocated_maps = hash:/etc/mail/relocated, netinfo:/relocated
- relocated_maps = 
-diff -urN postfix-beta-19990122-pl01.orig/conf/sample-smtpd.cf postfix-beta-19990122-pl01/conf/sample-smtpd.cf
---- postfix-beta-19990122-pl01.orig/conf/sample-smtpd.cf	Sat Feb 27 23:32:55 1999
-+++ postfix-beta-19990122-pl01/conf/sample-smtpd.cf	Sat Feb 27 23:33:03 1999
-@@ -140,7 +140,7 @@
- # Continue long lines by starting the next line with whitespace.
- #
- # smtpd_sender_restrictions = reject_unknown_address
--# smtpd_sender_restrictions = reject_unknown_address, hash:/etc/postfix/access
-+# smtpd_sender_restrictions = reject_unknown_address, hash:/etc/mail/access
- smtpd_sender_restrictions = 
- 
- # The smtpd_recipient_restrictions parameter specifies restrictions on
-diff -urN postfix-beta-19990122-pl01.orig/conf/sample-transport.cf postfix-beta-19990122-pl01/conf/sample-transport.cf
---- postfix-beta-19990122-pl01.orig/conf/sample-transport.cf	Sat Feb 27 23:32:55 1999
-+++ postfix-beta-19990122-pl01/conf/sample-transport.cf	Sat Feb 27 23:33:03 1999
-@@ -5,11 +5,11 @@
- # to (transport, nexthop) mappings. See transport(5) for syntax details.
- #
- # By default, this feature is disabled. Specify the types of databases
--# to use.  If you use this feature, run "postmap /etc/postfix/transport"
-+# to use.  If you use this feature, run "postmap /etc/mail/transport"
- # after change, then "postfix reload".
- # 
--# transport_maps = dbm:/etc/postfix/transport
--# transport_maps = hash:/etc/postfix/transport
--# transport_maps = hash:/etc/postfix/transport, nis:transport
--# transport_maps = hash:/etc/postfix/transport, netinfo:/transport
-+# transport_maps = dbm:/etc/mail/transport
-+# transport_maps = hash:/etc/mail/transport
-+# transport_maps = hash:/etc/mail/transport, nis:transport
-+# transport_maps = hash:/etc/mail/transport, netinfo:/transport
- transport_maps = 
-diff -urN postfix-beta-19990122-pl01.orig/conf/sample-virtual.cf postfix-beta-19990122-pl01/conf/sample-virtual.cf
---- postfix-beta-19990122-pl01.orig/conf/sample-virtual.cf	Sat Feb 27 23:32:55 1999
-+++ postfix-beta-19990122-pl01/conf/sample-virtual.cf	Sat Feb 27 23:33:03 1999
-@@ -7,14 +7,14 @@
- # 
- # By default, no address redirection is done. 
- #
--# If you use this feature, run "postmap /etc/postfix/virtual" to 
-+# If you use this feature, run "postmap /etc/mail/virtual" to 
- # build the necessary DBM or DB file after change.
- #
- # It will take a minute or so before the change becomes visible.
- # Use "postfix reload" to eliminate the delay.
- #
--# virtual_maps = dbm:/etc/postfix/virtual
--# virtual_maps = hash:/etc/postfix/virtual
--# virtual_maps = hash:/etc/postfix/virtual, nis:virtual
--# virtual_maps = hash:/etc/postfix/virtual, netinfo:/virtual
-+# virtual_maps = dbm:/etc/mail/virtual
-+# virtual_maps = hash:/etc/mail/virtual
-+# virtual_maps = hash:/etc/mail/virtual, nis:virtual
-+# virtual_maps = hash:/etc/mail/virtual, netinfo:/virtual
- virtual_maps = 
-diff -urN postfix-beta-19990122-pl01.orig/conf/transport postfix-beta-19990122-pl01/conf/transport
---- postfix-beta-19990122-pl01.orig/conf/transport	Sat Feb 27 23:32:55 1999
-+++ postfix-beta-19990122-pl01/conf/transport	Sat Feb 27 23:33:03 1999
-@@ -4,7 +4,7 @@
- # SUMMARY
- #	format of Postfix transport table
- # SYNOPSIS
--#	\fBpostmap /etc/postfix/transport\fR
-+#	\fBpostmap /etc/mail/transport\fR
- # DESCRIPTION
- #	The optional \fBtransport\fR file specifies a mapping from domain
- #	hierarchies to message delivery transports and/or relay hosts. The
-diff -urN postfix-beta-19990122-pl01.orig/conf/virtual postfix-beta-19990122-pl01/conf/virtual
---- postfix-beta-19990122-pl01.orig/conf/virtual	Sat Feb 27 23:32:55 1999
-+++ postfix-beta-19990122-pl01/conf/virtual	Sat Feb 27 23:33:03 1999
-@@ -4,7 +4,7 @@
- # SUMMARY
- #	format of Postfix virtual table
- # SYNOPSIS
--#	\fBpostmap /etc/postfix/virtual\fR
-+#	\fBpostmap /etc/mail/virtual\fR
- # DESCRIPTION
- #	The optional \fBvirtual\fR table specifies redirections for local
- #	and non-local recipients or domains. The redirections are used by
-diff -urN postfix-beta-19990122-pl01.orig/global/mail_params.h postfix-beta-19990122-pl01/global/mail_params.h
---- postfix-beta-19990122-pl01.orig/global/mail_params.h	Sat Feb 27 23:32:55 1999
-+++ postfix-beta-19990122-pl01/global/mail_params.h	Sat Feb 27 23:33:03 1999
-@@ -157,7 +157,7 @@
+ # alias_maps = dbm:/etc/aliases, nis:mail.aliases
+ # alias_maps = hash:/etc/aliases
+-alias_maps = hash:/etc/aliases
++alias_maps = hash:/etc/mail/aliases
+diff -urN snapshot-19990518.orig/global/mail_params.h snapshot-19990518/global/mail_params.h
+--- snapshot-19990518.orig/global/mail_params.h	Mon May 24 07:07:02 1999
++++ snapshot-19990518/global/mail_params.h	Mon May 24 07:19:08 1999
+@@ -180,7 +180,7 @@
    */
  #define VAR_CONFIG_DIR		"config_directory"
  #ifndef DEF_CONFIG_DIR
@@ -534,15 +153,15 @@ diff -urN postfix-beta-19990122-pl01.orig/global/mail_params.h postfix-beta-1999
  #endif
  extern char *var_config_dir;
  
-diff -urN postfix-beta-19990122-pl01.orig/util/sys_defs.h postfix-beta-19990122-pl01/util/sys_defs.h
---- postfix-beta-19990122-pl01.orig/util/sys_defs.h	Sat Feb 27 23:32:55 1999
-+++ postfix-beta-19990122-pl01/util/sys_defs.h	Sat Feb 27 23:33:04 1999
-@@ -243,7 +243,7 @@
- #define HAS_FSYNC
+diff -urN snapshot-19990518.orig/util/sys_defs.h snapshot-19990518/util/sys_defs.h
+--- snapshot-19990518.orig/util/sys_defs.h	Mon May 24 07:07:02 1999
++++ snapshot-19990518/util/sys_defs.h	Mon May 24 07:19:31 1999
+@@ -31,7 +31,7 @@
  #define HAS_DB
+ #define HAS_SA_LEN
  #define DEF_DB_TYPE	"hash"
 -#define ALIAS_DB_MAP	"hash:/etc/aliases"
 +#define ALIAS_DB_MAP	"hash:/etc/mail/aliases"
- #define HAS_NIS
  #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
  #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
+ #define USE_STATFS
