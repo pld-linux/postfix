@@ -6,9 +6,12 @@
 %bcond_without	sasl	# without SMTP AUTH support
 %bcond_without	ssl	# without SSL/TLS support
 %bcond_without	cdb	# without cdb map support
-%bcond_with	polish	# with double English+Polish messages
+#%bcond_with	polish	# with double English+Polish messages
 #
-%define		_tls_ipv6_ver	1.23-pf-2.0.20
+# TODO:
+#	- check/fix 'polish' bcond
+#
+%define		_tls_ipv6_ver	1.25-pf-2.1.3
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
 Summary(es):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -17,13 +20,13 @@ Summary(pl):	Serwer SMTP Postfix
 Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
-Version:	2.0.20
+Version:	2.1.3
 Release:	1
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	92479b64d132262be505a17ec02bc2a8
+# Source0-md5:	1f515b0d80cd1f9db0113240bf36f248
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
@@ -32,18 +35,15 @@ Source6:	%{name}.sasl
 Source7:	ftp://ftp.corpit.ru/pub/postfix/%{name}-dict_cdb-1.1.11-20021104.tar.gz
 # Source7-md5:	5731b5081725f4688dc6fae119d617e4
 Source8:	http://www.ipnet6.org/postfix/download/tls+ipv6-%{_tls_ipv6_ver}.patch.gz
-# Source8-md5:	f22ddc33b8fc103c0ab953579e90ecd0
+# Source8-md5:	e013ff8d4aa49e17d7ee85419481cfc7
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
-Patch3:		%{name}-pgsql.patch
 Patch4:		%{name}-master.cf_cyrus.patch
-Patch5:		%{name}-pl.patch
+#Patch5:	%{name}-pl.patch
 Patch6:		%{name}-cdb_man.patch
-Patch7:		%{name}-ns-mx-acl.patch
 Patch8:		%{name}-kill_warnings.patch
 Patch9:		%{name}-ipv6-kill_warnings.patch
-Patch10:	%{name}-dict_ldap.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
@@ -210,15 +210,12 @@ zcat %{SOURCE8} | patch -p1 -s
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
-%patch3 -p1
 %patch4 -p1
-%{?with_polish:%patch5 -p1}
+#%{?with_polish:%patch5 -p1}
 %{?with_cdb:%patch6 -p1}
-%patch7 -p1
 %patch8 -p1
 %patch9 -p1
 %{?with_cdb:sh dict_cdb.sh}
-%patch10 -p1
 
 %build
 %{__make} -f Makefile.init makefiles
@@ -274,6 +271,8 @@ touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 
 > $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
+rm -rf $RPM_BUILD_ROOT/etc/mail/makedefs.out $RPM_BUILD_ROOT/usr/share/man/cat*
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -314,6 +313,8 @@ if [ "$1" = "1" ]; then
 	if ! grep -q "^myhostname" /etc/mail/main.cf; then
 		postconf -e myhostname=`/bin/hostname -f`
 	fi
+else
+	postfix upgrade-configuration
 fi
 
 newaliases
@@ -352,14 +353,17 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %doc html *README COMPATIBILITY HISTORY LICENSE RELEASE_NOTES
 %doc README_FILES/*README
 %doc sample-conf
+%doc examples/smtpd-policy
+%doc pfixtls
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/access
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/aliases
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/canonical
-%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/pcre_table
-%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/regexp_table
+#%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/pcre_table
+#%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/regexp_table
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/relocated
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/transport
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/virtual
+%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/header_checks
 #%ghost %{_sysconfdir}/mail/*.db
 %dir %{_sysconfdir}/mail
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/dynamicmaps.cf
