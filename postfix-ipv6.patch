@@ -1852,7 +1852,7 @@ diff -Nur snapshot-20011127.orig/src/util/inet_addr_list.c snapshot-20011127/src
  {
 +#ifdef INET6
 +    if(((struct sockaddr*)a)->sa_family != ((struct sockaddr*)b)->sa_family)
-+	return 1;
++	return ( ((struct sockaddr*)a)->sa_family - ((struct sockaddr*)b)->sa_family );
 +    return memcmp(a,b,SA_LEN((struct sockaddr*)a));
 +#else
      const struct in_addr *a_addr = (const struct in_addr *) a;
