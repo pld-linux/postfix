@@ -148,14 +148,15 @@ diff -Nur snapshot-20011127.orig/src/global/mynetworks.c snapshot-20011127/src/g
  
  	mask_style = name_mask("mynetworks mask style", mask_styles,
  			       var_mynetworks_style);
-@@ -96,8 +107,18 @@
+@@ -96,8 +107,19 @@
  	my_mask_list = own_inet_mask_list();
  
  	for (i = 0; i < my_addr_list->used; i++) {
 +#ifdef INET6
 +	    sa = (struct sockaddr *)&my_addr_list->addrs[i];
 +	    if (sa->sa_family != AF_INET) {
-+	        vstring_sprintf_append(result, "XAATODOmynetworks ");
++		if (sa->sa_family == AF_INET6)
++		    vstring_sprintf_append(result, "XAATODOmynetworks ");
 +		continue;
 +	    }
 +	    addr = ntohl(((struct sockaddr_in *)sa)->sin_addr.s_addr);
@@ -1922,7 +1923,7 @@ diff -Nur snapshot-20011127.orig/src/util/inet_addr_local.c snapshot-20011127/sr
  
  /* Utility library. */
  
-@@ -78,18 +85,98 @@
+@@ -78,18 +85,104 @@
  
  int     inet_addr_local(INET_ADDR_LIST *addr_list, INET_ADDR_LIST *mask_list)
  {
@@ -1930,13 +1931,13 @@ diff -Nur snapshot-20011127.orig/src/util/inet_addr_local.c snapshot-20011127/sr
 +    char *myname = "inet_addr_local";
 +    struct ifaddrs *ifap, *ifa;
 +    int initial_count = addr_list->used;
-+    struct sockaddr *sa;
++    struct sockaddr *sa, *sam;
 +#ifdef INET6
 +#ifdef __KAME__
 +    struct sockaddr_in6 addr6;
 +#endif
 +#else
-+    void *addr;
++    void *addr, *addrm;
 +#endif
 +
 +    if (getifaddrs(&ifap) < 0)
@@ -1946,10 +1947,12 @@ diff -Nur snapshot-20011127.orig/src/util/inet_addr_local.c snapshot-20011127/sr
 +		if (! (ifa->ifa_flags & IFF_RUNNING) || ifa->ifa_addr==NULL) 
 +			continue;
 +	sa = ifa->ifa_addr;
++	sam = ifa->ifa_netmask;
 +	switch (ifa->ifa_addr->sa_family) {
 +	case AF_INET:
 +#ifndef INET6
 +	    addr = (void *)&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
++	    addrm = (void *)&((struct sockaddr_in *)ifa->ifa_netmask)->sin_addr;
 +#endif
 +	    break;
 +#ifdef INET6
@@ -1974,8 +1977,12 @@ diff -Nur snapshot-20011127.orig/src/util/inet_addr_local.c snapshot-20011127/sr
 +
 +#ifdef INET6
 +	inet_addr_list_append(addr_list, sa);
++	if (mask_list != NULL)
++	    inet_addr_list_append(mask_list, sam);
 +#else
 +	inet_addr_list_append(addr_list, (struct in_addr *)addr);
++	if (mask_list != NULL)
++	    inet_addr_list_append(mask_list, (struct in_addr *)addrm);
 +#endif
 +    }
 +
@@ -2673,7 +2680,7 @@ diff -Nur snapshot-20011127.orig/src/util/match_ops.c snapshot-20011127/src/util
 +}
 +
 +/*
-+ * masked_match() - universal for IPv4 and IPv6
++ * masked_match() - universal for IPv4 and IPv6  - 1 if matches
 + */
 +int masked_match(net_tok, mask_tok, string)
 +char	*net_tok;
@@ -2689,7 +2696,7 @@ diff -Nur snapshot-20011127.orig/src/util/match_ops.c snapshot-20011127/src/util
 +
 +	/* Check for NULL */
 +	if (!(net_tok && mask_tok && string))
-+		return 1;
++		return 0; /* doesn't match!!! */
 +
 +	/* If IPv6 mapped convert to native-IPv4 */
 +#ifdef INET6
