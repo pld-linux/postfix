@@ -1,0 +1,5 @@
+#!/bin/sh
+#
+# Check for problems with Postfix
+
+/usr/sbin/postfix check

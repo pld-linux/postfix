@@ -1,0 +1,70 @@
+#!/bin/sh
+#
+# postfix       This shell script takes care of starting and stopping
+#               postfix.
+#
+# chkconfig: 2345 80 30
+# description: Postfix is a Mail Transport Agent, which is the program
+# that moves mail from one machine to another.
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+# Check that networking is up.
+[ "${NETWORKING}" = "no" ] && exit 0
+
+[ -f /usr/sbin/postfix ] || exit 0
+
+# See how we were called.
+case "$1" in
+  start)
+	# Start daemons.
+	show "Starting postfix: "
+	busy
+	newaliases
+	$0 rebuilddb
+	if /usr/sbin/postfix start 2>/dev/null; then
+	deltext; ok
+	else
+	deltext;fail
+	fi
+	touch /var/lock/subsys/postfix
+	;;
+  stop)
+	# Stop daemons.
+	show "Shutting down postfix: "
+	busy
+	if /usr/sbin/postfix stop 2>/dev/null; then
+	deltext; ok
+	else
+	deltext; fail
+	fi
+	rm -f /var/lock/subsys/postfix
+	;;
+  restart)
+	$0 stop
+	$0 start
+	;;
+  reload)
+	/usr/sbin/postfix reload
+	;;
+  status)
+	status postfix
+	;;
+  rebuilddb)
+        for I in access canonical relocated transport virtual
+	do
+	if [ -f /etc/mail/$I ] ; then
+	   /usr/sbin/postmap hash:/etc/mail/$I < /etc/mail/$I
+	fi
+	done
+  	;;
+  *)
+	echo "Usage: $0 {start|stop|restart|reload|status}"
+	exit 1
+esac
+
+exit 0
