@@ -1,5 +1,5 @@
 #
-# Conditional build:
+# Conditional build:	
 # --without sasl - build wihtout SMTP AUTH support
 # --without ldap - build without LDAP support
 # --without pcre - build without Perl Compatible Regular Expresion support
@@ -9,7 +9,7 @@
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Serwer SMTP Postfix
 Name:		postfix
-Version:	20010228
+Version:	20010329
 Release:	1
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
@@ -63,7 +63,8 @@ Postfix jest prób± dostarczenia alternatywnego MTA w stosunku do
 szeroko u¿ywanego sendmaila. Postfix w zamierzeniu ma byæ szybki,
 ³atwy w administrowaniu, bezpieczny oraz ma byæ na tyle kompatybilny z
 sendmailem by nie denerwowaæ Twoich u¿ytkowników. Ta wersja wspiera
-IPv6%{!?bcond_off_ldap: oraz LDAP} %{?bcond_off_ldap: i nie zawiera wsparcia LDAP}.
+IPv6%{!?bcond_off_ldap: oraz LDAP} %{?bcond_off_ldap: i nie zawiera
+wsparcia LDAP}.
 
 %prep
 %setup -q -n snapshot-%{version}
@@ -76,7 +77,7 @@ IPv6%{!?bcond_off_ldap: oraz LDAP} %{?bcond_off_ldap: i nie zawiera wsparcia LDA
 %{__make} -f Makefile.init makefiles
 %{__make} tidy
 %{__make} DEBUG="" OPT="%{?debug:-O0 -g}%{!?debug:$RPM_OPT_FLAGS}" \
-	CCARGS="%{!?bcond_off_ldap:-DHAS_LDAP} %{!?bcond_off_pcre:-DHAS_PCRE} %{!?bcond_off_sasl:-DUSE_SASL_AUTH} %{?bcond_on_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{!?bcond_off_ssl:-DHAS_SSL -I/usr/include/openssl}" \
+	CCARGS="%{!?bcond_off_ldap:-DHAS_LDAP} %{!?bcond_off_pcre:-DHAS_PCRE} %{!?bcond_off_sasl:-DUSE_SASL_AUTH} %{?bcond_on_mysql:-DHAS_MYSQL -I%{_includedir}/mysql} %{!?bcond_off_ssl:-DHAS_SSL -I%{_includedir}/openssl}" \
 	AUXLIBS="%{!?bcond_off_ldap:-llber -lldap} -lnsl -ldb -lresolv %{!?bcond_off_pcre:-lpcre} %{!?bcond_off_sasl:-lsasl} %{?bcond_on_mysql:-lmysqlclient}"
 
 %install
