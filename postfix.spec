@@ -2,7 +2,7 @@ Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
 Name:		postfix
 Version:	20000531
-Release:	2
+Release:	3
 Group:		Networking/Daemons
 Group(pl):	Sieciowe/Serwery
 Copyright:	Distributable
@@ -89,6 +89,9 @@ install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/postfix
 ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
 ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/newaliases
 ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_libdir}/sendmail
+
+mv -f  $RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script-sgid \
+	$RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script
 
 rm $RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script-{diff,nosgid}
 
