@@ -30,11 +30,11 @@ Patch5:		%{name}-conf_msg.patch
 URL:		http://www.postfix.org/
 Provides:	smtpdaemon
 Prereq:		rc-scripts
-%{!?bcond_off_ldap:BuildRequires:	openldap-devel >= 2.0.0}
-%{!?bcond_off_ssl:BuildRequires:	openssl-devel >= 0.9.6a}
-%{!?bcond_off_pcre:BuildRequires:	pcre-devel}
-%{!?bcond_off_sasl:BuildRequires:	cyrus-sasl-devel}
-%{!?bcond_off_ipv6:BuildRequires:	libinet6}
+%{!?_without_ldap:BuildRequires:	openldap-devel >= 2.0.0}
+%{!?_without_ssl:BuildRequires:	openssl-devel >= 0.9.6a}
+%{!?_without_pcre:BuildRequires:	pcre-devel}
+%{!?_without_sasl:BuildRequires:	cyrus-sasl-devel}
+%{!?_without_ipv6:BuildRequires:	libinet6}
 BuildRequires:	db3-devel
 BuildRequires:	grep
 Prereq:		/sbin/chkconfig
@@ -45,7 +45,7 @@ Prereq:		/usr/sbin/groupdel
 Prereq:		/usr/bin/getgid
 Prereq:		/bin/id
 Prereq:		/bin/hostname
-%{!?bcond_off_ldap:Prereq:	openldap >= 2.0.0}
+%{!?_without_ldap:Prereq:	openldap >= 2.0.0}
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 Obsoletes:	smtpdaemon
 Obsoletes:	exim
@@ -60,21 +60,21 @@ Postfix is attempt to provide an alternative to the widely-used
 Sendmail program. Postfix attempts to be fast, easy to administer, and
 hopefully secure, while at the same time being sendmail compatible
 enough to not upset your users. This version have IPv6 support and
-%{!?bcond_off_ldap:no }LDAP support.
+%{!?_without_ldap:no }LDAP support.
 
 %description -l pl
 Postfix jest prób± dostarczenia alternatywnego MTA w stosunku do
 szeroko u¿ywanego sendmaila. Postfix w zamierzeniu ma byæ szybki,
 ³atwy w administrowaniu, bezpieczny oraz ma byæ na tyle kompatybilny z
 sendmailem by nie denerwowaæ Twoich u¿ytkowników. Ta wersja wspiera
-IPv6%{!?bcond_off_ldap: oraz LDAP}.
+IPv6%{!?_without_ldap: oraz LDAP}.
 
 %prep
 %setup -q -n snapshot-%{version}
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
-%{!?bcond_off_ipv6:%patch3 -p1}
+%{!?_without_ipv6:%patch3 -p1}
 %patch4 -p1
 %patch5 -p1
 
@@ -82,8 +82,8 @@ IPv6%{!?bcond_off_ldap: oraz LDAP}.
 %{__make} -f Makefile.init makefiles
 %{__make} tidy
 %{__make} DEBUG="" OPT="%{rpmcflags}" \
-	CCARGS="%{!?bcond_off_ldap:-DHAS_LDAP} %{!?bcond_off_pcre:-DHAS_PCRE} %{!?bcond_off_sasl:-DUSE_SASL_AUTH} %{?bcond_on_mysql:-DHAS_MYSQL -I%{_includedir}/mysql} %{!?bcond_off_ssl:-DHAS_SSL -I%{_includedir}/openssl}" \
-	AUXLIBS="%{!?bcond_off_ldap:-llber -lldap} -lnsl -ldb -lresolv %{!?bcond_off_pcre:-lpcre} %{!?bcond_off_sasl:-lsasl} %{?bcond_on_mysql:-lmysqlclient} %{!?bcond_off_ssl:-lssl -lcrypto}"
+	CCARGS="%{!?_without_ldap:-DHAS_LDAP} %{!?_without_pcre:-DHAS_PCRE} %{!?_without_sasl:-DUSE_SASL_AUTH} %{?_with_mysql:-DHAS_MYSQL -I%{_includedir}/mysql} %{!?_without_ssl:-DHAS_SSL -I%{_includedir}/openssl}" \
+	AUXLIBS="%{!?_without_ldap:-llber -lldap} -lnsl -ldb -lresolv %{!?_without_pcre:-lpcre} %{!?_without_sasl:-lsasl} %{?_with_mysql:-lmysqlclient} %{!?_without_ssl:-lssl -lcrypto}"
 
 %install
 rm -rf $RPM_BUILD_ROOT
