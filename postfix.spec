@@ -1,15 +1,15 @@
 %define		ver	19990906
 %define		patchl	08
-%define		pfixtls	0.4.2-19990906-pl05-0.9.4
+%define		pfixtls	0.4.5-19990906-pl07-0.9.4
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
 Name:		postfix
 Version:	%{ver}_pl%{patchl}
-Release:	2
+Release:	3
 Group:		Networking/Daemons
 Group(pl):	Sieciowe/Serwery
 Copyright:	Distributable
-Source0:	ftp://postfix.cloud9.net/%{name}-%{ver}-pl%{patchl}.tar.gz
+Source0:	ftp://postfix.cloud9.net/official/%{name}-%{ver}-pl%{patchl}.tar.gz
 Source1:	postfix.aliases
 Source2:	postfix.cron
 Source3:	postfix.init
@@ -17,8 +17,8 @@ Source4:	ftp://ftp.aet.tu-cottbus.de/pub/pfixtls/pfixtls-%{pfixtls}.tar.gz
 Source5:	postfix.sysconfig
 Patch0:		postfix-config.patch
 Patch1:		http://www.xaa.iae.nl/~xaa/postfix6/patch.19990727.txt
-Patch2:		postfix-tls.patch
-Patch3:		postfix-glibc.patch
+Patch2:		postfix-glibc.patch
+Patch3:		postfix-tls.patch
 URL:		http://www.postfix.org/
 Provides:	smtpdaemon
 Requires:	rc-scripts
@@ -49,12 +49,12 @@ nie denerwowaæ Twoich u¿ytkowników. Ta wersja wspiera IPv6 oraz LDAP.
 
 %prep
 %setup -q -n postfix-%{ver}-pl%{patchl} -a 4
-%patch0 -p1 -b .wiget
+%patch0 -p1
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
 # postfix-tls.patch obsoletes pfixtls-%{pfixtls}/pfixtls.diff
-#patch -p1 <pfixtls-%{pfixtls}/pfixtls.diff
+#patch -p1 -b -z .wiget <pfixtls-%{pfixtls}/pfixtls.diff
 
 %build
 make -f Makefile.init makefiles
