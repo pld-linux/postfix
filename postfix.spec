@@ -146,7 +146,7 @@ if ! grep -q "^postmaster:" /etc/mail/aliases; then
 fi
 newaliases
 /sbin/chkconfig --add postfix
-if [ -r /var/lock/subsys/postfix]; then
+if [ -r /var/lock/subsys/postfix ]; then
 	/etc/rc.d/init.d/postfix restart >&2
 else
 	echo "Run \"/etc/rc.d/init.d/postfix start\" to start postfix daemon." >&2
