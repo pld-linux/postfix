@@ -10,7 +10,7 @@ Summary:	Postfix Mail Transport Agent
 Summary(pl):	Serwer SMTP Postfix
 Name:		postfix
 Version:	20010329
-Release:	2
+Release:	3
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
 Group(pl):	Sieciowe/Serwery
@@ -75,7 +75,7 @@ IPv6%{!?bcond_off_ldap: oraz LDAP}.
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
-%patch5 -p1 -b .wiget
+%patch5 -p1
 
 %build
 %{__make} -f Makefile.init makefiles
