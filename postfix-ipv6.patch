@@ -38,8 +38,8 @@
 +	;;
 +linux)
 +	CCARGS="$CCARGS -DINET6 -D__ss_family=ss_family"
-+	if test -f /usr/include/libinet6/netinet/ip6.h -a \
-+		-f /usr/lib/libinet6.a; then 
++	if test -f /usr/include/libinet6/netinet/ip6.h
++			then 
 +		CCARGS="$CCARGS -I/usr/include/libinet6 -DUSAGI_LIBINET6"
 +		SYSLIBS="$SYSLIBS -linet6"
 +	fi
