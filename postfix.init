@@ -71,7 +71,7 @@ case "$1" in
 	/usr/sbin/postfix reload
 	;;
   status)
-	status postfix
+	status master
 	exit $?
 	;;
   rebuilddb)
