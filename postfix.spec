@@ -12,7 +12,7 @@ Summary:	Postfix Mail Transport Agent
 Summary(pl):	Serwer SMTP Postfix
 Name:		postfix
 Version:	1.1.2
-Release:	0.1
+Release:	0.2
 Epoch:		1
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
@@ -49,6 +49,7 @@ Prereq:		/usr/bin/getgid
 Prereq:		/bin/id
 Prereq:		/bin/hostname
 %{!?_without_ldap:Prereq:	openldap >= 2.0.0}
+Prereq:		sed
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 Obsoletes:	smtpdaemon
 Obsoletes:	exim
@@ -187,6 +188,12 @@ if [ "$1" = "0" ]; then
 	/usr/sbin/userdel postfix 2> /dev/null
 	/usr/sbin/groupdel postfix 2> /dev/null
 fi
+
+%triggerpostun -- postfix < 1:1.1.2
+sed -e 's/^\(pickup[ 	]\+fifo[ 	]\+[^ 	]\+[ 	]\+\)[^ 	]\+\([ 	]\)/\1-\2/;
+s/^\(cleanup[ 	]\+unix[ 	]\+\)[^ 	]\+\([ 	]\)/\1n\2/' /etc/mail/master.cf \
+	> /etc/mail/master.cf.rpmtmp
+mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 
 %files
 %defattr(644,root,root,755)
