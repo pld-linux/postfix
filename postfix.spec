@@ -3,7 +3,6 @@
 #	- fix ipv6 patch against IPv4 RBLs
 #	- 0.0.0.0/0 is still being added to mynetworks if any ipv6/ip
 #	  tunnels are present
-#       - fix patches
 #
 # Conditional build:
 %bcond_without	ipv6	# without IPv6 support
@@ -73,7 +72,6 @@ Requires(post,postun):	/sbin/ldconfig
 Requires(post,preun):	/sbin/chkconfig
 Requires(postun):	/usr/sbin/userdel
 Requires(postun):	/usr/sbin/groupdel
-BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 Provides:	smtpdaemon
 Obsoletes:	smtpdaemon
 Obsoletes:	exim
@@ -88,6 +86,7 @@ Obsoletes:	zmailer
 Requires:	diffutils
 Requires:	findutils
 %{?with_cdb:Requires:tinycdb}
+BuildRoot:      %{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
 Postfix is attempt to provide an alternative to the widely-used
