@@ -10,7 +10,7 @@ Summary:	Postfix Mail Transport Agent
 Summary(pl):	Serwer SMTP Postfix
 Name:		postfix
 Version:	20010228
-Release:	2
+Release:	1
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
 Group(pl):	Sieciowe/Serwery
@@ -21,9 +21,9 @@ Source2:	%{name}.cron
 Source3:	%{name}.init
 Source5:	%{name}.sysconfig
 Patch0:		%{name}-config.patch
-#Patch1:		http://www.misiek.eu.org/ipv6/%{name}-ver20010128-ipv6-20010129.patch.gz
-Patch2:		%{name}-pl.patch
-Patch3:		%{name}-ssl.patch
+Patch1:		%{name}-pl.patch
+Patch2:		%{name}-ssl.patch
+Patch3:		%{name}-ipv6.patch.gz
 URL:		http://www.postfix.org/
 Provides:	smtpdaemon
 Prereq:		rc-scripts
@@ -68,7 +68,7 @@ IPv6%{!?bcond_off_ldap: oraz LDAP} %{?bcond_off_ldap: i nie zawiera wsparcia LDA
 %prep
 %setup -q -n snapshot-%{version}
 %patch0 -p1
-#%patch1 -p1
+%patch1 -p1
 %patch2 -p1
 %patch3 -p1
 
@@ -115,8 +115,8 @@ touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 
 gzip -9nf LDAP_README HISTORY MYSQL_README UUCP_README 0README \
 	COMPATIBILITY DEBUG_README LICENSE LMTP_README PCRE_README \
-	RELEASE_NOTES RESTRICTION_CLASS SASL_README TODO FILTER_README #\
-	#IPV6_README
+	RELEASE_NOTES RESTRICTION_CLASS SASL_README TODO FILTER_README \
+	IPV6_README
 
 touch $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
