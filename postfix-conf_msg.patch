@@ -1,26 +1,26 @@
 diff -ruN postfix-1.1.11/src/global/mail_params.c postfix-1.1.11.my/src/global/mail_params.c
 --- postfix-1.1.11/src/global/mail_params.c	Wed Sep 18 12:16:53 2002
 +++ postfix-1.1.11.my/src/global/mail_params.c	Wed Sep 18 12:08:12 2002
-@@ -75,6 +75,7 @@
+@@ -78,6 +78,7 @@
  /*	char	*var_debug_peer_list;
  /*	int	var_debug_peer_level;
  /*	int	var_in_flow_delay;
 +/*	char    *var_reject_reply_msg_access_denied;
  /*	int	var_fault_inj_code;
- /*
- /*	void	mail_params_init()
-@@ -229,6 +230,7 @@
+ /*	char   *var_bounce_service;
+ /*	char   *var_cleanup_service;
+@@ -268,6 +269,7 @@
  char   *var_export_environ;
  char   *var_debug_peer_list;
  int     var_debug_peer_level;
 +char   *var_reject_reply_msg_access_denied;
  int     var_fault_inj_code;
- 
- #define MAIN_CONF_FILE	"main.cf"
-@@ -458,6 +460,7 @@
- 	VAR_SMTP_TLS_CLIST, DEF_SMTP_TLS_CLIST, &var_smtp_tls_cipherlist, 0, 0,
+ char   *var_bounce_service;
+ char   *var_cleanup_service;
+@@ -535,6 +537,7 @@
  	VAR_SMTP_TLS_SCACHE_DB, DEF_SMTP_TLS_SCACHE_DB, &var_smtp_tls_scache_db, 0, 0,
  	VAR_TLS_DAEMON_RAND_SOURCE, DEF_TLS_DAEMON_RAND_SOURCE, &var_tls_daemon_rand_source, 0, 0,
+ #endif
 +	VAR_REJECT_REPLY_MSG_ACCESS_DENIED, DEF_REJECT_REPLY_MSG_ACCESS_DENIED, &var_reject_reply_msg_access_denied, 1, 0, 
  	0,
      };
@@ -90,10 +90,10 @@ diff -ruN postfix-1.1.11/src/smtpd/smtpd_check.c postfix-1.1.11.my/src/smtpd/smt
 diff -ruN postfix-1.1.11/src/smtpd/smtpd.c postfix-1.1.11.my/src/smtpd/smtpd.c
 --- postfix.orig/src/smtpd/smtpd.c	Wed Sep 18 12:16:53 2002
 +++ postfix/src/smtpd/smtpd.c	Wed Sep 18 12:08:12 2002
-@@ -2004,6 +2004,7 @@
- 	VAR_VERP_CLIENTS, DEF_VERP_CLIENTS, &var_verp_clients, 0, 0,
+@@ -3086,6 +3086,7 @@
  	VAR_RELAY_CCERTS, DEF_RELAY_CCERTS, &var_relay_ccerts, 0, 0,
  	VAR_SMTPD_SASL_TLS_OPTS, DEF_SMTPD_SASL_TLS_OPTS, &var_smtpd_sasl_tls_opts, 0, 0,
+ #endif
 +	VAR_REJECT_REPLY_MSG_ACCESS_DENIED, DEF_REJECT_REPLY_MSG_ACCESS_DENIED, &var_reject_reply_msg_access_denied, 1, 0, 
  	0,
      };
