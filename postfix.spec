@@ -4,6 +4,8 @@
 # --without ssl  - build without SSL/TLS support
 # --without ipv6 - build without IPv6 support
 # --with polish  - build with polish messages support
+# _without_psql  - no Postgres support
+# _without_ldap  - no LDAP support
 #
 %define	tls_ver 0.8.11a-1.1.11-0.9.6d
 Summary:	Postfix Mail Transport Agent
@@ -36,14 +38,14 @@ Patch6:		%{name}-pl.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{!?_without_sasl:BuildRequires:	cyrus-sasl-devel}
-BuildRequires:	db3-devel
+BuildRequires:	db-devel
 BuildRequires:	grep
 %{!?_without_ipv6:BuildRequires:	libinet6 >= 0.20010420-3}
 BuildRequires:	mysql-devel
-BuildRequires:	openldap-devel >= 2.0.0
+%{!?_without_ldap:BuildRequires:	openldap-devel >= 2.0.0}
 %{!?_without_ssl:BuildRequires:	openssl-devel >= 0.9.6a}
 BuildRequires:	pcre-devel
-BuildRequires:	postgresql-devel
+%{!?_without_psql:BuildRequires:	postgresql-devel}
 PreReq:		rc-scripts
 PreReq:		sed
 Requires(pre):	/usr/sbin/useradd
@@ -375,9 +377,11 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %attr(755,root,root) %{_libdir}/libpostfix-*.so
 %{_includedir}/postfix
 
+%if %{!?_without_ldap:1}%{?_without_ldap:0}
 %files dict-ldap
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_ldap.so
+%endif
 
 %files dict-mysql
 %defattr(644,root,root,755)
@@ -387,6 +391,8 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_pcre.so
 
+%if %{!?_without_psql:1}%{?_without_psql:0}
 %files dict-pgsql
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_pgsql.so
+%endif
