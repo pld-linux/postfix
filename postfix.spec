@@ -13,7 +13,7 @@
 # _without_ssl		- without SSL/TLS support
 # _with_polish		- with double English+Polish messages
 #
-%define	tls_ver 0.8.13-2.0.4-0.9.7a
+%define	tls_ver 0.8.13-2.0.6-0.9.7a
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
 Summary(es):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
