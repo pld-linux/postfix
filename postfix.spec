@@ -1,6 +1,6 @@
 %define		ver	19991231
 %define		patchl	04
-%define		pfixtls	0.5.2-19991231-pl03-0.9.4
+%define		pfixtls	0.5.5-19991231-pl04-0.9.5
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
 Name:		postfix
@@ -16,7 +16,7 @@ Source3:	postfix.init
 Source4:	ftp://ftp.aet.tu-cottbus.de/pub/pfixtls/pfixtls-%{pfixtls}.tar.gz
 Source5:	postfix.sysconfig
 Patch0:		postfix-config.patch
-Patch1:		http://www.xaa.iae.nl/~xaa/postfix6/patch.19990727.txt
+#Patch1:		http://www.xaa.iae.nl/~xaa/postfix6/patch.19990727.txt
 Patch2:		postfix-IPv6.patch
 Patch3:		postfix-glibc.patch
 URL:		http://www.postfix.org/
@@ -61,8 +61,9 @@ patch -p1 -s <pfixtls-%{pfixtls}/pfixtls.diff
 %build
 make -f Makefile.init makefiles
 make tidy
-make DEBUG="-DINET6_DEBUG" OPT="$RPM_OPT_FLAGS" CCARGS="-DHAS_LDAP -DHAS_SSL" \
-     AUXLIBS="-llber -lldap -lssl -lcrypto -lnsl -ldb -lresolv"
+make DEBUG="" OPT="$RPM_OPT_FLAGS" \
+     CCARGS="-DHAS_LDAP -DHAS_SSL -DHAS_PCRE" \
+     AUXLIBS="-llber -lldap -lssl -lcrypto -lnsl -ldb -lresolv -lpcre"
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -79,12 +80,6 @@ mv -f pfixtls-%{pfixtls}/{doc,README,TODO,CHANGES} pfixtls
 install -s bin/* $RPM_BUILD_ROOT%{_sbindir}
 install -s libexec/* $RPM_BUILD_ROOT%{_libdir}/postfix
 install conf/* $RPM_BUILD_ROOT%{_sysconfdir}/mail
-
-sed -e "s/^#myhostname = host.domain.name/myhostname = @HOSTNAME@ /" \
-	<$RPM_BUILD_ROOT%{_sysconfdir}/mail/main.cf \
-	>$RPM_BUILD_ROOT%{_sysconfdir}/mail/main.cf.work
-mv -f $RPM_BUILD_ROOT%{_sysconfdir}/mail/main.cf.work \
-      $RPM_BUILD_ROOT%{_sysconfdir}/mail/main.cf
 
 (cd man; tar cf - .) | (cd $RPM_BUILD_ROOT%{_mandir}; tar xf -)
 
@@ -152,10 +147,8 @@ if ! grep -q "^postmaster:" /etc/mail/aliases; then
         echo "Adding Entry for postmaster in /etc/mail/aliases" >&2
         echo "postmaster:       root" >>/etc/mail/aliases
 fi
-if grep -q "@HOSTNAME@" /etc/mail/main.cf; then
-	sed -e "s/@HOSTNAME@/`hostname -f`/" /etc/mail/main.cf \
-	       >/etc/mail/main.cf.work
-	mv -f /etc/mail/main.cf.work /etc/mail/main.cf
+if ! grep -E "^hostname" /etc/mail/main.cf; then
+	postconf -e hostname=`hostname -f`
 fi
 
 newaliases
