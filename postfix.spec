@@ -7,17 +7,18 @@
 # --with mysql - build with MySQL support
 # --without ipv6  - build without IPv6 support
 #
-%define	tls_ver 0.7.13c-snap20011127-0.9.6b
+%define	tls_ver 0.8.1-1.1.1-0.9.6c
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Serwer SMTP Postfix
 Name:		postfix
-Version:	20011127
-Release:	4
+Version:	1.1.2
+Release:	0.1
+Epoch:		1
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
 Group(pl):	Sieciowe/Serwery
 License:	distributable
-Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-%{version}.tar.gz
+Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
@@ -76,7 +77,7 @@ sendmailem by nie denerwowaæ Twoich u¿ytkowników. Ta wersja wspiera
 IPv6%{!?_without_ldap: oraz LDAP}.
 
 %prep
-%setup -q -n snapshot-%{version} -a 6 
+%setup -q -a6 
 %patch0 -p1
 %patch1 -p1
 patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff 
@@ -118,16 +119,11 @@ ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
 ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/newaliases
 ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_libdir}/sendmail
 
-mv -f  $RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script-sgid \
-	$RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script
-
-rm -f $RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script-{diff,nosgid}
-
 touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 	{aliases,access,canonical,relocated,transport,virtual}{,.db}
 
-gzip -9nf *README HISTORY COMPATIBILITY LICENSE RELEASE_NOTES \
-	   RESTRICTION_CLASS TODO
+gzip -9nf *README COMPATIBILITY HISTORY LICENSE RELEASE_NOTES \
+	README_FILES/*README
 
 touch $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
@@ -186,7 +182,7 @@ if [ "$1" = "0" ]; then
 fi
 
 %postun
-if [ $1 = 0 ]; then
+if [ "$1" = "0" ]; then
 	/usr/sbin/groupdel maildrop 2> /dev/null
 	/usr/sbin/userdel postfix 2> /dev/null
 	/usr/sbin/groupdel postfix 2> /dev/null
@@ -194,8 +190,7 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%doc html *README.gz
-%doc {HISTORY,COMPATIBILITY,LICENSE,RELEASE_NOTES,RESTRICTION_CLASS,TODO}.gz
+%doc html *.gz README_FILES/*.gz
 %doc sample-conf
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/access
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/aliases
@@ -220,8 +215,10 @@ fi
 %attr(755,root,root) %{_sbindir}/postl*
 %attr(755,root,root) %{_sbindir}/postc*
 %attr(755,root,root) %{_sbindir}/postmap
+%attr(2755,root,maildrop) %{_sbindir}/postqueue
 %attr(755,root,root) %{_sbindir}/postsuper
 %attr(2755,root,maildrop) %{_sbindir}/postdrop
+%attr(755,root,root) %{_sbindir}/qmqp-source
 %attr(755,root,root) %{_libdir}/sendmail
 %attr(755,root,root) %{_libdir}/postfix
 %attr(755,root,root) %dir %{_var}/spool/postfix
@@ -234,7 +231,7 @@ fi
 %attr(1730,postfix,maildrop) %dir %{_var}/spool/postfix/maildrop
 %attr(755, postfix,root) %dir %{_var}/spool/postfix/pid
 %attr(700, postfix,root) %dir %{_var}/spool/postfix/private
-%attr(755, postfix,root) %dir %{_var}/spool/postfix/public
+%attr(710, postfix,maildrop) %dir %{_var}/spool/postfix/public
 %attr(700, postfix,root) %dir %{_var}/spool/postfix/saved
 %attr(644, postfix,root) %{_var}/spool/postfix/.nofinger
 %{_mandir}/man*/*
