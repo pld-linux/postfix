@@ -340,7 +340,7 @@ diff -urN snapshot-20011114/src/smtpd/smtpd_check.c snapshot-20011114.my/src/smt
  	    && NOMATCH(virtual_maps, CONST_STR(reply->recipient))) {
  	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
 -				   "%d <%s>: User unknown", 550, recipient);
-+				   "%d <%s>: Nieznany uzytkonik / User unknown", 550, recipient);
++				   "%d <%s>: Nieznany uzytkownik / User unknown", 550, recipient);
  	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
  	}
      }
@@ -349,7 +349,7 @@ diff -urN snapshot-20011114/src/smtpd/smtpd_check.c snapshot-20011114.my/src/smt
  	    && NOMATCH(virtual_maps, CONST_STR(reply->recipient))) {
  	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
 -				   "%d <%s>: User unknown", 550, recipient);
-+				   "%d <%s>: Nieznany uzytkonik / User unknown", 550, recipient);
++				   "%d <%s>: Nieznany uzytkownik / User unknown", 550, recipient);
  	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
  	}
      }
@@ -358,7 +358,7 @@ diff -urN snapshot-20011114/src/smtpd/smtpd_check.c snapshot-20011114.my/src/smt
  	    && NOMATCH(local_rcpt_maps, CONST_STR(reply->recipient))) {
  	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
 -				   "%d <%s>: User unknown", 550, recipient);
-+				   "%d <%s>: Nieznany uzytkonik / User unknown", 550, recipient);
++				   "%d <%s>: Nieznany uzytkownik / User unknown", 550, recipient);
  	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
  	}
      }
