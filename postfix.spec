@@ -1,22 +1,19 @@
-%define		ver	20000531
-%define		patchl	06
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
 Name:		postfix
-Version:	%{ver}
+Version:	20000531
 Release:	1
 Group:		Networking/Daemons
 Group(pl):	Sieciowe/Serwery
 Copyright:	Distributable
-Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-%{ver}.tar.gz
+Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-%{version}.tar.gz
 Source1:	postfix.aliases
 Source2:	postfix.cron
 Source3:	postfix.init
 Source5:	postfix.sysconfig
 Patch0:		postfix-config.patch
-Patch2:		postfix-IPv6.patch
-Patch3:		postfix-glibc.patch
-Patch5:		postfix-pl.patch
+Patch1:		http://www.misiek.eu.org/ipv6/postfix-ver20000514-ipv6-20000522.patch.gz
+Patch2:		postfix-pl.patch
 URL:		http://www.postfix.org/
 Provides:	smtpdaemon
 Requires:	rc-scripts
@@ -50,9 +47,10 @@ administrowaniu, bezpieczny oraz ma byæ na tyle kompatybilny z sendmailem by
 nie denerwowaæ Twoich u¿ytkowników. Ta wersja wspiera IPv6 oraz LDAP.
 
 %prep
-%setup -q -n snapshot-%{ver}
+%setup -q -n snapshot-%{version}
 %patch0 -p1
-%patch5 -p1
+#%patch1 -p1
+%patch2 -p1
 
 %build
 make -f Makefile.init makefiles
@@ -71,12 +69,11 @@ install -d $RPM_BUILD_ROOT%{_sysconfdir}/{mail,cron.daily,rc.d/init.d,sysconfig}
 	   pfixtls
 
 install -d sample-conf; mv -f conf/sample* sample-conf/ || :
-#mv -f pfixtls-%{pfixtls}/{doc,README,TODO,CHANGES} pfixtls
 
-#install -s bin/* $RPM_BUILD_ROOT%{_sbindir}
-#install -s libexec/* $RPM_BUILD_ROOT%{_libdir}/postfix
-install bin/* $RPM_BUILD_ROOT%{_sbindir}
-install libexec/* $RPM_BUILD_ROOT%{_libdir}/postfix
+install -s bin/* $RPM_BUILD_ROOT%{_sbindir}
+install -s libexec/* $RPM_BUILD_ROOT%{_libdir}/postfix
+#install bin/* $RPM_BUILD_ROOT%{_sbindir}
+#install libexec/* $RPM_BUILD_ROOT%{_libdir}/postfix
 install conf/* $RPM_BUILD_ROOT%{_sysconfdir}/mail
 
 (cd man; tar cf - .) | (cd $RPM_BUILD_ROOT%{_mandir}; tar xf -)
@@ -100,7 +97,8 @@ touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 
 gzip -9nf $RPM_BUILD_ROOT%{_mandir}/man*/* \
 	LDAP_README HISTORY MYSQL_README UUCP_README \
-	0README BEWARE COMPATIBILITY DEBUG_README LICENSE LMTP_README PCRE_README  \
+	0README BEWARE COMPATIBILITY DEBUG_README LICENSE LMTP_README \
+	PCRE_README  \
 	RELEASE_NOTES RESTRICTION_CLASS SASL_README TODO FILTER_README
 		
 touch $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
@@ -183,7 +181,6 @@ rm -rf $RPM_BUILD_ROOT
 %doc html {LDAP_README,HISTORY,MYSQL_README,UUCP_README}.gz 
 %doc {0README,BEWARE,COMPATIBILITY,DEBUG_README,LICENSE,LMTP_README,PCRE_README}.gz
 %doc {RELEASE_NOTES,RESTRICTION_CLASS,SASL_README,TODO,FILTER_README}.gz
-#pfixtls
 %doc sample-conf
 %doc doc/sample-*.cf
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/access
