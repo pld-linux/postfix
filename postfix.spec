@@ -209,6 +209,9 @@ patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 %{__make} -f Makefile.init makefiles
 %{__make} tidy
 %{__make} DEBUG="" OPT="%{rpmcflags}" \
+	%{?_without_psql:PGSQLSO=""} \
+	%{?_without_mysql:MYSQLSO=""} \
+	%{?_without_ldap:LDAPSO=""} \
 	CCARGS="%{!?_without_ldap:-DHAS_LDAP} -DHAS_PCRE %{!?_without_sasl:-DUSE_SASL_AUTH} %{!?_without_mysql:-DHAS_MYSQL} %{!?_without_psql:-DHAS_PGSQL} %{!?_without_mysql:-I%{_includedir}/mysql} %{!?_without_psql:-I%{_includedir}/postgresql} %{!?_without_ssl:-DHAS_SSL -I%{_includedir}/openssl} -DMAX_DYNAMIC_MAPS" \
 	AUXLIBS="-ldb -lresolv %{!?_without_sasl:-lsasl} %{!?_without_ssl:-lssl -lcrypto}"
 
