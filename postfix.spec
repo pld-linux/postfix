@@ -8,7 +8,7 @@
 %bcond_without	cdb	# with cdb map support
 %bcond_with	polish	# with double English+Polish messages
 #
-%define		_tls_ipv6_ver	1.21-pf-2.0.18
+%define		_tls_ipv6_ver	1.20-pf-2.0.16
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
 Summary(es):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
