@@ -12,7 +12,7 @@ Summary:	Postfix Mail Transport Agent
 Summary(pl):	Serwer SMTP Postfix
 Name:		postfix
 Version:	20011115
-Release:	0.2
+Release:	1
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
 Group(pl):	Sieciowe/Serwery
@@ -28,7 +28,6 @@ Patch0:		%{name}-config.patch
 Patch1:		%{name}-pl.patch
 Patch2:		%{name}-conf_msg.patch
 Patch3:		%{name}-ipv6.patch
-Patch4:		%{name}-authinfo.patch
 URL:		http://www.postfix.org/
 Provides:	smtpdaemon
 Prereq:		rc-scripts
@@ -61,8 +60,6 @@ Obsoletes:	smail
 Obsoletes:	zmailer
 Requires:	procmail
 
-%define		_sysconfdir	/etc
-
 %description
 Postfix is attempt to provide an alternative to the widely-used
 Sendmail program. Postfix attempts to be fast, easy to administer, and
@@ -84,7 +81,6 @@ IPv6%{!?_without_ldap: oraz LDAP}.
 patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff 
 %patch2 -p1 
 %{!?_without_ipv6:%patch3 -p1 }
-%patch4 -p1
 
 %build
 %{__make} -f Makefile.init makefiles
@@ -115,6 +111,7 @@ install %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.daily/postfix
 install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/postfix
 install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/postfix
 install %{SOURCE7} $RPM_BUILD_ROOT/etc/sasl/smtpd.conf
+install auxiliary/rmail/rmail $RPM_BUILD_ROOT%{_bindir}/rmail
 
 ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
 ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/newaliases
