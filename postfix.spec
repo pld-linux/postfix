@@ -26,6 +26,8 @@ BuildRequires:	openldap-devel
 BuildRequires:	openssl-devel
 BuildRequires:	grep
 Obsoletes:	smtpdaemon
+Obsoletes:	sendmail
+Obsoletes:	sendmail-cf
 Prereq:		/sbin/chkconfig
 Prereq:		%{_sbindir}/useradd
 Prereq:		%{_sbindir}/groupadd
@@ -154,7 +156,7 @@ fi
 if grep -q "@HOSTNAME@" /etc/mail/main.cf; then
 	sed -e "s/@HOSTNAME@/`hostname -f`/" /etc/mail/main.cf \
 	       >/etc/mail/main.cf.work
-	mv -f /etc/mail/main.cf.work /etc/main/main.cf
+	mv -f /etc/mail/main.cf.work /etc/mail/main.cf
 fi
 
 newaliases
