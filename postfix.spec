@@ -12,7 +12,7 @@ Summary:	Postfix Mail Transport Agent
 Summary(pl):	Serwer SMTP Postfix
 Name:		postfix
 Version:	20010525
-Release:	0.1
+Release:	0.8
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
 Group(pl):	Sieciowe/Serwery
@@ -26,10 +26,10 @@ Source6:	ftp://ftp.aet.tu-cottbus.de/pub/pfixtls/pfixtls-%{tls_ver}.tar.gz
 Source7:	%{name}.sasl
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-pl.patch
-# ftp://ftp.aet.tu-cottbus.de/pub/pfixtls
-#Patch2:		%{name}-ssl.patch
+Patch2:		%{name}-conf_msg.patch
 Patch3:		%{name}-ipv6.patch
-Patch5:		%{name}-conf_msg.patch
+# ftp://ftp.aet.tu-cottbus.de/pub/pfixtls
+#Patch4:		%{name}-ssl.patch
 URL:		http://www.postfix.org/
 Provides:	smtpdaemon
 Prereq:		rc-scripts
@@ -77,7 +77,7 @@ IPv6%{!?_without_ldap: oraz LDAP}.
 %patch0 -p1
 %patch1 -p1
 patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff 
-%patch5 -p1 
+%patch2 -p1 
 %{!?_without_ipv6:%patch3 -p1 }
 
 %build
@@ -89,8 +89,7 @@ patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d
-$RPM_BUILD_ROOT%{_sysconfdir}/{mail,cron.daily,rc.d/init.d,sasl,sysconfig} \
+install -d $RPM_BUILD_ROOT%{_sysconfdir}/{mail,cron.daily,rc.d/init.d,sasl,sysconfig} \
 	   $RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,%{_mandir}/man{1,5,8}} \
 	   $RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public} \
 	   pfixtls
@@ -127,6 +126,9 @@ gzip -9nf *README HISTORY COMPATIBILITY LICENSE RELEASE_NOTES \
 	   RESTRICTION_CLASS TODO
 
 touch $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
+
+%clean
+rm -rf $RPM_BUILD_ROOT
 
 %pre
 if [ -n "`/usr/bin/getgid postfix`" ]; then
@@ -185,9 +187,6 @@ if [ $1 = 0 ]; then
 	/usr/sbin/userdel postfix 2> /dev/null
 	/usr/sbin/groupdel postfix 2> /dev/null
 fi
-
-%clean
-rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
