@@ -675,13 +675,13 @@ diff -Nur postfix-2.0.9.orig/src/global/wildcard_inet_addr.h postfix-2.0.9/src/g
 diff -Nur postfix-2.0.9.orig/src/master/master_ent.c postfix-2.0.9/src/master/master_ent.c
 --- postfix-2.0.9.orig/src/master/master_ent.c	Mon Jan 13 01:25:39 2003
 +++ postfix-2.0.9/src/master/master_ent.c	Fri Apr 18 20:55:35 2003
-@@ -285,8 +285,13 @@
+@@ -307,8 +307,13 @@
  	    inet_addr_list_uniq(MASTER_INET_ADDRLIST(serv));
  	    serv->listen_fd_count = MASTER_INET_ADDRLIST(serv)->used;
- 	} else if (strcasecmp(var_inet_interfaces, DEF_INET_INTERFACES) == 0) {
+ 	} else if (strcasecmp(saved_interfaces, DEF_INET_INTERFACES) == 0) {
 +#ifdef INET6
-+		MASTER_INET_ADDRLIST(serv) = wildcard_inet_addr_list();
-+		serv->listen_fd_count = MASTER_INET_ADDRLIST(serv)->used;
++	    MASTER_INET_ADDRLIST(serv) = wildcard_inet_addr_list();
++	    serv->listen_fd_count = MASTER_INET_ADDRLIST(serv)->used;
 +#else
  	    MASTER_INET_ADDRLIST(serv) = 0;	/* wild-card */
  	    serv->listen_fd_count = 1;

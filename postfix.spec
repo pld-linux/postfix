@@ -14,7 +14,7 @@
 # _with_polish		- with double English+Polish messages
 # _with_cdb		- tinycdb mapfile support
 #
-%define	tls_ver 0.8.13-2.0.10-0.9.7b
+%define	tls_ver 0.8.14-2.0.12-0.9.7b
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
 Summary(es):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -23,19 +23,19 @@ Summary(pl):	Serwer SMTP Postfix
 Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
-Version:	2.0.12
+Version:	2.0.13
 Release:	1
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	94ce611b6f3e169caee2b4634c6b5370
+# Source0-md5:	f4f2b4b930a7a32b1df475d87143269f
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
 Source5:	%{name}.sysconfig
 Source6:	ftp://ftp.aet.tu-cottbus.de/pub/pfixtls/pfixtls-%{tls_ver}.tar.gz
-# Source6-md5:	31f1e830882025957f735e5e9b7dd2fd
+# Source6-md5:	42533d651553e97920b011dbf5812f4e
 Source7:	%{name}.sasl
 Source8:	ftp://ftp.corpit.ru/pub/postfix/%{name}-dict_cdb-1.1.11-20021104.tar.gz
 # Source8-md5:	5731b5081725f4688dc6fae119d617e4
