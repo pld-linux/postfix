@@ -1,4 +1,34 @@
+# TODO:
+#   Append below to config files - allows easy use of amavisd-new spam/virus filter
+
+# --- /etc/main.cf ---
+# Uncoment below to use amavisd-new spam/virus filter
+# content_filter = smtp-amavis:[127.0.0.1]:10024
+
+# --- /etc/master.cf ---
+# Uncoment below to use amavisd-new spam/virus filter
+# smtp-amavis unix -      -       n       -        2      smtp
+# -o smtp_data_done_timeout=1200
+# -o disable_dns_lookups=yes
 #
+# 127.0.0.1:10025 inet n  -       n       -        -      smtpd
+# -o content_filter=
+# -o local_recipient_maps=
+# -o relay_recipient_maps=
+# -o smtpd_restriction_classes=
+# -o smtpd_client_restrictions=
+# -o smtpd_helo_restrictions=
+# -o smtpd_sender_restrictions=
+# -o smtpd_recipient_restrictions=permit_mynetworks,reject
+# -o mynetworks=127.0.0.0/8
+# -o strict_rfc821_envelopes=yes
+
+# --- /etc/aliases ---
+# Alias for amavisd-new notifiaction about viruses dropins
+# virusalert:     postmaster
+
+# --- End of appends to postfix config files related to amavisd-new.
+
 # Conditional build:
 # _without_ipv6		- without IPv6 support
 # _without_ldap		- without LDAP map module
@@ -18,7 +48,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	1.1.13
-Release:	1
+Release:	1.1
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
