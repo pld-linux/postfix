@@ -1,6 +1,6 @@
 #
 # TODO:
-#	- update pl.patch
+#	- fix ipv6 patch against IPv4 RBLs
 #	- 0.0.0.0/0 is still being added to mynetworks if any ipv6/ip
 #	  tunnels are present
 #
@@ -23,13 +23,13 @@ Summary(pl):	Serwer SMTP Postfix
 Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
-Version:	2.0.14
+Version:	2.0.15
 Release:	1
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	d0f1d1382958f3ce918d4d690be22229
+# Source0-md5:	723c2b7f67016e0c19b0e1aa08dad246
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
