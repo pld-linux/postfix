@@ -17,8 +17,8 @@ Summary(pl):	Serwer SMTP Postfix
 Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
-Version:	1.1.11
-Release:	9
+Version:	1.1.12
+Release:	1
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
