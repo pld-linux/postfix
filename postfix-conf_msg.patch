@@ -42,17 +42,6 @@ diff -ruN postfix-1.1.11/src/global/mail_params.h postfix-1.1.11.my/src/global/m
  /* LICENSE
  /* .ad
  /* .fi
-diff -ruN postfix-1.1.11/src/smtpd/smtpd.c postfix-1.1.11.my/src/smtpd/smtpd.c
---- postfix-1.1.11/src/smtpd/smtpd.c	Wed Sep 18 12:16:53 2002
-+++ postfix-1.1.11.my/src/smtpd/smtpd.c	Wed Sep 18 12:08:12 2002
-@@ -1863,6 +1863,7 @@
- 	VAR_SMTPD_NOOP_CMDS, DEF_SMTPD_NOOP_CMDS, &var_smtpd_noop_cmds, 0, 0,
- 	VAR_SMTPD_NULL_KEY, DEF_SMTPD_NULL_KEY, &var_smtpd_null_key, 0, 0,
- 	VAR_RELAY_CCERTS, DEF_RELAY_CCERTS, &var_relay_ccerts, 0, 0,
-+	VAR_REJECT_REPLY_MSG_ACCESS_DENIED, DEF_REJECT_REPLY_MSG_ACCESS_DENIED, &var_reject_reply_msg_access_denied, 1, 0, 
- 	0,
-     };
- 
 diff -ruN postfix-1.1.11/src/smtpd/smtpd_check.c postfix-1.1.11.my/src/smtpd/smtpd_check.c
 --- postfix-1.1.11/src/smtpd/smtpd_check.c	Wed Sep 18 12:16:53 2002
 +++ postfix-1.1.11.my/src/smtpd/smtpd_check.c	Wed Sep 18 12:11:50 2002
@@ -98,3 +87,14 @@ diff -ruN postfix-1.1.11/src/smtpd/smtpd_check.c postfix-1.1.11.my/src/smtpd/smt
  }
  
  /* reject_unauth_pipelining - reject improper use of SMTP command pipelining */
+diff -ruN postfix-1.1.11/src/smtpd/smtpd.c postfix-1.1.11.my/src/smtpd/smtpd.c
+--- postfix.orig/src/smtpd/smtpd.c	Wed Sep 18 12:16:53 2002
++++ postfix/src/smtpd/smtpd.c	Wed Sep 18 12:08:12 2002
+@@ -2004,6 +2004,7 @@
+ 	VAR_VERP_CLIENTS, DEF_VERP_CLIENTS, &var_verp_clients, 0, 0,
+ 	VAR_RELAY_CCERTS, DEF_RELAY_CCERTS, &var_relay_ccerts, 0, 0,
+ 	VAR_SMTPD_SASL_TLS_OPTS, DEF_SMTPD_SASL_TLS_OPTS, &var_smtpd_sasl_tls_opts, 0, 0,
++	VAR_REJECT_REPLY_MSG_ACCESS_DENIED, DEF_REJECT_REPLY_MSG_ACCESS_DENIED, &var_reject_reply_msg_access_denied, 1, 0, 
+ 	0,
+     };
+     static CONFIG_RAW_TABLE raw_table[] = {
