@@ -7,8 +7,10 @@
 %define	tls_ver 0.8.10-1.1.10-0.9.6d
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
+Summary(es):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
 Summary(fr):	Agent de transport de courrier Postfix
 Summary(pl):	Serwer SMTP Postfix
+Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	1.1.10
@@ -72,6 +74,14 @@ Sendmail program. Postfix attempts to be fast, easy to administer, and
 hopefully secure, while at the same time being sendmail compatible
 enough to not upset your users. This version has IPv6 support.
 
+%description -l pt_BR
+O Postfix é uma alternativa para o mundialmente utilizado sendmail. Se
+você deseja um servidor SMTP *rápido*, instale este pacote.
+
+%description -l es
+Postfix es una alternativa para el mundialmente utilizado sendmail. Si
+desea tener un servidor SMTP *rápido*, debe instalar este paquete.
+
 %description -l fr
 Postfix (voir http://www.postfix.org/) se veut une alternative à
 sendmail, responsable de l'acheminement de 70% des courriers
@@ -98,6 +108,10 @@ szeroko u¿ywanego sendmaila. Postfix w zamierzeniu ma byæ szybki,
 ³atwy w administrowaniu, bezpieczny oraz ma byæ na tyle kompatybilny z
 sendmailem by nie denerwowaæ Twoich u¿ytkowników. Ta wersja wspiera
 IPv6.
+
+%description -l pt_BR
+O Postfix é uma alternativa para o mundialmente utilizado sendmail. Se
+você deseja um servidor SMTP *rápido*, instale este pacote.
 
 %description -l sk
 Postfix (pozri http://www.postfix.org/) má za cieµ by» alternatívou k
