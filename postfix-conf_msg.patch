@@ -1,23 +1,23 @@
-diff -urN snapshot-20011114/src/global/mail_params.c snapshot-20011114.my/src/global/mail_params.c
---- snapshot-20011114/src/global/mail_params.c	Thu Nov 15 11:15:54 2001
-+++ snapshot-20011114.my/src/global/mail_params.c	Thu Nov 15 11:19:19 2001
-@@ -70,6 +70,7 @@
+diff -urN snapshot-20011127/src/global/mail_params.c snapshot-20011127.dzikus/src/global/mail_params.c
+--- snapshot-20011127/src/global/mail_params.c	Thu Nov 29 12:38:01 2001
++++ snapshot-20011127.dzikus/src/global/mail_params.c	Thu Nov 29 12:36:52 2001
+@@ -71,6 +71,7 @@
  /*	char	*var_debug_peer_list;
  /*	int	var_debug_peer_level;
  /*	int	var_in_flow_delay;
-+/*	char	*var_reject_reply_msg_access_denied;
++/*	char    *var_reject_reply_msg_access_denied;
+ /*	int	var_fault_inj_code;
  /*
  /*	void	mail_params_init()
- /* DESCRIPTION
-@@ -217,6 +218,7 @@
+@@ -220,6 +221,7 @@
  char   *var_export_environ;
  char   *var_debug_peer_list;
  int     var_debug_peer_level;
 +char   *var_reject_reply_msg_access_denied;
+ int     var_fault_inj_code;
  
  /* check_myhostname - lookup hostname and validate */
- 
-@@ -357,6 +359,7 @@
+@@ -362,6 +364,7 @@
  	VAR_SMTP_TLS_CLIST, DEF_SMTP_TLS_CLIST, &var_smtp_tls_cipherlist, 0, 0,
  	VAR_SMTP_TLS_SCACHE_DB, DEF_SMTP_TLS_SCACHE_DB, &var_smtp_tls_scache_db, 0, 0,
  	VAR_TLS_DAEMON_RAND_SOURCE, DEF_TLS_DAEMON_RAND_SOURCE, &var_tls_daemon_rand_source, 0, 0,
@@ -25,12 +25,12 @@ diff -urN snapshot-20011114/src/global/mail_params.c snapshot-20011114.my/src/gl
  	0,
      };
      static CONFIG_STR_FN_TABLE function_str_defaults_2[] = {
-diff -urN snapshot-20011114/src/global/mail_params.h snapshot-20011114.my/src/global/mail_params.h
---- snapshot-20011114/src/global/mail_params.h	Thu Nov 15 11:15:54 2001
-+++ snapshot-20011114.my/src/global/mail_params.h	Thu Nov 15 11:16:27 2001
-@@ -1505,6 +1505,13 @@
- #define DEF_IN_FLOW_DELAY			"1s"
- extern int var_in_flow_delay;
+diff -urN snapshot-20011127/src/global/mail_params.h snapshot-20011127.dzikus/src/global/mail_params.h
+--- snapshot-20011127/src/global/mail_params.h	Thu Nov 29 12:38:01 2001
++++ snapshot-20011127.dzikus/src/global/mail_params.h	Thu Nov 29 12:32:18 2001
+@@ -1539,6 +1539,13 @@
+ #define DEF_FAULT_INJ_CODE		0
+ extern int var_fault_inj_code;
  
 + /*
 +  * SMTPD messages
@@ -42,21 +42,21 @@ diff -urN snapshot-20011114/src/global/mail_params.h snapshot-20011114.my/src/gl
  /* LICENSE
  /* .ad
  /* .fi
-diff -urN snapshot-20011114/src/smtpd/smtpd.c snapshot-20011114.my/src/smtpd/smtpd.c
---- snapshot-20011114/src/smtpd/smtpd.c	Thu Nov 15 11:15:54 2001
-+++ snapshot-20011114.my/src/smtpd/smtpd.c	Thu Nov 15 11:16:27 2001
-@@ -1873,6 +1873,7 @@
- 	VAR_FILTER_XPORT, DEF_FILTER_XPORT, &var_filter_xport, 0, 0,
- 	VAR_PERM_MX_NETWORKS, DEF_PERM_MX_NETWORKS, &var_perm_mx_networks, 0, 0,
+diff -urN snapshot-20011127/src/smtpd/smtpd.c snapshot-20011127.dzikus/src/smtpd/smtpd.c
+--- snapshot-20011127/src/smtpd/smtpd.c	Thu Nov 29 12:38:01 2001
++++ snapshot-20011127.dzikus/src/smtpd/smtpd.c	Thu Nov 29 12:32:18 2001
+@@ -1899,6 +1899,7 @@
+ 	VAR_SMTPD_SND_AUTH_MAPS, DEF_SMTPD_SND_AUTH_MAPS, &var_smtpd_snd_auth_maps, 0, 0,
+ 	VAR_SMTPD_NOOP_CMDS, DEF_SMTPD_NOOP_CMDS, &var_smtpd_noop_cmds, 0, 0,
  	VAR_RELAY_CCERTS, DEF_RELAY_CCERTS, &var_relay_ccerts, 0, 0,
 +	VAR_REJECT_REPLY_MSG_ACCESS_DENIED, DEF_REJECT_REPLY_MSG_ACCESS_DENIED, &var_reject_reply_msg_access_denied, 1, 0, 
  	0,
      };
  
-diff -urN snapshot-20011114/src/smtpd/smtpd_check.c snapshot-20011114.my/src/smtpd/smtpd_check.c
---- snapshot-20011114/src/smtpd/smtpd_check.c	Thu Nov 15 11:15:54 2001
-+++ snapshot-20011114.my/src/smtpd/smtpd_check.c	Thu Nov 15 11:16:27 2001
-@@ -941,6 +941,7 @@
+diff -urN snapshot-20011127/src/smtpd/smtpd_check.c snapshot-20011127.dzikus/src/smtpd/smtpd_check.c
+--- snapshot-20011127/src/smtpd/smtpd_check.c	Thu Nov 29 12:38:01 2001
++++ snapshot-20011127.dzikus/src/smtpd/smtpd_check.c	Thu Nov 29 12:32:18 2001
+@@ -986,6 +986,7 @@
  			               char *reply_name, char *reply_class)
  {
      char   *myname = "check_relay_domains";
@@ -64,7 +64,7 @@ diff -urN snapshot-20011114/src/smtpd/smtpd_check.c snapshot-20011114.my/src/smt
  
      if (msg_verbose)
  	msg_info("%s: %s", myname, recipient);
-@@ -960,9 +961,10 @@
+@@ -1005,9 +1006,10 @@
      /*
       * Deny relaying between sites that both are not in relay_domains.
       */
@@ -77,7 +77,7 @@ diff -urN snapshot-20011114/src/smtpd/smtpd_check.c snapshot-20011114.my/src/smt
  }
  
  /* permit_auth_destination - OK for message relaying */
-@@ -1023,6 +1025,7 @@
+@@ -1068,6 +1070,7 @@
  static int reject_unauth_destination(SMTPD_STATE *state, char *recipient)
  {
      char   *myname = "reject_unauth_destination";
@@ -85,7 +85,7 @@ diff -urN snapshot-20011114/src/smtpd/smtpd_check.c snapshot-20011114.my/src/smt
  
      if (msg_verbose)
  	msg_info("%s: %s", myname, recipient);
-@@ -1036,9 +1039,10 @@
+@@ -1081,9 +1084,10 @@
      /*
       * Reject relaying to sites that are not listed in relay_domains.
       */

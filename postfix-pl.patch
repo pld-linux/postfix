@@ -1,7 +1,7 @@
-diff -urN snapshot-20011114/src/bounce/bounce_notify_util.c snapshot-20011114.my/src/bounce/bounce_notify_util.c
---- snapshot-20011114/src/bounce/bounce_notify_util.c	Thu Aug 23 01:49:42 2001
-+++ snapshot-20011114.my/src/bounce/bounce_notify_util.c	Thu Nov 15 10:50:21 2001
-@@ -273,7 +273,7 @@
+diff -urN snapshot-20011127/src/bounce/bounce_notify_util.c snapshot-20011127.dzikus/src/bounce/bounce_notify_util.c
+--- snapshot-20011127/src/bounce/bounce_notify_util.c	Mon Nov 26 22:47:05 2001
++++ snapshot-20011127.dzikus/src/bounce/bounce_notify_util.c	Thu Nov 29 07:21:16 2001
+@@ -275,7 +275,7 @@
  	post_mail_fputs(bounce, dest == var_bounce_rcpt
  		     || dest == var_2bounce_rcpt || dest == var_delay_rcpt ?
  			"Subject: Postmaster Copy: Undelivered Mail" :
@@ -10,7 +10,7 @@ diff -urN snapshot-20011114/src/bounce/bounce_notify_util.c snapshot-20011114.my
      }
  
      /*
-@@ -283,7 +283,7 @@
+@@ -285,7 +285,7 @@
  	post_mail_fputs(bounce, dest == var_bounce_rcpt
  		     || dest == var_2bounce_rcpt || dest == var_delay_rcpt ?
  			"Subject: Postmaster Warning: Delayed Mail" :
@@ -19,7 +19,7 @@ diff -urN snapshot-20011114/src/bounce/bounce_notify_util.c snapshot-20011114.my
      }
      post_mail_fprintf(bounce, "To: %s",
  		      STR(quote_822_local(bounce_info->buf, dest)));
-@@ -298,15 +298,6 @@
+@@ -300,15 +300,6 @@
      post_mail_fputs(bounce, "");
      post_mail_fputs(bounce, "This is a MIME-encapsulated message.");
  
@@ -35,7 +35,7 @@ diff -urN snapshot-20011114/src/bounce/bounce_notify_util.c snapshot-20011114.my
      return (vstream_ferror(bounce));
  }
  
-@@ -322,6 +313,73 @@
+@@ -324,6 +315,73 @@
       * word wrapping to make the text look nicer. No matter how hard we would
       * try, receiving bounced mail will always suck.
       */
@@ -109,7 +109,7 @@ diff -urN snapshot-20011114/src/bounce/bounce_notify_util.c snapshot-20011114.my
      post_mail_fprintf(bounce, "This is the %s program at host %s.",
  		      var_mail_name, var_myhostname);
      post_mail_fputs(bounce, "");
-@@ -345,7 +403,7 @@
+@@ -347,7 +405,7 @@
  			  "It will be retried until it is %.1f days old.",
  			  var_max_queue_time / 86400.0);
      }
@@ -118,7 +118,7 @@ diff -urN snapshot-20011114/src/bounce/bounce_notify_util.c snapshot-20011114.my
      post_mail_fputs(bounce, "");
      post_mail_fprintf(bounce,
  		      "For further assistance, please send mail to <%s>",
-@@ -357,6 +415,7 @@
+@@ -359,6 +417,7 @@
  	post_mail_fprintf(bounce,
  		   "delete your own text from the message returned below.");
      }
@@ -126,7 +126,7 @@ diff -urN snapshot-20011114/src/bounce/bounce_notify_util.c snapshot-20011114.my
      post_mail_fputs(bounce, "");
      post_mail_fprintf(bounce, "\t\t\tThe %s program", var_mail_name);
      return (vstream_ferror(bounce));
-@@ -418,6 +477,7 @@
+@@ -420,6 +479,7 @@
      if (bounce_info->log_handle == 0
  	|| bounce_log_rewind(bounce_info->log_handle)) {
  	post_mail_fputs(bounce, "\t--- Delivery error report unavailable ---");
@@ -134,7 +134,7 @@ diff -urN snapshot-20011114/src/bounce/bounce_notify_util.c snapshot-20011114.my
      } else {
  	while (bounce_log_read(bounce_info->log_handle) != 0)
  	    if (bounce_recipient_log(bounce, bounce_info) != 0)
-@@ -438,7 +498,8 @@
+@@ -440,7 +500,8 @@
      post_mail_fprintf(bounce, "--%s", bounce_info->mime_boundary);
      post_mail_fprintf(bounce, "Content-Description: %s",
  		      "Delivery error report");
@@ -144,7 +144,7 @@ diff -urN snapshot-20011114/src/bounce/bounce_notify_util.c snapshot-20011114.my
  
      /*
       * According to RFC 1894: The body of a message/delivery-status consists
-@@ -527,6 +588,7 @@
+@@ -529,6 +590,7 @@
      if (bounce_info->orig_offs == 0 || vstream_fseek(bounce_info->orig_fp,
  				    bounce_info->orig_offs, SEEK_SET) < 0) {
  	post_mail_fputs(bounce, "\t--- Undelivered message unavailable ---");
@@ -152,10 +152,10 @@ diff -urN snapshot-20011114/src/bounce/bounce_notify_util.c snapshot-20011114.my
  	return (vstream_ferror(bounce));
      }
  
-diff -urN snapshot-20011114/src/global/pipe_command.c snapshot-20011114.my/src/global/pipe_command.c
---- snapshot-20011114/src/global/pipe_command.c	Wed Oct 17 21:57:39 2001
-+++ snapshot-20011114.my/src/global/pipe_command.c	Thu Nov 15 10:50:21 2001
-@@ -479,9 +479,9 @@
+diff -urN snapshot-20011127/src/global/pipe_command.c snapshot-20011127.dzikus/src/global/pipe_command.c
+--- snapshot-20011127/src/global/pipe_command.c	Tue Nov 27 02:02:17 2001
++++ snapshot-20011127.dzikus/src/global/pipe_command.c	Thu Nov 29 07:31:06 2001
+@@ -482,9 +482,9 @@
  	if (pipe_command_wait_or_kill(pid, &wait_status, SIGKILL) < 0)
  	    msg_fatal("wait: %m");
  	if (pipe_command_timeout) {
@@ -167,7 +167,7 @@ diff -urN snapshot-20011114/src/global/pipe_command.c snapshot-20011114.my/src/g
  	    return (PIPE_STAT_BOUNCE);
  	}
  
-@@ -491,26 +491,26 @@
+@@ -494,28 +494,28 @@
  	 */
  	if (!NORMAL_EXIT_STATUS(wait_status)) {
  	    if (WIFSIGNALED(wait_status)) {
@@ -194,15 +194,17 @@ diff -urN snapshot-20011114/src/global/pipe_command.c snapshot-20011114.my/src/g
 +			      log_len ? ". Wynik polecenia / Command output: " : "", log_buf);
  		return (PIPE_STAT_BOUNCE);
  	    }
+ 	} else if (write_status & MAIL_COPY_STAT_CORRUPT) {
+ 	    return (PIPE_STAT_CORRUPT);
  	} else if (write_status && errno != EPIPE) {
 -	    vstring_sprintf(why, "Command failed: %m: \"%s\"", args.command);
 +	    vstring_sprintf(why, "Polecenie niepowiodlo sie / Command failed: %m: \"%s\"", args.command);
  	    return (PIPE_STAT_DEFER);
  	} else {
  	    return (PIPE_STAT_OK);
-diff -urN snapshot-20011114/src/global/sys_exits.c snapshot-20011114.my/src/global/sys_exits.c
---- snapshot-20011114/src/global/sys_exits.c	Fri Dec 11 19:55:25 1998
-+++ snapshot-20011114.my/src/global/sys_exits.c	Thu Nov 15 10:50:21 2001
+diff -urN snapshot-20011127/src/global/sys_exits.c snapshot-20011127.dzikus/src/global/sys_exits.c
+--- snapshot-20011127/src/global/sys_exits.c	Fri Dec 11 19:55:25 1998
++++ snapshot-20011127.dzikus/src/global/sys_exits.c	Thu Nov 29 07:21:16 2001
 @@ -60,21 +60,21 @@
  } SYS_EXITS_TABLE;
  
@@ -233,10 +235,10 @@ diff -urN snapshot-20011114/src/global/sys_exits.c snapshot-20011114.my/src/glob
  };
  
  /* sys_exits_strerror - map exit status to error string */
-diff -urN snapshot-20011114/src/smtpd/smtpd_check.c snapshot-20011114.my/src/smtpd/smtpd_check.c
---- snapshot-20011114/src/smtpd/smtpd_check.c	Wed Oct 17 20:00:39 2001
-+++ snapshot-20011114.my/src/smtpd/smtpd_check.c	Thu Nov 15 10:56:32 2001
-@@ -765,7 +765,7 @@
+diff -urN snapshot-20011127/src/smtpd/smtpd_check.c snapshot-20011127.dzikus/src/smtpd/smtpd_check.c
+--- snapshot-20011127/src/smtpd/smtpd_check.c	Mon Nov 26 02:22:54 2001
++++ snapshot-20011127.dzikus/src/smtpd/smtpd_check.c	Thu Nov 29 07:26:26 2001
+@@ -810,7 +810,7 @@
       */
      if (!valid_hostaddr(test_addr, DONT_GRIPE))
  	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -245,7 +247,7 @@ diff -urN snapshot-20011114/src/smtpd/smtpd_check.c snapshot-20011114.my/src/smt
  				var_bad_name_code, reply_name, reply_class);
      else
  	stat = SMTPD_CHECK_DUNNO;
-@@ -801,7 +801,7 @@
+@@ -846,7 +846,7 @@
       */
      if (!valid_hostname(test_name, DONT_GRIPE))
  	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -254,7 +256,7 @@ diff -urN snapshot-20011114/src/smtpd/smtpd_check.c snapshot-20011114.my/src/smt
  				var_bad_name_code, reply_name, reply_class);
      else
  	stat = SMTPD_CHECK_DUNNO;
-@@ -837,7 +837,7 @@
+@@ -882,7 +882,7 @@
       */
      if (!valid_hostname(test_name, DONT_GRIPE) || !strchr(test_name, '.'))
  	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -263,7 +265,7 @@ diff -urN snapshot-20011114/src/smtpd/smtpd_check.c snapshot-20011114.my/src/smt
  				var_non_fqdn_code, reply_name, reply_class);
      else
  	stat = SMTPD_CHECK_DUNNO;
-@@ -866,7 +866,7 @@
+@@ -911,7 +911,7 @@
  				  (VSTRING *) 0, T_A, T_MX, 0);
      if (dns_status != DNS_OK)
  	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -272,7 +274,7 @@ diff -urN snapshot-20011114/src/smtpd/smtpd_check.c snapshot-20011114.my/src/smt
  				   dns_status == DNS_NOTFOUND ?
  				   var_unk_name_code : 450,
  				   reply_name, reply_class));
-@@ -888,7 +888,7 @@
+@@ -933,7 +933,7 @@
  				  (VSTRING *) 0, T_A, T_MX, 0);
      if (dns_status != DNS_OK)
  	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -281,7 +283,7 @@ diff -urN snapshot-20011114/src/smtpd/smtpd_check.c snapshot-20011114.my/src/smt
  				   dns_status == DNS_NOTFOUND ?
  				   var_unk_addr_code : 450,
  				   reply_name, reply_class));
-@@ -923,7 +923,7 @@
+@@ -968,7 +968,7 @@
       * Deny relaying between sites that both are not in relay_domains.
       */
      return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -290,7 +292,7 @@ diff -urN snapshot-20011114/src/smtpd/smtpd_check.c snapshot-20011114.my/src/smt
  			       var_relay_code, reply_name, reply_class));
  }
  
-@@ -1315,7 +1315,7 @@
+@@ -1360,7 +1360,7 @@
       */
      if (!*test_dom || !valid_hostname(test_dom, DONT_GRIPE) || !strchr(test_dom, '.'))
  	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -299,7 +301,7 @@ diff -urN snapshot-20011114/src/smtpd/smtpd_check.c snapshot-20011114.my/src/smt
  				var_non_fqdn_code, reply_name, reply_class);
      else
  	stat = SMTPD_CHECK_DUNNO;
-@@ -1397,7 +1397,7 @@
+@@ -1442,7 +1442,7 @@
       */
      if (strcasecmp(value, "REJECT") == 0)
  	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -308,7 +310,7 @@ diff -urN snapshot-20011114/src/smtpd/smtpd_check.c snapshot-20011114.my/src/smt
  			     var_access_map_code, reply_name, reply_class));
  
      /*
-@@ -1416,7 +1416,7 @@
+@@ -1461,7 +1461,7 @@
  	while (ISDIGIT(*value) || ISSPACE(*value))
  	    value++;
  	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -317,7 +319,7 @@ diff -urN snapshot-20011114/src/smtpd/smtpd_check.c snapshot-20011114.my/src/smt
  				   code, reply_name, reply_class, value));
      }
  
-@@ -1769,7 +1769,7 @@
+@@ -1816,7 +1816,7 @@
  	    rbl_fodder = rbl_reason = "";
  	}
  	result = smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -326,16 +328,16 @@ diff -urN snapshot-20011114/src/smtpd/smtpd_check.c snapshot-20011114.my/src/smt
  				 var_maps_rbl_code, state->addr, rbl_domain,
  				    rbl_fodder, rbl_reason);
  	if (txt_list)
-@@ -1852,7 +1852,7 @@
+@@ -1943,7 +1943,7 @@
  			 cpp[1], PERMIT_ALL);
  	} else if (strcasecmp(name, REJECT_ALL) == 0) {
  	    status = smtpd_check_reject(state, MAIL_ERROR_POLICY,
 -				      "%d <%s>: %s rejected: Access denied",
 +				      "%d <%s>: %s odrzucony/rejected: Brak dostepu / Access denied",
  				  var_reject_code, reply_name, reply_class);
- 	    if (cpp[1] != 0)
+ 	    if (cpp[1] != 0 && state->warn_if_reject == 0)
  		msg_warn("restriction `%s' after `%s' is ignored",
-@@ -2286,7 +2286,7 @@
+@@ -2385,7 +2385,7 @@
  	    && NOMATCH(virt_mailbox_maps, CONST_STR(reply->recipient))
  	    && NOMATCH(virtual_maps, CONST_STR(reply->recipient))) {
  	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
@@ -344,7 +346,7 @@ diff -urN snapshot-20011114/src/smtpd/smtpd_check.c snapshot-20011114.my/src/smt
  	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
  	}
      }
-@@ -2302,7 +2302,7 @@
+@@ -2401,7 +2401,7 @@
  	    && NOMATCH(virt_mailbox_maps, CONST_STR(reply->recipient))
  	    && NOMATCH(virtual_maps, CONST_STR(reply->recipient))) {
  	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
@@ -353,7 +355,7 @@ diff -urN snapshot-20011114/src/smtpd/smtpd_check.c snapshot-20011114.my/src/smt
  	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
  	}
      }
-@@ -2320,7 +2320,7 @@
+@@ -2419,7 +2419,7 @@
  	    && NOMATCH(virtual_maps, CONST_STR(reply->recipient))
  	    && NOMATCH(local_rcpt_maps, CONST_STR(reply->recipient))) {
  	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
@@ -362,7 +364,7 @@ diff -urN snapshot-20011114/src/smtpd/smtpd_check.c snapshot-20011114.my/src/smt
  	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
  	}
      }
-@@ -2354,7 +2354,7 @@
+@@ -2453,7 +2453,7 @@
  
      if (var_message_limit > 0 && size > var_message_limit) {
  	(void) smtpd_check_reject(state, MAIL_ERROR_POLICY,
