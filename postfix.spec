@@ -12,7 +12,7 @@
 # TODO:
 #	- check/fix 'polish' bcond
 #
-%define		_tls_ipv6_ver	1.25-pf-2.1.5
+%define		_tls_ipv6_ver	1.26-pf-2.1.5
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
 Summary(es):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -35,8 +35,8 @@ Source5:	%{name}.sysconfig
 Source6:	%{name}.sasl
 Source7:	ftp://ftp.corpit.ru/pub/postfix/%{name}-dict_cdb-1.1.11-20021104.tar.gz
 # Source7-md5:	5731b5081725f4688dc6fae119d617e4
-Source8:	http://www.ipnet6.org/postfix/download/tls+ipv6-%{_tls_ipv6_ver}.patch.gz
-# Source8-md5:	5b02ebf2ec104c43f805d2bcb7bb16ef
+Source8:	ftp://ftp.stack.nl/pub/postfix/tls+ipv6/1.26/tls+ipv6-%{_tls_ipv6_ver}.patch.gz
+# Source8-md5:	3d3bbabe5c17d5d0809c698ad1df1e64
 Source9:	%{name}.pamd
 Source10:	http://web.onda.com.br/nadal/postfix/VDA/%{name}-%{version}-trash.patch.gz
 # Source10-md5:	868209c12cf214566130b9c8b968cfed
