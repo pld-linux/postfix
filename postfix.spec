@@ -1,5 +1,9 @@
 #
 # TODO:
+#	- kill all "implicit declaration of function" and "assignment
+#	  makes pointer from integer without a cast" warnings
+#	  (code causing such warnings may be fatal on some
+#	  architectures)
 #	- fix ipv6 patch against IPv4 RBLs
 #	- 0.0.0.0/0 is still being added to mynetworks if any ipv6/ip
 #	  tunnels are present
@@ -25,7 +29,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.0.16
-Release:	2
+Release:	3
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -247,6 +251,8 @@ install -d sample-conf; mv -f conf/sample* sample-conf || :
 install bin/* $RPM_BUILD_ROOT%{_sbindir}
 install libexec/* $RPM_BUILD_ROOT%{_libdir}/postfix
 install conf/* $RPM_BUILD_ROOT%{_sysconfdir}/mail
+sed -e's,^daemon_directory = .*,daemon_directory = %{_libdir}/postfix,' \
+	conf/main.cf > $RPM_BUILD_ROOT%{_sysconfdir}/mail/main.cf
 
 for f in dns global master util ; do
 	install lib/lib${f}.a $RPM_BUILD_ROOT%{_libdir}/libpostfix-${f}.so.1
