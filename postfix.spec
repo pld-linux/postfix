@@ -16,7 +16,7 @@ Release:	0.8
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
 Group(pl):	Sieciowe/Serwery
-License:	Distributable
+License:	distributable
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-%{version}.tar.gz
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
