@@ -37,7 +37,7 @@ Prereq:		rc-scripts
 %{!?_without_ssl:BuildRequires:	openssl-devel >= 0.9.6a}
 %{!?_without_pcre:BuildRequires:	pcre-devel}
 %{!?_without_sasl:BuildRequires:	cyrus-sasl-devel}
-%{!?_without_ipv6:BuildRequires:	libinet6}
+%{!?_without_ipv6:BuildRequires:	libinet6 >= 0.20010420-3}
 BuildRequires:	db3-devel
 BuildRequires:	grep
 Prereq:		/sbin/chkconfig
@@ -52,9 +52,14 @@ Prereq:		/bin/hostname
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 Obsoletes:	smtpdaemon
 Obsoletes:	exim
+Obsoletes:	masqmail
+Obsoletes:	omta
+Obsoletes:	qmail
 Obsoletes:	sendmail
 Obsoletes:	sendmail-cf
 Obsoletes:	sendmail-doc
+Obsoletes:	smail
+Obsoletes:	zmailer
 
 %define		_sysconfdir	/etc
 
