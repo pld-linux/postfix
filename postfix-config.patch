@@ -1,16 +1,16 @@
-diff -Nur postfix-1.1.2.orig/conf/main.cf postfix-1.1.2/conf/main.cf
---- postfix-1.1.2.orig/conf/main.cf	Tue Jan 15 15:27:55 2002
-+++ postfix-1.1.2/conf/main.cf	Wed Jan 30 13:09:30 2002
-@@ -38,7 +38,7 @@
- # default value is $program_directory. This directory must be owned
- # by root.
+diff -uNr old-postfix-2.0.16/conf/main.cf postfix-2.0.16/conf/main.cf
+--- old-postfix-2.0.16/conf/main.cf	Sat Sep  6 00:30:35 2003
++++ postfix-2.0.16/conf/main.cf	Thu Sep 25 17:28:00 2003
+@@ -37,7 +37,7 @@
+ # daemon programs (i.e. programs listed in the master.cf file). This
+ # directory must be owned by root.
  #
 -daemon_directory = /usr/libexec/postfix
 +daemon_directory = /usr/lib/postfix
  
  # QUEUE AND PROCESS OWNERSHIP
  #
-@@ -56,7 +56,7 @@
+@@ -55,7 +55,7 @@
  # These rights are used in the absence of a recipient user context.
  # DO NOT SPECIFY A PRIVILEGED USER OR THE POSTFIX OWNER.
  #
@@ -19,34 +19,34 @@ diff -Nur postfix-1.1.2.orig/conf/main.cf postfix-1.1.2/conf/main.cf
  
  # INTERNET HOST AND DOMAIN NAMES
  # 
-@@ -84,7 +84,7 @@
- # a domain-wide alias database that aliases each user to
- # user@that.users.mailhost.
+@@ -87,7 +87,7 @@
+ # myorigin also specifies the default domain name that is appended
+ # to recipient addresses that have no @domain part.
  #
 -#myorigin = $myhostname
 +myorigin = $myhostname
  #myorigin = $mydomain
  
  # RECEIVING MAIL
-@@ -296,7 +296,7 @@
+@@ -377,7 +377,7 @@
  # "postfix reload" to eliminate the delay.
  #
  #alias_maps = dbm:/etc/aliases
 -#alias_maps = hash:/etc/aliases
-+alias_maps = hash:/etc/mail/aliases
++alias_maps = hash:/etc/aliases
  #alias_maps = hash:/etc/aliases, nis:mail.aliases
  #alias_maps = netinfo:/aliases
  
-@@ -307,7 +307,7 @@
+@@ -388,7 +388,7 @@
  #
  #alias_database = dbm:/etc/aliases
  #alias_database = dbm:/etc/mail/aliases
 -#alias_database = hash:/etc/aliases
-+alias_database = hash:/etc/mail/aliases
++alias_database = hash:/etc/aliases
  #alias_database = hash:/etc/aliases, hash:/opt/majordomo/aliases
  
  # ADDRESS EXTENSIONS (e.g., user+foo)
-@@ -335,7 +335,7 @@
+@@ -416,7 +416,7 @@
  # UNIX-style mailboxes are kept. The default setting depends on the
  # system type.
  #
@@ -55,7 +55,7 @@ diff -Nur postfix-1.1.2.orig/conf/main.cf postfix-1.1.2/conf/main.cf
  #mail_spool_directory = /var/spool/mail
  
  # The mailbox_command parameter specifies the optional external
-@@ -357,8 +357,8 @@
+@@ -438,8 +438,8 @@
  # IF YOU USE THIS TO DELIVER MAIL SYSTEM-WIDE, YOU MUST SET UP AN
  # ALIAS THAT FORWARDS MAIL FOR ROOT TO A REAL USER.
  #
@@ -66,15 +66,10 @@ diff -Nur postfix-1.1.2.orig/conf/main.cf postfix-1.1.2/conf/main.cf
  
  # The mailbox_transport specifies the optional transport in master.cf
  # to use after processing aliases and .forward files. This parameter
-@@ -502,39 +502,12 @@
- 	 PATH=/usr/bin:/usr/X11R6/bin
- 	 xxgdb $daemon_directory/$process_name $process_id & sleep 5
- 
-+biff = no
- # INSTALL-TIME CONFIGURATION INFORMATION
+@@ -602,35 +602,10 @@
  #
  # The following parameters are used when installing a new Postfix version.
--# 
+ # 
 -# sendmail_path: The full pathname of the Postfix sendmail command.
 -# This is the Sendmail-compatible mail posting interface.
 -# 
@@ -89,7 +84,8 @@ diff -Nur postfix-1.1.2.orig/conf/main.cf postfix-1.1.2/conf/main.cf
 -# is the Sendmail-compatible mail queue listing command.
 -# 
 -mailq_path =
--
++biff = no
+ 
  # setgid_group: The group for mail submission and queue management
  # commands.  This must be a group name with a numerical group ID that
  # is not shared with other accounts, not even with the Postfix account.
@@ -108,10 +104,10 @@ diff -Nur postfix-1.1.2.orig/conf/main.cf postfix-1.1.2/conf/main.cf
 -#
 -readme_directory =
 +setgid_group = maildrop
-diff -Nur postfix-1.1.2.orig/src/global/mail_params.h postfix-1.1.2/src/global/mail_params.h
---- postfix-1.1.2.orig/src/global/mail_params.h	Tue Jan 15 16:24:34 2002
-+++ postfix-1.1.2/src/global/mail_params.h	Wed Jan 30 13:08:29 2002
-@@ -50,7 +50,7 @@
+diff -uNr old-postfix-2.0.16/src/global/mail_params.h postfix-2.0.16/src/global/mail_params.h
+--- old-postfix-2.0.16/src/global/mail_params.h	Thu Sep 25 17:25:19 2003
++++ postfix-2.0.16/src/global/mail_params.h	Thu Sep 25 17:28:27 2003
+@@ -64,7 +64,7 @@
  extern gid_t var_owner_gid;
  
  #define VAR_SGID_GROUP		"setgid_group"
@@ -120,24 +116,24 @@ diff -Nur postfix-1.1.2.orig/src/global/mail_params.h postfix-1.1.2/src/global/m
  extern char *var_sgid_group;
  extern gid_t var_sgid_gid;
  
-@@ -203,7 +203,7 @@
+@@ -221,7 +221,7 @@
    */
  #define VAR_CONFIG_DIR		"config_directory"
  #ifndef DEF_CONFIG_DIR
 -#define DEF_CONFIG_DIR		"/etc/postfix"
-+#define DEF_CONFIG_DIR		"/etc/mail"
++#define DEF_CONFIG_DIR		"/etc/main"
  #endif
  extern char *var_config_dir;
  
-diff -Nur postfix-1.1.2.orig/src/util/sys_defs.h postfix-1.1.2/src/util/sys_defs.h
---- postfix-1.1.2.orig/src/util/sys_defs.h	Thu Jan  3 20:20:56 2002
-+++ postfix-1.1.2/src/util/sys_defs.h	Wed Jan 30 13:08:29 2002
-@@ -484,7 +484,7 @@
- #define HAS_FSYNC
- #define HAS_DB
+diff -uNr old-postfix-2.0.16/src/util/sys_defs.h postfix-2.0.16/src/util/sys_defs.h
+--- old-postfix-2.0.16/src/util/sys_defs.h	Thu Sep 11 00:33:31 2003
++++ postfix-2.0.16/src/util/sys_defs.h	Thu Sep 25 17:29:30 2003
+@@ -129,7 +129,7 @@
+ /* might be set by makedef */
+ #ifdef HAS_DB
  #define DEF_DB_TYPE	"hash"
 -#define ALIAS_DB_MAP	"hash:/etc/aliases"
 +#define ALIAS_DB_MAP	"hash:/etc/mail/aliases"
- #define HAS_NIS
- #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
- #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
+ #else
+ #define HAS_DBM
+ #define	DEF_DB_TYPE	"dbm"
