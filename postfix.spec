@@ -175,33 +175,3 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755, postfix,root,755) %dir /var/spool/postfix/public
 %attr(700, postfix,root, 700) %dir /var/spool/postfix/saved
 %attr(644, postfix,root) /var/spool/postfix/.nofinger
-
-%changelog
-* Thu Feb 25 1999 Arkadiusz Mi¶kiewicz <misiek@pld.org.pl>
-- PLDized
-
-* Tue Feb 16 1999 Edgard Castro <castro@usmatrix.net>
-  [19990122-pl01-1]
-
-* Sun Jan 24 1999 Arne Coucheron <arneco@online.no>
-  [19990122-1]
-- shell for postfix user changed to /bin/true to avoid logins to the account
-- files in /usr/libexec/postfix moved to /usr/lib/postfix since this complies
-  more with the Red Hat standard
-
-* Wed Jan 06 1999 Arne Coucheron <arneco@online.no>
-  [19981230-2]
-- added URL for the source
-- added a cron job for daily check of errors
-- sample config files moved from /etc/postfix/sample to the docdir 
-- dropped making of symlinks in /usr/sbin and instead installing the real
-  files there
-- because of the previous they're not needed anymore in /usr/libexec/postfix,
-  so they are removed from that place
-
-* Fri Jan 01 1999 Arne Coucheron <arneco@online.no>
-  [19981230-1]
-
-* Tue Dec 29 1998 Arne Coucheron <arneco@online.no>
-  [19981222-1]
-- first build of rpm version
