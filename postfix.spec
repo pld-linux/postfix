@@ -14,6 +14,7 @@ Copyright:	Distributable
 Group:		Networking/Daemons
 Group(pl):	Sieciowe/Serwery
 Provides:	smtpdaemon
+Requires:	rc-scripts
 BuildPrereq:	openldap-devel
 BuildPrereq:	grep
 Conflicts:	smtpdaemon
