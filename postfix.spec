@@ -1,7 +1,13 @@
+#
+# Conditiona build:
+# no_sasl - build wihtout SMTP AUTH support
+# no_ldap - build without LDAP support
+# no_pcre - build without Perl Compatible Regular Expresion support
+#
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
 Name:		postfix
-Version:	20000923
+Version:	20000924
 Release:	1
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
@@ -28,10 +34,13 @@ Obsoletes:	exim
 Obsoletes:	sendmail
 Obsoletes:	sendmail-cf
 Prereq:		/sbin/chkconfig
-Prereq:		%{_sbindir}/useradd
-Prereq:		%{_sbindir}/groupadd
-Prereq:		%{_sbindir}/userdel
-Prereq:		%{_sbindir}/groupdel
+Prereq:		/usr/sbin/useradd
+Prereq:		/usr/sbin/groupadd
+Prereq:		/usr/sbin/userdel
+Prereq:		/usr/sbin/groupdel
+Prereq:		/usr/bin/getgid
+Prereq:		/bin/id
+Prereq:		/bin/hostname
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		_sysconfdir	/etc
@@ -54,7 +63,7 @@ IPv6%{!?no_ldap: oraz LDAP} %{?no_ldap: i nie zawiera wsparcia LDAP}.
 %setup -q -n snapshot-%{version}
 %patch0 -p1
 %patch1 -p1 
-%patch2 -p1
+%patch2 -p1 
 
 %build
 %{__make} -f Makefile.init makefiles
@@ -107,7 +116,7 @@ gzip -9nf $RPM_BUILD_ROOT%{_mandir}/man*/* \
 touch $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
 %pre
-if [ -n "`getgid postfix`" ]; then
+if [ -n "`/usr/bin/getgid postfix`" ]; then
 	if [ "`getgid postfix`" != "62" ]; then
 		echo "Warning: group postfix haven't gid=62. Corect this before install postfix" 1>&2
 		exit 1
@@ -118,8 +127,8 @@ else
 		/usr/bin/update-db 1>&2
 	fi
 fi
-if [ -n "`getgid maildrop`" ]; then
-	if [ "`getgid maildrop`" != "63" ]; then
+if [ -n "`/usr/bin/getgid maildrop`" ]; then
+	if [ "`/usr/bin/getgid maildrop`" != "63" ]; then
 		echo "Warning: group maildrop haven't gid=63. Corect this before install postfix" 1>&2
 		exit 1
 	fi
@@ -129,8 +138,8 @@ else
 		/usr/bin/update-db 1>&2
 	fi
 fi
-if [ -n "`id -u postfix 2>/dev/null`" ]; then
-	if [ "`id -u postfix`" != "62" ]; then
+if [ -n "`/bin/id -u postfix 2>/dev/null`" ]; then
+	if [ "`/bin/id -u postfix`" != "62" ]; then
 		echo "Warning: user postfix haven't uid=62. Corect this before install postfix" 1>&2
 		exit 1
 	fi
@@ -147,7 +156,7 @@ if ! grep -q "^postmaster:" /etc/mail/aliases; then
         echo "postmaster:	root" >>/etc/mail/aliases
 fi
 if ! grep -q "^myhostname" /etc/mail/main.cf; then
-	postconf -e myhostname=`hostname -f`
+	postconf -e myhostname=`/bin/hostname -f`
 fi
 
 newaliases
@@ -168,9 +177,9 @@ fi
 
 %postun
 if [ $1 = 0 ]; then
-	%{_sbindir}/groupdel maildrop 2> /dev/null
-	%{_sbindir}/userdel postfix 2> /dev/null
-	%{_sbindir}/groupdel postfix 2> /dev/null
+	/usr/sbin/groupdel maildrop 2> /dev/null
+	/usr/sbin/userdel postfix 2> /dev/null
+	/usr/sbin/groupdel postfix 2> /dev/null
 	if [ -f /var/db/passwd.db ] || [ -f /var/db/group.db ]; then
 		/usr/bin/update-db 1>&2
 	fi
