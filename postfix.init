@@ -74,13 +74,14 @@ case "$1" in
 	;;
   rebuilddb)
   	standard_db="access canonical relocated transport virtual"
-	extra_db=$(ls -1 /etc/mail/*.db 2> /dev/null | sed -e 's#.db$##')
+	extra_db=$(ls -1 /etc/mail/*.db 2> /dev/null | grep -v aliases.db | sed -e 's#.db$##')
 	for base in $standard_db $extra_db; do
 	    	I=$(basename "$base")
 		if [ -f /etc/mail/$I ] ; then
 			/usr/sbin/postmap hash:/etc/mail/$I < /etc/mail/$I
 		fi
 	done
+	/usr/bin/newaliases
   	;;
   *)
 	msg_Usage "$0 {start|stop|status|restart|reload|rebuilddb}"
