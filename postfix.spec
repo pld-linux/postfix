@@ -2,7 +2,7 @@ Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
 Name:		postfix
 Version:	20000531
-Release:	3
+Release:	4
 Group:		Networking/Daemons
 Group(pl):	Sieciowe/Serwery
 Copyright:	Distributable
@@ -185,14 +185,13 @@ rm -rf $RPM_BUILD_ROOT
 %doc {0README,BEWARE,COMPATIBILITY,DEBUG_README,LICENSE,LMTP_README,PCRE_README}.gz
 %doc {RELEASE_NOTES,RESTRICTION_CLASS,SASL_README,TODO,FILTER_README}.gz
 %doc sample-conf
-%doc doc/sample-*.cf
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/access
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/aliases
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/canonical
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/relocated
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/transport
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/virtual
-%ghost %{_sysconfdir}/mail/*.db
+#%ghost %{_sysconfdir}/mail/*.db
 %dir %{_sysconfdir}/mail
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/main.cf
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/master.cf
