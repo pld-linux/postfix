@@ -7,11 +7,12 @@
 # --with mysql - build with MySQL support
 # --without ipv6  - build without IPv6 support
 #
+%define	tls_ver 0.7.3-snap20010525-0.9.6a
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Serwer SMTP Postfix
 Name:		postfix
-Version:	20010329
-Release:	4
+Version:	20010525
+Release:	0.1
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
 Group(pl):	Sieciowe/Serwery
@@ -21,9 +22,11 @@ Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
 Source5:	%{name}.sysconfig
+Source6:	ftp://ftp.aet.tu-cottbus.de/pub/pfixtls/pfixtls-%{tls_ver}.tar.gz
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-pl.patch
-Patch2:		%{name}-ssl.patch
+# ftp://ftp.aet.tu-cottbus.de/pub/pfixtls
+#Patch2:		%{name}-ssl.patch
 Patch3:		%{name}-ipv6.patch.gz
 Patch4:		%{name}-script.patch
 Patch5:		%{name}-conf_msg.patch
@@ -70,13 +73,13 @@ sendmailem by nie denerwowaæ Twoich u¿ytkowników. Ta wersja wspiera
 IPv6%{!?_without_ldap: oraz LDAP}.
 
 %prep
-%setup -q -n snapshot-%{version}
+%setup -q -n snapshot-%{version} -a 6 
 %patch0 -p1
 %patch1 -p1
-%patch2 -p1
-%{!?_without_ipv6:%patch3 -p1}
+patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff 
+%{!?_without_ipv6:%patch3 -p1 }
 %patch4 -p1
-%patch5 -p1
+%patch5 -p1 
 
 %build
 %{__make} -f Makefile.init makefiles
