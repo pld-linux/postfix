@@ -23,6 +23,7 @@ BuildRequires:	pcre-devel
 BuildRequires:	cyrus-sasl-devel
 BuildRequires:	grep
 Obsoletes:	smtpdaemon
+Obsoletes:	exim
 Obsoletes:	sendmail
 Obsoletes:	sendmail-cf
 Prereq:		/sbin/chkconfig
