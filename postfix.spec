@@ -3,6 +3,7 @@
 # --without sasl - build without SMTP AUTH support
 # --without ssl  - build without SSL/TLS support
 # --without ipv6 - build without IPv6 support
+# --with polish - build with polish messages support
 #
 %define	tls_ver 0.8.11a-1.1.11-0.9.6d
 Summary:	Postfix Mail Transport Agent
@@ -14,7 +15,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	1.1.11
-Release:	6
+Release:	6.1
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -26,12 +27,12 @@ Source5:	%{name}.sysconfig
 Source6:	ftp://ftp.aet.tu-cottbus.de/pub/pfixtls/pfixtls-%{tls_ver}.tar.gz
 Source7:	%{name}.sasl
 Patch0:		%{name}-config.patch
-Patch1:		%{name}-pl.patch
-Patch2:		%{name}-conf_msg.patch
-Patch3:		%{name}-ipv6.patch
-Patch4:		%{name}-dynamicmaps.patch
-Patch5:		%{name}-pgsql.patch
-Patch6:		%{name}-master.cf_cyrus.patch
+Patch1:		%{name}-conf_msg.patch
+Patch2:		%{name}-ipv6.patch
+Patch3:		%{name}-dynamicmaps.patch
+Patch4:		%{name}-pgsql.patch
+Patch5:		%{name}-master.cf_cyrus.patch
+%{?_with_polish:Patch6: %{name}-pl.patch}
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{!?_without_sasl:BuildRequires:	cyrus-sasl-devel}
@@ -191,19 +192,19 @@ Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 %prep
 %setup -q -a6
 %patch0 -p1
-%patch1 -p1
 patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
+%patch1 -p1
 %patch2 -p1
-%{!?_without_ipv6:%patch3 -p1 }
+%{!?_without_ipv6:%patch3 -p1}
 %patch4 -p1
 %patch5 -p1
-%patch6 -p1
+%{?_with_polish:%patch6 -p1}
 
 %build
 %{__make} -f Makefile.init makefiles
 %{__make} tidy
 %{__make} DEBUG="" OPT="%{rpmcflags}" \
-	CCARGS="-DHAS_LDAP -DHAS_PCRE %{!?_without_sasl:-DUSE_SASL_AUTH} -DHAS_MYSQL -DHAS_PGSQL -I/usr/include/mysql -I/usr/include/postgresql %{!?_without_ssl:-DHAS_SSL -I/usr/include/openssl} -DMAX_DYNAMIC_MAPS" \
+	CCARGS="-DHAS_LDAP -DHAS_PCRE %{!?_without_sasl:-DUSE_SASL_AUTH} -DHAS_MYSQL -DHAS_PGSQL -I%{_includedir}/mysql -I%{_includedir}/postgresql %{!?_without_ssl:-DHAS_SSL -I%{_includedir}/openssl} -DMAX_DYNAMIC_MAPS" \
 	AUXLIBS="-ldb -lresolv %{!?_without_sasl:-lsasl} %{!?_without_ssl:-lssl -lcrypto}"
 
 %install
