@@ -119,8 +119,7 @@ configurazione di questo programma.
 Postfix jest prób± dostarczenia alternatywnego MTA w stosunku do
 szeroko u¿ywanego sendmaila. Postfix w zamierzeniu ma byæ szybki,
 ³atwy w administrowaniu, bezpieczny oraz ma byæ na tyle kompatybilny z
-sendmailem by nie denerwowaæ Twoich u¿ytkowników. %{!?_without_ipv6:Ta wersja wspiera
-IPv6.}
+sendmailem by nie denerwowaæ Twoich u¿ytkowników. %{!?_without_ipv6:Ta wersja wspiera IPv6.}
 
 %description -l pt_BR
 O Postfix é uma alternativa para o mundialmente utilizado sendmail. Se
