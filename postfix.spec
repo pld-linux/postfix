@@ -55,9 +55,9 @@ IPv6 oraz LDAP.
 %patch2 -p1
 
 %build
-make -f Makefile.init makefiles
-make tidy
-make DEBUG="" OPT="-g $RPM_OPT_FLAGS" \
+%{__make} -f Makefile.init makefiles
+%{__make} tidy
+%{__make} DEBUG="" OPT="-g $RPM_OPT_FLAGS" \
      CCARGS="-DHAS_LDAP -DHAS_PCRE -DUSE_SASL_AUTH" \
      AUXLIBS="-llber -lldap -lnsl -ldb -lresolv -lpcre -lsasl"
 
