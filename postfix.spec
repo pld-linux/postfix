@@ -3,6 +3,7 @@
 #	- fix ipv6 patch against IPv4 RBLs
 #	- 0.0.0.0/0 is still being added to mynetworks if any ipv6/ip
 #	  tunnels are present
+#       - fix patches
 #
 # Conditional build:
 # _without_ipv6		- without IPv6 support
@@ -24,7 +25,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.0.15
-Release:	2
+Release:	3
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -56,7 +57,7 @@ BuildRequires:	grep
 %{!?_without_ipv6:BuildRequires:	libinet6 >= 0.20030228-1}
 %{!?_without_mysql:BuildRequires:	mysql-devel}
 %{!?_without_ldap:BuildRequires:	openldap-devel >= 2.0.0}
-%{!?_without_ssl:BuildRequires:		openssl-devel >= 0.9.7b}
+%{!?_without_ssl:BuildRequires:		openssl-devel >= 0.9.7c}
 BuildRequires:	pcre-devel
 %{!?_without_pgsql:BuildRequires:	postgresql-devel}
 %{?_with_cdb:BuildRequires:		tinycdb-devel}
