@@ -3,7 +3,7 @@
 # --without sasl - build without SMTP AUTH support
 # --without ssl  - build without SSL/TLS support
 # --without ipv6 - build without IPv6 support
-# --with polish - build with polish messages support
+# --with polish  - build with polish messages support
 #
 %define	tls_ver 0.8.11a-1.1.11-0.9.6d
 Summary:	Postfix Mail Transport Agent
@@ -15,7 +15,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	1.1.11
-Release:	7.1
+Release:	8
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -32,7 +32,7 @@ Patch2:		%{name}-dynamicmaps.patch
 Patch3:		%{name}-pgsql.patch
 Patch4:		%{name}-master.cf_cyrus.patch
 Patch5:		%{name}-ipv6.patch
-Patch6:		%{name}-pl.patch2
+Patch6:		%{name}-pl.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{!?_without_sasl:BuildRequires:	cyrus-sasl-devel}
