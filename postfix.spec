@@ -1,15 +1,16 @@
 #
-# Conditiona build:
+# Conditional build:
 # --without sasl - build wihtout SMTP AUTH support
 # --without ldap - build without LDAP support
 # --without pcre - build without Perl Compatible Regular Expresion support
+# --without ssl  - build without SSL/TLS support
 # --with mysql - build with MySQL support
 #
 Summary:	Postfix Mail Transport Agent
-Summary(pl):	Agent Pocztowy Postfix
+Summary(pl):	Serwer SMTP Postfix
 Name:		postfix
-Version:	20010204
-Release:	1
+Version:	20010228
+Release:	2
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
 Group(pl):	Sieciowe/Serwery
@@ -20,13 +21,14 @@ Source2:	%{name}.cron
 Source3:	%{name}.init
 Source5:	%{name}.sysconfig
 Patch0:		%{name}-config.patch
-Patch1:		http://www.misiek.eu.org/ipv6/%{name}-ver20010128-ipv6-20010129.patch.gz
+#Patch1:		http://www.misiek.eu.org/ipv6/%{name}-ver20010128-ipv6-20010129.patch.gz
 Patch2:		%{name}-pl.patch
+Patch3:		%{name}-ssl.patch
 URL:		http://www.postfix.org/
 Provides:	smtpdaemon
 Prereq:		rc-scripts
 %{!?bcond_off_ldap:BuildRequires:	openldap-devel >= 2.0.0}
-BuildRequires:	openssl-devel >= 0.9.4-2
+%{!?bcond_off_ssl:BuildRequires:	openssl-devel >= 0.9.6-2}
 %{!?bcond_off_pcre:BuildRequires:	pcre-devel}
 %{!?bcond_off_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db3-devel
@@ -66,14 +68,15 @@ IPv6%{!?bcond_off_ldap: oraz LDAP} %{?bcond_off_ldap: i nie zawiera wsparcia LDA
 %prep
 %setup -q -n snapshot-%{version}
 %patch0 -p1
-%patch1 -p1
+#%patch1 -p1
 %patch2 -p1
+%patch3 -p1
 
 %build
 %{__make} -f Makefile.init makefiles
 %{__make} tidy
 %{__make} DEBUG="" OPT="%{?debug:-O0 -g}%{!?debug:$RPM_OPT_FLAGS}" \
-	CCARGS="%{!?bcond_off_ldap:-DHAS_LDAP} %{!?bcond_off_pcre:-DHAS_PCRE} %{!?bcond_off_sasl:-DUSE_SASL_AUTH} %{?bcond_on_mysql:-DHAS_MYSQL -I/usr/include/mysql}" \
+	CCARGS="%{!?bcond_off_ldap:-DHAS_LDAP} %{!?bcond_off_pcre:-DHAS_PCRE} %{!?bcond_off_sasl:-DUSE_SASL_AUTH} %{?bcond_on_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{!?bcond_off_ssl:-DHAS_SSL -I/usr/include/openssl}" \
 	AUXLIBS="%{!?bcond_off_ldap:-llber -lldap} -lnsl -ldb -lresolv %{!?bcond_off_pcre:-lpcre} %{!?bcond_off_sasl:-lsasl} %{?bcond_on_mysql:-lmysqlclient}"
 
 %install
@@ -110,10 +113,10 @@ rm -f $RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script-{diff,nosgid}
 touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 	{aliases,access,canonical,relocated,transport,virtual}{,.db}
 
-gzip -9nf LDAP_README HISTORY MYSQL_README UUCP_README 0README BEWARE \
+gzip -9nf LDAP_README HISTORY MYSQL_README UUCP_README 0README \
 	COMPATIBILITY DEBUG_README LICENSE LMTP_README PCRE_README \
-	RELEASE_NOTES RESTRICTION_CLASS SASL_README TODO FILTER_README \
-	IPV6_README
+	RELEASE_NOTES RESTRICTION_CLASS SASL_README TODO FILTER_README #\
+	#IPV6_README
 
 touch $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
@@ -180,8 +183,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
-%doc html {LDAP_README,HISTORY,MYSQL_README,UUCP_README,IPV6_README}.gz 
-%doc {0README,BEWARE,COMPATIBILITY,DEBUG_README,LICENSE,LMTP_README,PCRE_README}.gz
+%doc html {LDAP_README,HISTORY,MYSQL_README,UUCP_README,IPV6_README}.gz
+%doc {0README,COMPATIBILITY,DEBUG_README,LICENSE,LMTP_README,PCRE_README}.gz
 %doc {RELEASE_NOTES,RESTRICTION_CLASS,SASL_README,TODO,FILTER_README}.gz
 %doc sample-conf
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/access
