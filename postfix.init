@@ -75,7 +75,10 @@ case "$1" in
 	exit $?
 	;;
   rebuilddb)
-        for I in access canonical relocated transport virtual; do
+  	standard_db="access canonical relocated transport virtual"
+	extra_db=$(ls -1 /etc/mail/*.db 2> /dev/null | sed -e 's#.db$##')
+	for base in $standard_db $extra_db; do
+	    	I=$(basename "$base")
 		if [ -f /etc/mail/$I ] ; then
 			/usr/sbin/postmap hash:/etc/mail/$I < /etc/mail/$I
 		fi
