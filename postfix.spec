@@ -6,15 +6,15 @@
 #       - fix patches
 #
 # Conditional build:
-# _without_ipv6		- without IPv6 support
-# _without_ldap		- without LDAP map module
-# _without_mysql	- without MySQL map module
-# _without_pgsql	- without PostgreSQL map module
-# _without_sasl		- without SMTP AUTH support
-# _without_ssl		- without SSL/TLS support
-# _with_polish		- with double English+Polish messages
-# _with_cdb		- tinycdb mapfile support
-
+%bcond_without	ipv6	# without IPv6 support
+%bcond_without	ldap	# without LDAP map module
+%bcond_without	mysql	# without MySQL map module
+%bcond_without	pgsql	# without PostgreSQL map module
+%bcond_without	sasl	# without SMTP AUTH support
+%bcond_without	ssl	# without SSL/TLS support
+%bcond_with	polish	# with double English+Polish messages
+%bcond_with	cdb	# tinycdb mapfile support
+#
 %define	tls_ver 0.8.16-2.0.16-0.9.7b
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
@@ -51,16 +51,16 @@ Patch7:		%{name}-cdb_man.patch
 Patch8:         %{name}-ns-mx-acl.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
-%{!?_without_sasl:BuildRequires:	cyrus-sasl-devel}
+%{?with_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db-devel
 BuildRequires:	grep
-%{!?_without_ipv6:BuildRequires:	libinet6 >= 0.20030228-1}
-%{!?_without_mysql:BuildRequires:	mysql-devel}
-%{!?_without_ldap:BuildRequires:	openldap-devel >= 2.0.0}
-%{!?_without_ssl:BuildRequires:		openssl-devel >= 0.9.7c}
+%{?with_ipv6:BuildRequires:	libinet6 >= 0.20030228-1}
+%{?with_mysql:BuildRequires:	mysql-devel}
+%{?with_ldap:BuildRequires:	openldap-devel >= 2.0.0}
+%{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7c}
 BuildRequires:	pcre-devel
-%{!?_without_pgsql:BuildRequires:	postgresql-devel}
-%{?_with_cdb:BuildRequires:		tinycdb-devel}
+%{?with_pgsql:BuildRequires:	postgresql-devel}
+%{?with_cdb:BuildRequires:	tinycdb-devel}
 PreReq:		rc-scripts
 PreReq:		sed
 Requires(pre):	/usr/sbin/useradd
@@ -86,13 +86,13 @@ Obsoletes:	smail
 Obsoletes:	zmailer
 Requires:	diffutils
 Requires:	findutils
-%{?_with_cdb:Requires:tinycdb}
+%{?with_cdb:Requires:tinycdb}
 
 %description
 Postfix is attempt to provide an alternative to the widely-used
 Sendmail program. Postfix attempts to be fast, easy to administer, and
 hopefully secure, while at the same time being sendmail compatible
-enough to not upset your users. %{!?_without_ipv6:This version has IPv6 support.}
+enough to not upset your users. %{?with_ipv6:This version has IPv6 support.}
 
 %description -l pt_BR
 O Postfix é uma alternativa para o mundialmente utilizado sendmail. Se
@@ -126,7 +126,7 @@ configurazione di questo programma.
 Postfix jest prób± dostarczenia alternatywnego MTA w stosunku do
 szeroko u¿ywanego sendmaila. Postfix w zamierzeniu ma byæ szybki,
 ³atwy w administrowaniu, bezpieczny oraz ma byæ na tyle kompatybilny z
-sendmailem by nie denerwowaæ Twoich u¿ytkowników. %{!?_without_ipv6:Ta wersja wspiera IPv6.}
+sendmailem by nie denerwowaæ Twoich u¿ytkowników. %{?with_ipv6:Ta wersja wspiera IPv6.}
 
 %description -l pt_BR
 O Postfix é uma alternativa para o mundialmente utilizado sendmail. Se
@@ -207,7 +207,7 @@ This package provides support for PostgreSQL maps in Postfix.
 Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 
 %prep
-%setup -q -a6 %{?_with_cdb:-a8}
+%setup -q -a6 %{?with_cdb:-a8}
 echo Postfix TLS patch:
 patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 %patch0 -p1
@@ -215,21 +215,21 @@ patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
-%{!?_without_ipv6:%patch5 -p1}
-%{?_with_polish:%patch6 -p1}
-%{?_with_cdb:%patch7 -p1}
+%{?with_ipv6:%patch5 -p1}
+%{?with_polish:%patch6 -p1}
+%{?with_cdb:%patch7 -p1}
 %patch8 -p1
-%{?_with_cdb:sh dict_cdb.sh}
+%{?with_cdb:sh dict_cdb.sh}
 
 %build
 %{__make} -f Makefile.init makefiles
 %{__make} tidy
 %{__make} DEBUG="" OPT="%{rpmcflags}" \
-	%{?_without_ldap:LDAPSO=""} \
-	%{?_without_mysql:MYSQLSO=""} \
-	%{?_without_pgsql:PGSQLSO=""} \
-	CCARGS="%{!?_without_ldap:-DHAS_LDAP} -DHAS_PCRE %{!?_without_sasl:-DUSE_SASL_AUTH -I/usr/include/sasl} %{!?_without_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{!?_without_pgsql:-DHAS_PGSQL -I/usr/include/postgresql} %{!?_without_ssl:-DHAS_SSL -I/usr/include/openssl} -DMAX_DYNAMIC_MAPS %{?_with_cdb:-DHAS_CDB -I/usr/include/cdb.h}" \
-	AUXLIBS="-ldb -lresolv %{!?_without_sasl:-lsasl} %{!?_without_ssl:-lssl -lcrypto} %{?_with_cdb:-L/usr/lib/libcdb.a -lcdb}"
+	%{!?with_ldap:LDAPSO=""} \
+	%{!?with_mysql:MYSQLSO=""} \
+	%{!?with_pgsql:PGSQLSO=""} \
+	CCARGS="%{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL -I/usr/include/postgresql} %{?with_ssl:-DHAS_SSL -I/usr/include/openssl} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB -I/usr/include/cdb.h}" \
+	AUXLIBS="-ldb -lresolv %{?with_sasl:-lsasl} %{?with_ssl:-lssl -lcrypto} %{?with_cdb:-L/usr/lib/libcdb.a -lcdb}"
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -366,7 +366,7 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %attr(740,root,root) /etc/cron.daily/postfix
 %attr(754,root,root) /etc/rc.d/init.d/postfix
 %attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/postfix
-%{!?_without_sasl:%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/sasl/smtpd.conf}
+%{?with_sasl:%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/sasl/smtpd.conf}
 %attr(755,root,root) %{_libdir}/libpostfix-*.so.*
 %attr(755,root,root) %{_bindir}/*
 %attr(755,root,root) %{_sbindir}/s*
@@ -403,13 +403,13 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %attr(755,root,root) %{_libdir}/libpostfix-*.so
 %{_includedir}/postfix
 
-%if 0%{!?_without_ldap:1}
+%if %{with ldap}
 %files dict-ldap
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_ldap.so
 %endif
 
-%if 0%{!?_without_mysql:1}
+%if %{with mysql}
 %files dict-mysql
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_mysql.so
@@ -419,7 +419,7 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_pcre.so
 
-%if 0%{!?_without_pgsql:1}
+%if %{with pgsql}
 %files dict-pgsql
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_pgsql.so
