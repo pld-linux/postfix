@@ -18,6 +18,12 @@
 # Get service config
 [ -f /etc/sysconfig/postfix ] && . /etc/sysconfig/postfix
 
+# Check that networking is up.
+if [ "${NETWORKING}" = "no" ]; then
+	echo "WARNING: Networking is down. Postfix service can't be runed."
+	exit 1
+fi
+
 # See how we were called.
 case "$1" in
   start)
