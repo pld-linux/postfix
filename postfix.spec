@@ -9,7 +9,7 @@ Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
 Name:		postfix
 Version:	20001217
-Release:	1
+Release:	2
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
 Group(pl):	Sieciowe/Serwery
@@ -39,6 +39,7 @@ Prereq:		/usr/sbin/groupdel
 Prereq:		/usr/bin/getgid
 Prereq:		/bin/id
 Prereq:		/bin/hostname
+%{!?bcond_off_ldap:Prereq:	openldap >= 2.0.0}
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 Obsoletes:	smtpdaemon
 Obsoletes:	exim
