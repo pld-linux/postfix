@@ -200,7 +200,7 @@ This package provides support for PostgreSQL maps in Postfix.
 Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 
 %prep
-%setup -q -a6 -a8
+%setup -q -a6 %{?_with_cdb:-a8}
 echo Postfix TLS patch:
 patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 %patch0 -p1
