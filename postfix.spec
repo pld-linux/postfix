@@ -24,7 +24,7 @@ Patch1:		http://www.misiek.eu.org/ipv6/%{name}-ver20001030-ipv6-20001030.patch.g
 Patch2:		%{name}-pl.patch
 URL:		http://www.postfix.org/
 Provides:	smtpdaemon
-Requires:	rc-scripts
+Prereq:		rc-scripts
 %{!?bcond_off_ldap:BuildRequires:	openldap-devel >= 2.0.0}
 BuildRequires:	openssl-devel >= 0.9.4-2
 %{!?bcond_off_pcre:BuildRequires:	pcre-devel}
