@@ -203,13 +203,15 @@ fi
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/main.cf
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/master.cf
 %attr(755,root,root) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/postfix-script
+%attr(755,root,root) %{_sysconfdir}/mail/post-install
+%{_sysconfdir}/mail/postfix-files
 %attr(740,root,root) /etc/cron.daily/postfix
 %attr(754,root,root) /etc/rc.d/init.d/postfix
 %attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/postfix
 %{!?_without_sasl:%config(noreplace) %verify(not size mtime md5) /etc/sasl/smtpd.conf}
 %attr(755,root,root) %{_bindir}/*
 %attr(755,root,root) %{_sbindir}/s*
-%attr(2755,root,mail) %{_sbindir}/postfix
+%attr(755,root,root) %{_sbindir}/postfix
 %attr(755,root,root) %{_sbindir}/postalias
 %attr(755,root,root) %{_sbindir}/postkick
 %attr(755,root,root) %{_sbindir}/postl*
