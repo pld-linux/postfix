@@ -53,6 +53,7 @@ Patch5:		%{name}-ipv6.patch
 Patch6:		%{name}-pl.patch
 Patch7:		%{name}-cdb_man.patch
 Patch8:         %{name}-ns-mx-acl.patch
+Patch9:         %{name}-kill_warnings.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
@@ -223,6 +224,7 @@ patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 %{?with_polish:%patch6 -p1}
 %{?with_cdb:%patch7 -p1}
 %patch8 -p1
+%patch9 -p1
 %{?with_cdb:sh dict_cdb.sh}
 
 %build
