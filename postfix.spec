@@ -6,7 +6,10 @@
 %bcond_without	sasl	# without SMTP AUTH support
 %bcond_without	ssl	# without SSL/TLS support
 %bcond_without	cdb	# without cdb map support
-%bcond_with	polish	# with double English+Polish messages
+#%bcond_with	polish	# with double English+Polish messages
+#
+# TODO:
+#	- check/fix 'polish' bcond
 #
 %define		_tls_ipv6_ver	1.25-pf-2.1.3
 Summary:	Postfix Mail Transport Agent
@@ -36,14 +39,11 @@ Source8:	http://www.ipnet6.org/postfix/download/tls+ipv6-%{_tls_ipv6_ver}.patch.
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
-Patch3:		%{name}-pgsql.patch
 Patch4:		%{name}-master.cf_cyrus.patch
-Patch5:		%{name}-pl.patch
+#Patch5:	%{name}-pl.patch
 Patch6:		%{name}-cdb_man.patch
-Patch7:		%{name}-ns-mx-acl.patch
 Patch8:		%{name}-kill_warnings.patch
 Patch9:		%{name}-ipv6-kill_warnings.patch
-Patch10:	%{name}-dict_ldap.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
@@ -210,15 +210,12 @@ zcat %{SOURCE8} | patch -p1 -s
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
-%patch3 -p1
 %patch4 -p1
-%{?with_polish:%patch5 -p1}
+#%{?with_polish:%patch5 -p1}
 %{?with_cdb:%patch6 -p1}
-%patch7 -p1
 %patch8 -p1
 %patch9 -p1
 %{?with_cdb:sh dict_cdb.sh}
-%patch10 -p1
 
 %build
 %{__make} -f Makefile.init makefiles
