@@ -1,11 +1,13 @@
 #
 # Conditional build:
-# --without sasl - build without SMTP AUTH support
-# --without ssl  - build without SSL/TLS support
-# --without ipv6 - build without IPv6 support
-# --with polish  - build with polish messages support
+# _without_ldap		- without LDAP map module
+# _without_pgsql	- without PostgreSQL map module
+# _without_sasl		- without SMTP AUTH support
+# _without_ssl		- without SSL/TLS support
+# _without_ipv6		- without IPv6 support
+# _with_polish		- with double English+Polish messages
 #
-%define	tls_ver 0.8.11a-1.1.11-0.9.6d
+%define	tls_ver 0.8.12-1.1.12-0.9.6h
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
 Summary(es):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -14,8 +16,8 @@ Summary(pl):	Serwer SMTP Postfix
 Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
-Version:	1.1.11
-Release:	9
+Version:	1.1.12
+Release:	0.1
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -24,7 +26,7 @@ Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
 Source5:	%{name}.sysconfig
-Source6:	ftp://ftp.aet.tu-cottbus.de/pub/pfixtls/pfixtls-%{tls_ver}.tar.gz
+Source6:	ftp://ftp.aet.tu-cottbus.de/pub/pfixtls/old/pfixtls-%{tls_ver}.tar.gz
 Source7:	%{name}.sasl
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
@@ -39,11 +41,11 @@ BuildRequires:	awk
 BuildRequires:	db3-devel
 BuildRequires:	grep
 %{!?_without_ipv6:BuildRequires:	libinet6 >= 0.20010420-3}
-BuildRequires:	mysql-devel
-BuildRequires:	openldap-devel >= 2.0.0
+%{!?_without_mysql:BuildRequires:	mysql-devel}
+%{!?_without_ldap:BuildRequires:	openldap-devel >= 2.0.0}
 %{!?_without_ssl:BuildRequires:	openssl-devel >= 0.9.6a}
 BuildRequires:	pcre-devel
-BuildRequires:	postgresql-devel
+%{!?_without_pgsql:BuildRequires:	postgresql-devel}
 PreReq:		rc-scripts
 PreReq:		sed
 Requires(pre):	/usr/sbin/useradd
@@ -204,7 +206,10 @@ patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 %{__make} -f Makefile.init makefiles
 %{__make} tidy
 %{__make} DEBUG="" OPT="%{rpmcflags}" \
-	CCARGS="-DHAS_LDAP -DHAS_PCRE %{!?_without_sasl:-DUSE_SASL_AUTH} -DHAS_MYSQL -DHAS_PGSQL -I%{_includedir}/mysql -I%{_includedir}/postgresql %{!?_without_ssl:-DHAS_SSL -I%{_includedir}/openssl} -DMAX_DYNAMIC_MAPS" \
+	%{?_without_ldap:LDAPSO=""} \
+	%{?_without_mysql:MYSQLSO=""} \
+	%{?_without_pgsql:PGSQLSO=""} \
+	CCARGS="%{!?_without_ldap:-DHAS_LDAP} -DHAS_PCRE %{!?_without_sasl:-DUSE_SASL_AUTH} %{!?_without_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{!?_without_pgsql:-DHAS_PGSQL -I/usr/include/postgresql} %{!?_without_ssl:-DHAS_SSL -I/usr/include/openssl} -DMAX_DYNAMIC_MAPS" \
 	AUXLIBS="-ldb -lresolv %{!?_without_sasl:-lsasl} %{!?_without_ssl:-lssl -lcrypto}"
 
 %install
@@ -375,18 +380,24 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %attr(755,root,root) %{_libdir}/libpostfix-*.so
 %{_includedir}/postfix
 
+%if 0%{!?_without_ldap:1}
 %files dict-ldap
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_ldap.so
+%endif
 
+%if 0%{!?_without_mysql:1}
 %files dict-mysql
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_mysql.so
+%endif
 
 %files dict-pcre
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_pcre.so
 
+%if 0%{!?_without_pgsql:1}
 %files dict-pgsql
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_pgsql.so
+%endif
