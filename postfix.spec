@@ -52,7 +52,7 @@ BuildRequires:	awk
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db-devel
 BuildRequires:	grep
-BuildRequires:	libinet6 >= 0.20030228-1}
+BuildRequires:	libinet6 >= 0.20030228-1
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.0.0}
 %{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7c}
