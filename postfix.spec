@@ -19,7 +19,7 @@ Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.0.19
 Release:	1
-Epoch:		1
+Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
