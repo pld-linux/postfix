@@ -9,13 +9,28 @@
 #
 %define tls_ver	0.7.13c-snap20011127-0.9.6b
 Summary:	Postfix Mail Transport Agent
+Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
+Summary(fr):	Agent de transport de courrier Postfix
 Summary(pl):	Serwer SMTP Postfix
+Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	20011127
-Release:	6
+Release:	7
 Group:		Networking/Daemons
+Group(cs):	Sí»ové/Démoni
+Group(da):	Netværks/Dæmoner
 Group(de):	Netzwerkwesen/Server
+Group(es):	Red/Servidores
+Group(fr):	Réseau/Serveurs
+Group(is):	Net/Púkar
+Group(it):	Rete/Demoni
+Group(no):	Nettverks/Daemoner
 Group(pl):	Sieciowe/Serwery
+Group(pt):	Rede/Servidores
+Group(ru):	óÅÔØ/äÅÍÏÎÙ
+Group(sl):	Omre¾ni/Stre¾niki
+Group(sv):	Nätverk/Demoner
+Group(uk):	íÅÒÅÖÁ/äÅÍÏÎÉ
 License:	distributable
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-%{version}.tar.gz
 Source1:	%{name}.aliases
@@ -65,15 +80,58 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 Postfix is attempt to provide an alternative to the widely-used
 Sendmail program. Postfix attempts to be fast, easy to administer, and
 hopefully secure, while at the same time being sendmail compatible
-enough to not upset your users. This version have IPv6 support and
-%{!?_without_ldap:no }LDAP support.
+enough to not upset your users. This version has
+%{!?_without_ipv6:no }IPv6 and has %{!?_without_ldap:no }LDAP
+support.
+
+
+%description -l fr
+Postfix (voir http://www.postfix.org) se veut une alternative à
+sendmail, responsable de l'acheminement de 70% des courriers
+électroniques sur Internet. IBM en a suppotré le développement, mais
+ne contrôle pas son évolution. Le but est d'installer Postfix sur le
+plus grand nombre de systèmes possible. Dans cette optique , il a été
+écrit pour être totalement sous le contrôle de l'utilisateur.
+
+Pour les étapes à suivre avant et après l'installation de Postfix,
+voir http://www.moongroup.com/how-to.phtm.
+
+
+%description -l it
+Postfix (http://www.postfix.org) e' un'alternativa al programma
+sendmail utilizzato per la gestione del 70 per cento della posta
+Internet.
+
+Seppur IBM supporti lo sviluppo di Postfix, non controlla la sua
+evoluzione.
+
+Consultate la pagine web http://www.moongroup.com/how-to.phtml nella
+quale troverete le indicazioni per una corretta installazione e
+configurazione di questo programma.
+
 
 %description -l pl
 Postfix jest prób± dostarczenia alternatywnego MTA w stosunku do
 szeroko u¿ywanego sendmaila. Postfix w zamierzeniu ma byæ szybki,
 ³atwy w administrowaniu, bezpieczny oraz ma byæ na tyle kompatybilny z
-sendmailem by nie denerwowaæ Twoich u¿ytkowników. Ta wersja wspiera
-IPv6%{!?_without_ldap: oraz LDAP}.
+sendmailem by nie denerwowaæ Twoich u¿ytkowników. Ta wersja
+- %{!?_without_ipv6:nie }wspiera%{!?_without_ipv6: IPv6}
+- %{!?_without_ldap:nie }wspiera%{!?_without_ldap: LDAP}.
+
+
+%description -l sk
+Postfix (pozri http://www.postfix.org) má za cieµ by» alternatívou k
+¹iroko roz¹írenému programu sendmail, zodpovednému za 70% v¹etkej
+elektronickej po¹ty doruèenej na Internete.
+
+Aj keï IBM podporovala vývoj Postfixu, zdr¾iava sa vplyvu na jeho
+vývoj. Cieµom je in¹talácia Postfixu na èo najväè¹om poète systémov.
+Do tohoto momentu je softvér poskytovaný bez ovplyvòovania, tak¾e sa
+mô¾e vyvíja» podµa jeho pou¾ívateµov.
+
+Urèite si preèítajte http://www.moongroup.com/how-to.phtml, kde sú
+popísané kroky potrebné pred a po in¹talácii Postfixu.
+
 
 %prep
 %setup -q -n snapshot-%{version} -a 6
@@ -111,7 +169,7 @@ install %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/mail/aliases
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.daily/postfix
 install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/postfix
 install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/postfix
-install %{SOURCE7} $RPM_BUILD_ROOT/etc/sasl/smtpd.conf
+install %{SOURCE7} $RPM_BUILD_ROOT%{_sysconfdir}/sasl/smtpd.conf
 install auxiliary/rmail/rmail $RPM_BUILD_ROOT%{_bindir}/rmail
 
 ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
