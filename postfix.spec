@@ -8,7 +8,7 @@
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
 Name:		postfix
-Version:	20001210
+Version:	20001217
 Release:	1
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
@@ -24,8 +24,6 @@ Patch0:		%{name}-config.patch
 Patch1:		http://www.misiek.eu.org/ipv6/%{name}-ver20001030-ipv6-20001030.patch.gz
 Patch2:		%{name}-pl.patch
 Patch3:		%{name}-virtual.patch
-Patch4:		%{name}-postconf.patch
-Patch5:		%{name}-sasl.patch
 URL:		http://www.postfix.org/
 Provides:	smtpdaemon
 Requires:	rc-scripts
@@ -72,9 +70,6 @@ tar zxf %{SOURCE6}
 %patch0 -p1
 %patch1 -p1 
 %patch2 -p1
-#%patch3 -p1
-%patch4 -p1
-%patch5 -p1
 
 %build
 %{__make} -f Makefile.init makefiles
@@ -96,8 +91,6 @@ install -d sample-conf; mv -f conf/sample* sample-conf/ || :
 
 install bin/* $RPM_BUILD_ROOT%{_sbindir}
 install libexec/* $RPM_BUILD_ROOT%{_libdir}/postfix
-#install bin/* $RPM_BUILD_ROOT%{_sbindir}
-#install libexec/* $RPM_BUILD_ROOT%{_libdir}/postfix
 install conf/* $RPM_BUILD_ROOT%{_sysconfdir}/mail
 
 (cd man; tar cf - .) | (cd $RPM_BUILD_ROOT%{_mandir}; tar xf -)
