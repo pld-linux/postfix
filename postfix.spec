@@ -1,11 +1,11 @@
 %define		ver	19990906
-%define		patchl	06
+%define		patchl	07
 %define		pfixtls	0.4.2-19990906-pl05-0.9.4
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
 Name:		postfix
 Version:	%{ver}_pl%{patchl}
-Release:	1
+Release:	0.1
 URL:		http://www.postfix.org/
 Source0:	ftp://postfix.cloud9.net/postfix-%{ver}-pl%{patchl}.tar.gz
 Source1:	postfix.aliases
