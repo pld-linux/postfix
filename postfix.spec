@@ -32,7 +32,7 @@ Patch2:		%{name}-ipv6.patch
 Patch3:		%{name}-dynamicmaps.patch
 Patch4:		%{name}-pgsql.patch
 Patch5:		%{name}-master.cf_cyrus.patch
-%{?_with_polish:Patch6: %{name}-pl.patch}
+Patch6:		%{name}-pl.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{!?_without_sasl:BuildRequires:	cyrus-sasl-devel}
