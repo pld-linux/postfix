@@ -1,0 +1,47 @@
+diff -dur postfix-2.0.18.orig/src/global/own_inet_addr.c postfix-2.0.18/src/global/own_inet_addr.c
+--- postfix-2.0.18.orig/src/global/own_inet_addr.c	2004-01-28 11:07:44.000000000 +0100
++++ postfix-2.0.18/src/global/own_inet_addr.c	2004-01-28 11:14:03.716149332 +0100
+@@ -222,6 +222,7 @@
+ 	}
+ 	return (0);
+     }
++    return (0);
+ }
+ #else
+ int     own_inet_addr(struct in_addr * addr)
+Only in postfix-2.0.18/src/global: own_inet_addr.c~
+diff -dur postfix-2.0.18.orig/src/util/inet_addr_host.c postfix-2.0.18/src/util/inet_addr_host.c
+--- postfix-2.0.18.orig/src/util/inet_addr_host.c	2004-01-28 11:07:44.000000000 +0100
++++ postfix-2.0.18/src/util/inet_addr_host.c	2004-01-28 11:09:26.552032456 +0100
+@@ -42,6 +42,7 @@
+ #include <netdb.h>
+ #include <stdlib.h>
+ #include <string.h>
++#include <unistd.h>
+ 
+ #ifndef INADDR_NONE
+ #define INADDR_NONE 0xffffffff
+@@ -52,9 +53,7 @@
+ #include <mymalloc.h>
+ #include <inet_addr_list.h>
+ #include <inet_addr_host.h>
+-#ifdef TEST
+ #include <msg.h>
+-#endif
+ 
+ /* inet_addr_host - look up address list for host */
+ 
+Only in postfix-2.0.18/src/util: inet_addr_host.c~
+diff -dur postfix-2.0.18.orig/src/util/inet_addr_local.c postfix-2.0.18/src/util/inet_addr_local.c
+--- postfix-2.0.18.orig/src/util/inet_addr_local.c	2004-01-28 11:07:44.000000000 +0100
++++ postfix-2.0.18/src/util/inet_addr_local.c	2004-01-28 11:11:21.933189546 +0100
+@@ -454,7 +454,7 @@
+ 				htonl(~((1 << rest) - 1));
+ 			    break;
+ 			}
+-		    inet_addr_list_append(mask_list, &mask);
++		    inet_addr_list_append(mask_list, (struct sockaddr *)&mask);
+ 		}
+ 		freeaddrinfo(res0);
+ 	    }
+Only in postfix-2.0.18/src/util: inet_addr_local.c~
