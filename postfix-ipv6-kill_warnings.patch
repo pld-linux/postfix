@@ -32,16 +32,3 @@ diff -dur postfix-2.0.18.orig/src/util/inet_addr_host.c postfix-2.0.18/src/util/
  /* inet_addr_host - look up address list for host */
  
 Only in postfix-2.0.18/src/util: inet_addr_host.c~
-diff -dur postfix-2.0.18.orig/src/util/inet_addr_local.c postfix-2.0.18/src/util/inet_addr_local.c
---- postfix-2.0.18.orig/src/util/inet_addr_local.c	2004-01-28 11:07:44.000000000 +0100
-+++ postfix-2.0.18/src/util/inet_addr_local.c	2004-01-28 11:11:21.933189546 +0100
-@@ -454,7 +454,7 @@
- 				htonl(~((1 << rest) - 1));
- 			    break;
- 			}
--		    inet_addr_list_append(mask_list, &mask);
-+		    inet_addr_list_append(mask_list, (struct sockaddr *)&mask);
- 		}
- 		freeaddrinfo(res0);
- 	    }
-Only in postfix-2.0.18/src/util: inet_addr_local.c~
