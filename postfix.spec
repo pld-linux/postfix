@@ -5,16 +5,16 @@
 #	  tunnels are present
 #
 # Conditional build:
-# _without_ipv6		- without IPv6 support
-# _without_ldap		- without LDAP map module
-# _without_mysql	- without MySQL map module
-# _without_pgsql	- without PostgreSQL map module
-# _without_sasl		- without SMTP AUTH support
-# _without_ssl		- without SSL/TLS support
-# _with_polish		- with double English+Polish messages
-# _with_cdb		- tinycdb mapfile support
+# _without_ipv6         - without IPv6 support
+# _without_ldap         - without LDAP map module
+# _without_mysql        - without MySQL map module
+# _without_pgsql        - without PostgreSQL map module
+# _without_sasl         - without SMTP AUTH support
+# _without_ssl          - without SSL/TLS support
+# _without_cdb          - without tinycdb mapfile map support
+# _with_polish          - with double English+Polish messages
 #
-%define	tls_ver 0.8.15-2.0.13-0.9.7b
+%define	tls_ver 0.8.16-2.0.15-0.9.7b
 %define snap	20030917
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
@@ -25,8 +25,8 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.0.16
-Release:	1
-Epoch:		3
+Release:        1
+Epoch:          3
 Group:		Networking/Daemons
 License:	distributable
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/%{name}-%{version}-%{snap}.tar.gz
@@ -59,7 +59,7 @@ BuildRequires:	grep
 %{!?_without_ssl:BuildRequires:		openssl-devel >= 0.9.7b}
 BuildRequires:	pcre-devel
 %{!?_without_pgsql:BuildRequires:	postgresql-devel}
-%{?_with_cdb:BuildRequires:		tinycdb-devel}
+%{!?_without_cdb:BuildRequires:		tinycdb-devel}
 PreReq:		rc-scripts
 PreReq:		sed
 Requires(pre):	/usr/sbin/useradd
@@ -85,7 +85,7 @@ Obsoletes:	smail
 Obsoletes:	zmailer
 Requires:	diffutils
 Requires:	findutils
-%{?_with_cdb:Requires:tinycdb}
+%{!?_without_cdb:Requires:tinycdb}
 
 %description
 Postfix is attempt to provide an alternative to the widely-used
@@ -206,7 +206,7 @@ This package provides support for PostgreSQL maps in Postfix.
 Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 
 %prep
-%setup -q -a6 %{?_with_cdb:-a8}
+%setup -q -n %{name}-%{version}-%{snap} -a8 %{!?_without_cdb:-a6}
 echo Postfix TLS patch:
 patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 %patch0 -p1
@@ -216,8 +216,8 @@ patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 %patch4 -p1
 %{!?_without_ipv6:%patch5 -p1}
 %{?_with_polish:%patch6 -p1}
-%{?_with_cdb:%patch7 -p1}
-%{?_with_cdb:sh dict_cdb.sh}
+%{!?_without_cdb:%patch7 -p1}
+%{!?_without_cdb:sh dict_cdb.sh}
 
 %build
 %{__make} -f Makefile.init makefiles
@@ -226,8 +226,8 @@ patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 	%{?_without_ldap:LDAPSO=""} \
 	%{?_without_mysql:MYSQLSO=""} \
 	%{?_without_pgsql:PGSQLSO=""} \
-	CCARGS="%{!?_without_ldap:-DHAS_LDAP} -DHAS_PCRE %{!?_without_sasl:-DUSE_SASL_AUTH -I/usr/include/sasl} %{!?_without_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{!?_without_pgsql:-DHAS_PGSQL -I/usr/include/postgresql} %{!?_without_ssl:-DHAS_SSL -I/usr/include/openssl} -DMAX_DYNAMIC_MAPS %{?_with_cdb:-DHAS_CDB -I/usr/include/cdb.h}" \
-	AUXLIBS="-ldb -lresolv %{!?_without_sasl:-lsasl} %{!?_without_ssl:-lssl -lcrypto} %{?_with_cdb:-L/usr/lib/libcdb.a -lcdb}"
+	CCARGS="%{!?_without_ldap:-DHAS_LDAP} -DHAS_PCRE %{!?_without_sasl:-DUSE_SASL_AUTH -I/usr/include/sasl} %{!?_without_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{!?_without_pgsql:-DHAS_PGSQL -I/usr/include/postgresql} %{!?_without_ssl:-DHAS_SSL -I/usr/include/openssl} -DMAX_DYNAMIC_MAPS %{!?_without_cdb:-DHAS_CDB -I/usr/include/cdb.h}" \
+	AUXLIBS="-ldb -lresolv %{!?_without_sasl:-lsasl} %{!?_without_ssl:-lssl -lcrypto} %{!?_without_cdb:-L/usr/lib/libcdb.a -lcdb}"
 
 %install
 rm -rf $RPM_BUILD_ROOT
