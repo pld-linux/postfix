@@ -1309,6 +1309,36 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_check.c postfix-1.1.2/src/smtpd/smt
  }
  
  /* i_am_mx - is this machine listed as MX relay */
+@@ -1647,11 +1699,28 @@
+ #define CHK_ADDR_RETURN(x,y) { *found = y; return(x); }
+ 
+     addr = STR(vstring_strcpy(error_text, address));
+-
++#ifdef INET6
++    if (strncmp(addr, "::ffff:", 7) == 0 && msg_verbose)
++	msg_info("%s: %s v6 addr in v4 compat-mode, "
++		"converted to v4 for map checking compatibility (%s)", \
++		myname, addr, addr+7);
++#endif
++    
+     if ((dict = dict_handle(table)) == 0)
+ 	msg_panic("%s: dictionary not found: %s", myname, table);
+     do {
+ 	if (flags == 0 || (flags & dict->flags) != 0) {
++#ifdef INET6
++	    if (strncmp(addr, "::ffff:", 7) == 0) {
++		/* try if ::ffff: formati is present in map, if not, try
++		   traditional IPv4 format striping :ffff: part */
++            	if ((value = dict_get(dict, addr)) != 0 || \
++        	    		(value = dict_get(dict, addr+7)) != 0)
++			CHK_ADDR_RETURN(check_table_result(state, table, value, address,
++						   reply_name, reply_class,
++						   def_acl), FOUND);	
++	    } else
++#endif
+ 	    if ((value = dict_get(dict, addr)) != 0)
+ 		CHK_ADDR_RETURN(check_table_result(state, table, value, address,
+ 						   reply_name, reply_class,
 @@ -1881,7 +1933,7 @@
  static int reject_maps_rbl(SMTPD_STATE *state)
  {
