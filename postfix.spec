@@ -5,6 +5,7 @@
 # --without pcre - build without Perl Compatible Regular Expresion support
 # --without ssl  - build without SSL/TLS support
 # --with mysql - build with MySQL support
+# --without ipv6  - build without IPv6 support
 #
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Serwer SMTP Postfix
@@ -33,9 +34,9 @@ Prereq:		rc-scripts
 %{!?bcond_off_ssl:BuildRequires:	openssl-devel >= 0.9.6a}
 %{!?bcond_off_pcre:BuildRequires:	pcre-devel}
 %{!?bcond_off_sasl:BuildRequires:	cyrus-sasl-devel}
+%{!?bcond_off_ipv6:BuildRequires:	libinet6}
 BuildRequires:	db3-devel
 BuildRequires:	grep
-BuildRequires:	libinet6
 Prereq:		/sbin/chkconfig
 Prereq:		/usr/sbin/useradd
 Prereq:		/usr/sbin/groupadd
@@ -73,7 +74,7 @@ IPv6%{!?bcond_off_ldap: oraz LDAP}.
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
-%patch3 -p1
+%{!?bcond_off_ipv6:%patch3 -p1}
 %patch4 -p1
 %patch5 -p1
 
@@ -118,10 +119,8 @@ rm -f $RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script-{diff,nosgid}
 touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 	{aliases,access,canonical,relocated,transport,virtual}{,.db}
 
-gzip -9nf LDAP_README HISTORY MYSQL_README UUCP_README 0README \
-	COMPATIBILITY DEBUG_README LICENSE LMTP_README PCRE_README \
-	RELEASE_NOTES RESTRICTION_CLASS SASL_README TODO FILTER_README \
-	IPV6_README
+gzip -9nf *README HISTORY COMPATIBILITY LICENSE RELEASE_NOTES \
+	   RESTRICTION_CLASS TODO
 
 touch $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
@@ -188,9 +187,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
-%doc html {LDAP_README,HISTORY,MYSQL_README,UUCP_README,IPV6_README}.gz
-%doc {0README,COMPATIBILITY,DEBUG_README,LICENSE,LMTP_README,PCRE_README}.gz
-%doc {RELEASE_NOTES,RESTRICTION_CLASS,SASL_README,TODO,FILTER_README}.gz
+%doc html *README.gz
+%doc {HISTORY,COMPATIBILITY,LICENSE,RELEASE_NOTES,RESTRICTION_CLASS,TODO}.gz
 %doc sample-conf
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/access
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/aliases
