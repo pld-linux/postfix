@@ -8,7 +8,8 @@
 %bcond_without	cdb	# without cdb map support
 %bcond_with	polish	# with double English+Polish messages
 #
-%define		_tls_ipv6_ver	1.23-pf-2.1.0
+%define		_tls_ipv6_ver	1.25-pf-2.2-20040616
+%define		_snap	20050117
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
 Summary(es):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -17,13 +18,13 @@ Summary(pl):	Serwer SMTP Postfix
 Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
-Version:	2.1.0
-Release:	0.1
+Version:	2.2
+Release:	0.%{_snap}.0.1
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
-Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	286856c9597cfa244c3b6133dce12749
+Source0:        ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/%{name}-%{version}-%{_snap}.tar.gz
+# Source0-md5:	cc9fea8353944f533a17cbe839eb6e15
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
@@ -31,8 +32,8 @@ Source5:	%{name}.sysconfig
 Source6:	%{name}.sasl
 Source7:	ftp://ftp.corpit.ru/pub/postfix/%{name}-dict_cdb-1.1.11-20021104.tar.gz
 # Source7-md5:	5731b5081725f4688dc6fae119d617e4
-Source8:	http://www.ipnet6.org/postfix/download/tls+ipv6-%{_tls_ipv6_ver}.patch.gz
-# Source8-md5:	48cc27eba89a64bf34e03e4c9f48ece1
+Source8:	ftp://ftp.stack.nl/pub/postfix/tls+ipv6/1.25/tls+ipv6-%{_tls_ipv6_ver}.patch.gz
+# Source8-md5:	5805d82c309232fb74ecf9cd3aae1dfd
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
@@ -42,8 +43,6 @@ Patch5:		%{name}-pl.patch
 Patch6:		%{name}-cdb_man.patch
 Patch7:		%{name}-ns-mx-acl.patch
 Patch8:		%{name}-kill_warnings.patch
-Patch9:		%{name}-ipv6-kill_warnings.patch
-Patch10:	%{name}-dict_ldap.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
@@ -205,7 +204,7 @@ This package provides support for PostgreSQL maps in Postfix.
 Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 
 %prep
-%setup -q %{?with_cdb:-a7}
+%setup -q %{?with_cdb:-a7} -n %{name}-%{version}-%{_snap}
 zcat %{SOURCE8} | patch -p1 -s
 %patch0 -p1
 %patch1 -p1
@@ -216,7 +215,6 @@ zcat %{SOURCE8} | patch -p1 -s
 %{?with_cdb:%patch6 -p1}
 #patch7 -p1
 %patch8 -p1
-%patch9 -p1
 %{?with_cdb:sh dict_cdb.sh}
 
 %build
