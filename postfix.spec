@@ -90,9 +90,6 @@ ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
 ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/newaliases
 ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_libdir}/sendmail
 
-mv -f $RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script\
-	$RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script
-
 rm $RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script-{diff,nosgid}
 
 touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
