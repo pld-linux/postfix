@@ -14,7 +14,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	1.1.11
-Release:	1
+Release:	2
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -242,9 +242,6 @@ ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_libdir}/sendmail
 touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 	{aliases,access,canonical,relocated,transport,virtual}{,.db}
 
-gzip -9nf *README COMPATIBILITY HISTORY LICENSE RELEASE_NOTES \
-	README_FILES/*README
-
 > $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
 %clean
@@ -318,7 +315,8 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 
 %files
 %defattr(644,root,root,755)
-%doc html *.gz README_FILES/*.gz
+%doc html *README COMPATIBILITY HISTORY LICENSE RELEASE_NOTES
+%doc README_FILES/*README
 %doc sample-conf
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/access
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/aliases
