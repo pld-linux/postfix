@@ -1,7 +1,7 @@
 diff -Nur postfix-2.0.16.orig/conf/main.cf postfix-2.0.16/conf/main.cf
 --- postfix-2.0.16.orig/conf/main.cf	Sat Sep  6 02:30:35 2003
 +++ postfix-2.0.16/conf/main.cf	Mon Dec  1 14:26:08 2003
-@@ -37,7 +37,7 @@
+@@ -38,7 +38,7 @@
  # daemon programs (i.e. programs listed in the master.cf file). This
  # directory must be owned by root.
  #
@@ -10,7 +10,7 @@ diff -Nur postfix-2.0.16.orig/conf/main.cf postfix-2.0.16/conf/main.cf
  
  # QUEUE AND PROCESS OWNERSHIP
  #
-@@ -55,7 +55,7 @@
+@@ -56,7 +56,7 @@
  # These rights are used in the absence of a recipient user context.
  # DO NOT SPECIFY A PRIVILEGED USER OR THE POSTFIX OWNER.
  #
@@ -19,7 +19,7 @@ diff -Nur postfix-2.0.16.orig/conf/main.cf postfix-2.0.16/conf/main.cf
  
  # INTERNET HOST AND DOMAIN NAMES
  # 
-@@ -87,7 +87,7 @@
+@@ -88,7 +88,7 @@
  # myorigin also specifies the default domain name that is appended
  # to recipient addresses that have no @domain part.
  #
@@ -28,7 +28,7 @@ diff -Nur postfix-2.0.16.orig/conf/main.cf postfix-2.0.16/conf/main.cf
  #myorigin = $mydomain
  
  # RECEIVING MAIL
-@@ -377,7 +377,7 @@
+@@ -372,7 +372,7 @@
  # "postfix reload" to eliminate the delay.
  #
  #alias_maps = dbm:/etc/aliases
@@ -37,7 +37,7 @@ diff -Nur postfix-2.0.16.orig/conf/main.cf postfix-2.0.16/conf/main.cf
  #alias_maps = hash:/etc/aliases, nis:mail.aliases
  #alias_maps = netinfo:/aliases
  
-@@ -388,7 +388,7 @@
+@@ -383,7 +383,7 @@
  #
  #alias_database = dbm:/etc/aliases
  #alias_database = dbm:/etc/mail/aliases
@@ -46,7 +46,7 @@ diff -Nur postfix-2.0.16.orig/conf/main.cf postfix-2.0.16/conf/main.cf
  #alias_database = hash:/etc/aliases, hash:/opt/majordomo/aliases
  
  # ADDRESS EXTENSIONS (e.g., user+foo)
-@@ -416,7 +416,7 @@
+@@ -411,7 +411,7 @@
  # UNIX-style mailboxes are kept. The default setting depends on the
  # system type.
  #
@@ -55,7 +55,7 @@ diff -Nur postfix-2.0.16.orig/conf/main.cf postfix-2.0.16/conf/main.cf
  #mail_spool_directory = /var/spool/mail
  
  # The mailbox_command parameter specifies the optional external
-@@ -438,8 +438,8 @@
+@@ -433,8 +433,8 @@
  # IF YOU USE THIS TO DELIVER MAIL SYSTEM-WIDE, YOU MUST SET UP AN
  # ALIAS THAT FORWARDS MAIL FOR ROOT TO A REAL USER.
  #
@@ -66,7 +66,7 @@ diff -Nur postfix-2.0.16.orig/conf/main.cf postfix-2.0.16/conf/main.cf
  
  # The mailbox_transport specifies the optional transport in master.cf
  # to use after processing aliases and .forward files. This parameter
-@@ -598,39 +598,12 @@
+@@ -588,44 +588,12 @@
  #	echo where) | gdb $daemon_directory/$process_name $process_id 2>&1
  #	>$config_directory/$process_name.$process_id.log & sleep 5
  
@@ -96,11 +96,16 @@ diff -Nur postfix-2.0.16.orig/conf/main.cf postfix-2.0.16/conf/main.cf
  #
 -setgid_group =
 -
+-# html_directory: The location of the Postfix HTML documentation.
+-#
+-html_directory =
+-
 -# manpage_directory: The location of the Postfix on-line manual pages.
 -#
 -manpage_directory =
 -
 -# sample_directory: The location of the Postfix sample configuration files.
+-# This parameter is obsolete as of Postfix 2.1.
 -#
 -sample_directory =
 -
@@ -141,49 +146,25 @@ diff -Nur postfix-2.0.16.orig/src/util/sys_defs.h postfix-2.0.16/src/util/sys_de
  #define HAS_NIS
  #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
  #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
-diff -Nur postfix-2.0.16.orig/man/man1/postdrop.1 postfix-2.0.16/man/man1/postdrop.1
---- postfix-2.0.16.orig/man/man1/postdrop.1	Tue Jun 10 02:16:04 2003
-+++ postfix-2.0.16/man/man1/postdrop.1	Mon Dec  1 14:26:08 2003
-@@ -61,7 +61,7 @@
- .na
- .nf
- /var/spool/postfix, mail queue
--/etc/postfix, configuration files
-+/etc/mail, configuration files
- .SH CONFIGURATION PARAMETERS
- .na
- .nf
-diff -Nur postfix-2.0.16.orig/man/man1/postqueue.1 postfix-2.0.16/man/man1/postqueue.1
---- postfix-2.0.16.orig/man/man1/postqueue.1	Tue Jan  7 22:16:13 2003
-+++ postfix-2.0.16/man/man1/postqueue.1	Mon Dec  1 14:26:08 2003
-@@ -95,7 +95,7 @@
- .na
- .nf
- /var/spool/postfix, mail queue
--/etc/postfix, configuration files
-+/etc/mail, configuration files
- .SH CONFIGURATION PARAMETERS
- .na
- .nf
 diff -Nur postfix-2.0.16.orig/man/man1/sendmail.1 postfix-2.0.16/man/man1/sendmail.1
 --- postfix-2.0.16.orig/man/man1/sendmail.1	Tue Jun 10 02:16:04 2003
 +++ postfix-2.0.16/man/man1/sendmail.1	Mon Dec  1 14:26:08 2003
-@@ -63,7 +63,7 @@
- The message body MIME type: \fB7BIT\fR or \fB8BITMIME\fR.
- .IP "\fB-C \fIconfig_file\fR (ignored :-)"
+@@ -92,7 +92,7 @@
+ This feature is available in Postfix version 2.1 and later.
+ .IP "\fB-C \fIconfig_file\fR (ignored)"
  The path name of the \fBsendmail.cf\fR file. Postfix configuration
--files are kept in \fB/etc/postfix\fR.
-+files are kept in \fB/etc/mail\fR.
+-files are kept in the \fB/etc/postfix\fR directory.
++files are kept in the \fB/etc/mail\fR directory.
  .IP "\fB-F \fIfull_name\fR
  Set the sender full name. This is used only with messages that
  have no \fBFrom:\fR message header.
-@@ -208,7 +208,7 @@
+@@ -325,7 +325,7 @@
  .na
  .nf
  /var/spool/postfix, mail queue
 -/etc/postfix, configuration files
 +/etc/mail, configuration files
- .SH CONFIGURATION PARAMETERS
+ .SH "SEE ALSO"
  .na
  .nf
 diff -Nur postfix-2.0.16.orig/man/man5/access.5 postfix-2.0.16/man/man5/access.5
@@ -243,36 +224,30 @@ diff -Nur postfix-2.0.16.orig/man/man5/canonical.5 postfix-2.0.16/man/man5/canon
 diff -Nur postfix-2.0.16.orig/man/man5/pcre_table.5 postfix-2.0.16/man/man5/pcre_table.5
 --- postfix-2.0.16.orig/man/man5/pcre_table.5	Mon Sep  8 14:36:26 2003
 +++ postfix-2.0.16/man/man5/pcre_table.5	Mon Dec  1 14:28:06 2003
-@@ -8,11 +8,11 @@
- .SH SYNOPSIS
+@@ -8,9 +8,9 @@
+ .SH "SYNOPSIS"
  .na
  .nf
--\fBpcre:/etc/postfix/\fIfilename\fR
-+\fBpcre:/etc/mail/\fIfilename\fR
+-\fBpostmap -fq "\fIstring\fB" pcre:/etc/postfix/\fIfilename\fR
++\fBpostmap -fq "\fIstring\fB" pcre:/etc/mail/\fIfilename\fR
  
--\fBpostmap -q "\fIstring\fB" pcre:/etc/postfix/\fIfilename\fR
-+\fBpostmap -q "\fIstring\fB" pcre:/etc/mail/\fIfilename\fR
- 
--\fBpostmap -q - pcre:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
-+\fBpostmap -q - pcre:/etc/mail/\fIfilename\fR <\fIinputfile\fR
+-\fBpostmap -fq - pcre:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
++\fBpostmap -fq - pcre:/etc/mail/\fIfilename\fR <\fIinputfile\fR
  .SH DESCRIPTION
  .ad
  .fi
 diff -Nur postfix-2.0.16.orig/man/man5/regexp_table.5 postfix-2.0.16/man/man5/regexp_table.5
 --- postfix-2.0.16.orig/man/man5/regexp_table.5	Fri Aug  1 01:03:34 2003
 +++ postfix-2.0.16/man/man5/regexp_table.5	Mon Dec  1 14:28:18 2003
-@@ -8,11 +8,11 @@
- .SH SYNOPSIS
+@@ -8,9 +8,9 @@
+ .SH "SYNOPSIS"
  .na
  .nf
--\fBregexp:/etc/postfix/\fIfilename\fR
-+\fBregexp:/etc/mail/\fIfilename\fR
+-\fBpostmap -fq "\fIstring\fB" regexp:/etc/postfix/\fIfilename\fR
++\fBpostmap -fq "\fIstring\fB" regexp:/etc/mail/\fIfilename\fR
  
--\fBpostmap -q "\fIstring\fB" regexp:/etc/postfix/\fIfilename\fR
-+\fBpostmap -q "\fIstring\fB" regexp:/etc/mail/\fIfilename\fR
- 
--\fBpostmap -q - regexp:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
-+\fBpostmap -q - regexp:/etc/mail/\fIfilename\fR <\fIinputfile\fR
+-\fBpostmap -fq - regexp:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
++\fBpostmap -fq - regexp:/etc/mail/\fIfilename\fR <\fIinputfile\fR
  .SH DESCRIPTION
  .ad
  .fi
@@ -373,30 +348,30 @@ diff -Nur postfix-2.0.16.orig/man/man5/virtual.5 postfix-2.0.16/man/man5/virtual
 diff -Nur postfix-2.0.16.orig/man/man8/cleanup.8 postfix-2.0.16/man/man8/cleanup.8
 --- postfix-2.0.16.orig/man/man8/cleanup.8	Tue Aug 12 18:04:43 2003
 +++ postfix-2.0.16/man/man8/cleanup.8	Mon Dec  1 14:26:08 2003
-@@ -185,8 +185,8 @@
- .SH FILES
+@@ -283,8 +283,8 @@
+ .SH "FILES"
  .na
  .nf
 -/etc/postfix/canonical*, canonical mapping table
 -/etc/postfix/virtual*, virtual mapping table
 +/etc/mail/canonical*, canonical mapping table
 +/etc/mail/virtual*, virtual mapping table
- .SH LICENSE
+ .SH "SEE ALSO"
  .na
  .nf
 diff -Nur postfix-2.0.16.orig/man/man8/master.8 postfix-2.0.16/man/man8/master.8
 --- postfix-2.0.16.orig/man/man8/master.8	Thu Dec 19 03:18:43 2002
 +++ postfix-2.0.16/man/man8/master.8	Mon Dec  1 14:26:08 2003
-@@ -129,8 +129,8 @@
- .SH FILES
+@@ -147,8 +147,8 @@
+ .SH "FILES"
  .na
  .nf
--/etc/postfix/main.cf: global configuration file.
--/etc/postfix/master.cf: master process configuration file.
-+/etc/mail/main.cf: global configuration file.
-+/etc/mail/master.cf: master process configuration file.
- /var/spool/postfix/pid/master.pid: master lock file.
- .SH SEE ALSO
+-/etc/postfix/main.cf, global configuration file.
+-/etc/postfix/master.cf, master server configuration file.
++/etc/mail/main.cf, global configuration file.
++/etc/mail/master.cf, master server configuration file.
+ /var/spool/postfix/pid/master.pid, master lock file.
+ .SH "SEE ALSO"
  .na
 diff -Nur postfix-2.0.16.orig/man/man8/proxymap.8 postfix-2.0.16/man/man8/proxymap.8
 --- postfix-2.0.16.orig/man/man8/proxymap.8	Wed May 21 21:21:42 2003
