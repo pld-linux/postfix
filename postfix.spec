@@ -10,7 +10,7 @@ Summary:	Postfix Mail Transport Agent
 Summary(pl):	Serwer SMTP Postfix
 Name:		postfix
 Version:	20010329
-Release:	1
+Release:	1.1
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
 Group(pl):	Sieciowe/Serwery
@@ -33,6 +33,7 @@ Prereq:		rc-scripts
 %{!?bcond_off_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db3-devel
 BuildRequires:	grep
+BuildRequires:	libinet6
 Prereq:		/sbin/chkconfig
 Prereq:		/usr/sbin/useradd
 Prereq:		/usr/sbin/groupadd
@@ -63,8 +64,7 @@ Postfix jest prób± dostarczenia alternatywnego MTA w stosunku do
 szeroko u¿ywanego sendmaila. Postfix w zamierzeniu ma byæ szybki,
 ³atwy w administrowaniu, bezpieczny oraz ma byæ na tyle kompatybilny z
 sendmailem by nie denerwowaæ Twoich u¿ytkowników. Ta wersja wspiera
-IPv6%{!?bcond_off_ldap: oraz LDAP} %{?bcond_off_ldap: i nie zawiera
-wsparcia LDAP}.
+IPv6%{!?bcond_off_ldap: oraz LDAP}.
 
 %prep
 %setup -q -n snapshot-%{version}
@@ -78,7 +78,7 @@ wsparcia LDAP}.
 %{__make} tidy
 %{__make} DEBUG="" OPT="%{?debug:-O0 -g}%{!?debug:$RPM_OPT_FLAGS}" \
 	CCARGS="%{!?bcond_off_ldap:-DHAS_LDAP} %{!?bcond_off_pcre:-DHAS_PCRE} %{!?bcond_off_sasl:-DUSE_SASL_AUTH} %{?bcond_on_mysql:-DHAS_MYSQL -I%{_includedir}/mysql} %{!?bcond_off_ssl:-DHAS_SSL -I%{_includedir}/openssl}" \
-	AUXLIBS="%{!?bcond_off_ldap:-llber -lldap} -lnsl -ldb -lresolv %{!?bcond_off_pcre:-lpcre} %{!?bcond_off_sasl:-lsasl} %{?bcond_on_mysql:-lmysqlclient}"
+	AUXLIBS="%{!?bcond_off_ldap:-llber -lldap} -lnsl -ldb -lresolv %{!?bcond_off_pcre:-lpcre} %{!?bcond_off_sasl:-lsasl} %{?bcond_on_mysql:-lmysqlclient} %{!?bcond_off_ssl:-lssl -lcrypto}"
 
 %install
 rm -rf $RPM_BUILD_ROOT
