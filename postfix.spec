@@ -7,6 +7,7 @@
 %bcond_without	ssl	# without SSL/TLS support
 %bcond_without	cdb	# without cdb map support
 %bcond_with	vda	# with VDA patch
+%bcond_with	hir	# with Beeth's header_if_reject patch
 #%bcond_with	polish	# with double English+Polish messages
 #
 # TODO:
@@ -22,7 +23,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.1.5
-Release:	4
+Release:	5
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -48,6 +49,8 @@ Patch4:		%{name}-master.cf_cyrus.patch
 Patch6:		%{name}-cdb_man.patch
 Patch8:		%{name}-kill_warnings.patch
 Patch9:		%{name}-ipv6-kill_warnings.patch
+# from http://akson.sgh.waw.pl/~chopin/unix/postfix-2.1.5-header_if_reject.diff
+Patch10:	%{name}-header_if_reject.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
@@ -225,6 +228,7 @@ zcat %{SOURCE8} | patch -p1 -s
 %{?with_cdb:%patch6 -p1}
 %patch8 -p1
 %patch9 -p1
+%{?with_hir:%patch10 -p0}
 %{?with_cdb:sh dict_cdb.sh}
 
 %build
