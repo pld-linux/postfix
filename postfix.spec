@@ -8,6 +8,7 @@
 %bcond_without	cdb	# with cdb map support
 %bcond_with	polish	# with double English+Polish messages
 #
+%define		_tls_ipv6_ver	1.21-pf-2.0.18
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
 Summary(es):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -30,17 +31,16 @@ Source5:	%{name}.sysconfig
 Source6:	%{name}.sasl
 Source7:	ftp://ftp.corpit.ru/pub/postfix/%{name}-dict_cdb-1.1.11-20021104.tar.gz
 # Source7-md5:	5731b5081725f4688dc6fae119d617e4
-# http://www.ipnet6.org/postfix/
-Patch0:		tls+ipv6-1.20-pf-2.0.16.patch
-Patch1:		%{name}-config.patch
-Patch2:		%{name}-conf_msg.patch
-Patch3:		%{name}-dynamicmaps.patch
-Patch4:		%{name}-pgsql.patch
-Patch5:		%{name}-master.cf_cyrus.patch
-Patch6:		%{name}-pl.patch
-Patch7:		%{name}-cdb_man.patch
-Patch8:         %{name}-ns-mx-acl.patch
-Patch9:         %{name}-kill_warnings.patch
+Source8:	http://www.ipnet6.org/postfix/download/tls+ipv6-%{_tls_ipv6_ver}.patch.gz
+# Source8-md5:	ea4bc937fed01bd3573fb374f2b1ca27
+Patch0:		%{name}-config.patch
+Patch1:		%{name}-conf_msg.patch
+Patch2:		%{name}-dynamicmaps.patch
+Patch3:		%{name}-pgsql.patch
+Patch4:		%{name}-master.cf_cyrus.patch
+Patch5:		%{name}-pl.patch
+Patch6:		%{name}-cdb_man.patch
+Patch7:         %{name}-ns-mx-acl.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
@@ -200,16 +200,15 @@ Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 
 %prep
 %setup -q %{?with_cdb:-a7}
+zcat %{SOURCE8} | patch -p1 -s
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
-%patch5 -p1
-%{?with_polish:%patch6 -p1}
-%{?with_cdb:%patch7 -p1}
-%patch8 -p1
-%patch9 -p1
+%{?with_polish:%patch5 -p1}
+%{?with_cdb:%patch6 -p1}
+%patch7 -p1
 %{?with_cdb:sh dict_cdb.sh}
 
 %build
