@@ -205,7 +205,7 @@ This package provides support for PostgreSQL maps in Postfix.
 Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 
 %prep
-%setup -q %{?with_cdb:-a8}
+%setup -q %{?with_cdb:-a7}
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
