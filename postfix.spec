@@ -5,17 +5,16 @@
 #	  tunnels are present
 #
 # Conditional build:
-# _without_ipv6         - without IPv6 support
-# _without_ldap         - without LDAP map module
-# _without_mysql        - without MySQL map module
-# _without_pgsql        - without PostgreSQL map module
-# _without_sasl         - without SMTP AUTH support
-# _without_ssl          - without SSL/TLS support
-# _without_cdb          - without tinycdb mapfile map support
-# _with_polish          - with double English+Polish messages
+# _without_ipv6		- without IPv6 support
+# _without_ldap		- without LDAP map module
+# _without_mysql	- without MySQL map module
+# _without_pgsql	- without PostgreSQL map module
+# _without_sasl		- without SMTP AUTH support
+# _without_ssl		- without SSL/TLS support
+# _with_polish		- with double English+Polish messages
+# _with_cdb		- tinycdb mapfile support
 #
-%define	tls_ver 0.8.16-2.0.15-0.9.7b
-%define snap	20030917
+%define	tls_ver 0.8.16-2.0.16-0.9.7b
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
 Summary(es):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -25,12 +24,12 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.0.16
-Release:        1
-Epoch:          3
+Release:	1
+Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
-Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/%{name}-%{version}-%{snap}.tar.gz
-# Source0-md5:	04afa30af2ad6da4bda0a0a98f595f24
+Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
+# Source0-md5:	723c2b7f67016e0c19b0e1aa08dad246
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
@@ -48,6 +47,7 @@ Patch4:		%{name}-master.cf_cyrus.patch
 Patch5:		%{name}-ipv6.patch
 Patch6:		%{name}-pl.patch
 Patch7:		%{name}-cdb_man.patch
+Patch8:         %{name}-ns-mx-acl.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{!?_without_sasl:BuildRequires:	cyrus-sasl-devel}
@@ -59,7 +59,7 @@ BuildRequires:	grep
 %{!?_without_ssl:BuildRequires:		openssl-devel >= 0.9.7b}
 BuildRequires:	pcre-devel
 %{!?_without_pgsql:BuildRequires:	postgresql-devel}
-%{!?_without_cdb:BuildRequires:		tinycdb-devel}
+%{?_with_cdb:BuildRequires:		tinycdb-devel}
 PreReq:		rc-scripts
 PreReq:		sed
 Requires(pre):	/usr/sbin/useradd
@@ -85,7 +85,7 @@ Obsoletes:	smail
 Obsoletes:	zmailer
 Requires:	diffutils
 Requires:	findutils
-%{!?_without_cdb:Requires:tinycdb}
+%{?_with_cdb:Requires:tinycdb}
 
 %description
 Postfix is attempt to provide an alternative to the widely-used
@@ -206,7 +206,7 @@ This package provides support for PostgreSQL maps in Postfix.
 Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 
 %prep
-%setup -q -n %{name}-%{version}-%{snap} -a8 %{!?_without_cdb:-a6}
+%setup -q -a6 %{?_with_cdb:-a8}
 echo Postfix TLS patch:
 patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 %patch0 -p1
@@ -216,8 +216,9 @@ patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 %patch4 -p1
 %{!?_without_ipv6:%patch5 -p1}
 %{?_with_polish:%patch6 -p1}
-%{!?_without_cdb:%patch7 -p1}
-%{!?_without_cdb:sh dict_cdb.sh}
+%{?_with_cdb:%patch7 -p1}
+%patch8 -p1
+%{?_with_cdb:sh dict_cdb.sh}
 
 %build
 %{__make} -f Makefile.init makefiles
@@ -226,12 +227,13 @@ patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 	%{?_without_ldap:LDAPSO=""} \
 	%{?_without_mysql:MYSQLSO=""} \
 	%{?_without_pgsql:PGSQLSO=""} \
-	CCARGS="%{!?_without_ldap:-DHAS_LDAP} -DHAS_PCRE %{!?_without_sasl:-DUSE_SASL_AUTH -I/usr/include/sasl} %{!?_without_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{!?_without_pgsql:-DHAS_PGSQL -I/usr/include/postgresql} %{!?_without_ssl:-DHAS_SSL -I/usr/include/openssl} -DMAX_DYNAMIC_MAPS %{!?_without_cdb:-DHAS_CDB -I/usr/include/cdb.h}" \
-	AUXLIBS="-ldb -lresolv %{!?_without_sasl:-lsasl} %{!?_without_ssl:-lssl -lcrypto} %{!?_without_cdb:-L/usr/lib/libcdb.a -lcdb}"
+	CCARGS="%{!?_without_ldap:-DHAS_LDAP} -DHAS_PCRE %{!?_without_sasl:-DUSE_SASL_AUTH -I/usr/include/sasl} %{!?_without_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{!?_without_pgsql:-DHAS_PGSQL -I/usr/include/postgresql} %{!?_without_ssl:-DHAS_SSL -I/usr/include/openssl} -DMAX_DYNAMIC_MAPS %{?_with_cdb:-DHAS_CDB -I/usr/include/cdb.h}" \
+	AUXLIBS="-ldb -lresolv %{!?_without_sasl:-lsasl} %{!?_without_ssl:-lssl -lcrypto} %{?_with_cdb:-L/usr/lib/libcdb.a -lcdb}"
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT%{_sysconfdir}/{mail,cron.daily,rc.d/init.d,sasl,sysconfig} \
+install -d $RPM_BUILD_ROOT/etc/{cron.daily,rc.d/init.d,sysconfig} \
+	$RPM_BUILD_ROOT%{_sysconfdir}/{mail,sasl} \
 	$RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,%{_includedir}/postfix,%{_mandir}/man{1,5,8}} \
 	$RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public} \
 	pfixtls
@@ -254,9 +256,9 @@ install include/*.h $RPM_BUILD_ROOT%{_includedir}/postfix
 (cd man; tar cf - .) | (cd $RPM_BUILD_ROOT%{_mandir}; tar xf -)
 
 install %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/mail/aliases
-install %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/cron.daily/postfix
-install %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/rc.d/init.d/postfix
-install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/postfix
+install %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.daily/postfix
+install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/postfix
+install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/postfix
 install %{SOURCE7} $RPM_BUILD_ROOT%{_sysconfdir}/sasl/smtpd.conf
 install auxiliary/rmail/rmail $RPM_BUILD_ROOT%{_bindir}/rmail
 
@@ -360,9 +362,9 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %attr(755,root,root) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/postfix-script
 %attr(755,root,root) %{_sysconfdir}/mail/post-install
 %{_sysconfdir}/mail/postfix-files
-%attr(740,root,root) %{_sysconfdir}/cron.daily/postfix
-%attr(754,root,root) %{_sysconfdir}/rc.d/init.d/postfix
-%attr(640,root,root) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/sysconfig/postfix
+%attr(740,root,root) /etc/cron.daily/postfix
+%attr(754,root,root) /etc/rc.d/init.d/postfix
+%attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/postfix
 %{!?_without_sasl:%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/sasl/smtpd.conf}
 %attr(755,root,root) %{_libdir}/libpostfix-*.so.*
 %attr(755,root,root) %{_bindir}/*
