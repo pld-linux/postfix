@@ -15,7 +15,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	1.1.11
-Release:	9
+Release:	10
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -33,10 +33,12 @@ Patch3:		%{name}-pgsql.patch
 Patch4:		%{name}-master.cf_cyrus.patch
 Patch5:		%{name}-ipv6.patch
 Patch6:		%{name}-pl.patch
+Patch7:		%{name}-db.patch
+Patch8:		%{name}-sasl2.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{!?_without_sasl:BuildRequires:	cyrus-sasl-devel}
-BuildRequires:	db3-devel
+BuildRequires:	db-devel
 BuildRequires:	grep
 %{!?_without_ipv6:BuildRequires:	libinet6 >= 0.20010420-3}
 BuildRequires:	mysql-devel
@@ -44,6 +46,7 @@ BuildRequires:	openldap-devel >= 2.0.0
 %{!?_without_ssl:BuildRequires:	openssl-devel >= 0.9.6a}
 BuildRequires:	pcre-devel
 BuildRequires:	postgresql-devel
+BuildRequires:	cyrus-sasl-devel >= 2.1.0
 PreReq:		rc-scripts
 PreReq:		sed
 Requires(pre):	/usr/sbin/useradd
@@ -199,6 +202,8 @@ patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 %patch4 -p1
 %{!?_without_ipv6:%patch5 -p1}
 %{?_with_polish:%patch6 -p1}
+%patch7 -p1
+%patch8 -p1
 
 %build
 %{__make} -f Makefile.init makefiles
