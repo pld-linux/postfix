@@ -126,9 +126,6 @@ if [ -n "`/usr/bin/getgid postfix`" ]; then
 	fi
 else
 	/usr/sbin/groupadd -g 62 -r -f postfix
-	if [ -f /var/db/group.db ]; then
-		/usr/bin/update-db 1>&2
-	fi
 fi
 if [ -n "`/usr/bin/getgid maildrop`" ]; then
 	if [ "`/usr/bin/getgid maildrop`" != "63" ]; then
@@ -137,9 +134,6 @@ if [ -n "`/usr/bin/getgid maildrop`" ]; then
 	fi
 else
 	/usr/sbin/groupadd -g 63 -r -f maildrop
-	if [ -f /var/db/group.db ]; then
-		/usr/bin/update-db 1>&2
-	fi
 fi
 if [ -n "`/bin/id -u postfix 2>/dev/null`" ]; then
 	if [ "`/bin/id -u postfix`" != "62" ]; then
@@ -148,9 +142,6 @@ if [ -n "`/bin/id -u postfix 2>/dev/null`" ]; then
 	fi
 else
 	/usr/sbin/useradd -u 62 -r -d /var/spool/postfix -s /bin/false -c "Postfix User" -g postfix postfix 1>&2
-	if [ -f /var/db/passwd.db ]; then
-		/usr/bin/update-db 1>&2
-	fi
 fi
 
 %post
@@ -183,9 +174,6 @@ if [ $1 = 0 ]; then
 	/usr/sbin/groupdel maildrop 2> /dev/null
 	/usr/sbin/userdel postfix 2> /dev/null
 	/usr/sbin/groupdel postfix 2> /dev/null
-	if [ -f /var/db/passwd.db ] || [ -f /var/db/group.db ]; then
-		/usr/bin/update-db 1>&2
-	fi
 fi
 
 %clean
