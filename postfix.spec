@@ -5,7 +5,7 @@
 %bcond_without	pgsql	# without PostgreSQL map module
 %bcond_without	sasl	# without SMTP AUTH support
 %bcond_without	ssl	# without SSL/TLS support
-%bcond_without	cdb	# with cdb map support
+%bcond_without	cdb	# without cdb map support
 %bcond_with	polish	# with double English+Polish messages
 #
 %define		_tls_ipv6_ver	1.21-pf-2.0.19
