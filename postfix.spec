@@ -59,6 +59,7 @@ Obsoletes:	sendmail-cf
 Obsoletes:	sendmail-doc
 Obsoletes:	smail
 Obsoletes:	zmailer
+Requires:	procmail
 
 %define		_sysconfdir	/etc
 
