@@ -1,7 +1,37 @@
-diff -urN snapshot-19990627.orig/conf/main.cf snapshot-19990627/conf/main.cf
---- snapshot-19990627.orig/conf/main.cf	Mon Jul 19 19:09:49 1999
-+++ snapshot-19990627/conf/main.cf	Mon Jul 19 19:33:23 1999
-@@ -18,19 +18,19 @@
+--- postfix-19990906-pl05/global/mail_params.h.wiget	Sun Sep  5 23:27:00 1999
++++ postfix-19990906-pl05/global/mail_params.h	Tue Oct 12 18:31:31 1999
+@@ -180,7 +180,7 @@
+   */
+ #define VAR_CONFIG_DIR		"config_directory"
+ #ifndef DEF_CONFIG_DIR
+-#define DEF_CONFIG_DIR		"/etc/postfix"
++#define DEF_CONFIG_DIR		"/etc/mail"
+ #endif
+ extern char *var_config_dir;
+ 
+--- postfix-19990906-pl05/util/sys_defs.h.wiget	Sat Sep  4 23:27:00 1999
++++ postfix-19990906-pl05/util/sys_defs.h	Tue Oct 12 18:31:31 1999
+@@ -31,7 +31,7 @@
+ #define HAS_DB
+ #define HAS_SA_LEN
+ #define DEF_DB_TYPE	"hash"
+-#define ALIAS_DB_MAP	"hash:/etc/aliases"
++#define ALIAS_DB_MAP	"hash:/etc/mail/aliases"
+ #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
+ #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
+ #define USE_STATFS
+@@ -329,7 +329,7 @@
+ #define HAS_FSYNC
+ #define HAS_DB
+ #define DEF_DB_TYPE	"hash"
+-#define ALIAS_DB_MAP	"hash:/etc/aliases"
++#define ALIAS_DB_MAP	"hash:/etc/mail/aliases"
+ #define HAS_NIS
+ #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
+ #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
+--- postfix-19990906-pl05/conf/main.cf.wiget	Mon Sep  6 22:20:55 1999
++++ postfix-19990906-pl05/conf/main.cf	Tue Oct 12 18:34:01 1999
+@@ -18,7 +18,7 @@
  # Postfix support programs and daemons. This setting can be overruled
  # with the command_directory and daemon_directory parameters.
  #
@@ -10,29 +40,16 @@ diff -urN snapshot-19990627.orig/conf/main.cf snapshot-19990627/conf/main.cf
  
  # The command_directory parameter specifies the location of all
  # postXXX commands.  The default value is $program_directory.
- #
--#command_directory = /usr/sbin
-+command_directory = /usr/sbin
- 
- # The daemon_directory parameter specifies the location of all Postfix
- # daemon programs (i.e. programs listed in the master.cf file). The
+@@ -30,7 +30,7 @@
  # default value is $program_directory. This directory must be owned
  # by root.
  #
--#daemon_directory = /usr/libexec/postfix
+-daemon_directory = /usr/libexec/postfix
 +daemon_directory = /usr/lib/postfix
  
  # QUEUE AND PROCESS OWNERSHIP
  #
-@@ -40,14 +40,14 @@
- # OWNS NO OTHER FILES OR PROCESSES ON THE SYSTEM.  In particular,
- # don't specify nobody or daemon. PLEASE USE A DEDICATED USER.
- #
--#mail_owner = postfix
-+mail_owner = postfix
- 
- # The default_privs parameter specifies the default rights used by
- # the local delivery agent for delivery to external file or command.
+@@ -47,7 +47,7 @@
  # These rights are used in the absence of a recipient user context.
  # DO NOT SPECIFY A PRIVILEGED USER OR THE POSTFIX OWNER.
  #
@@ -59,9 +76,9 @@ diff -urN snapshot-19990627.orig/conf/main.cf snapshot-19990627/conf/main.cf
 -#alias_maps = hash:/etc/aliases
 +alias_maps = hash:/etc/mail/aliases
  #alias_maps = hash:/etc/aliases, nis:mail.aliases
+ #alias_maps = netinfo:/aliases
  
- # The alias_database parameter specifies the alias database(s) that
-@@ -189,7 +189,7 @@
+@@ -190,7 +190,7 @@
  #
  #alias_database = dbm:/etc/aliases
  #alias_database = dbm:/etc/mail/aliases
@@ -70,7 +87,7 @@ diff -urN snapshot-19990627.orig/conf/main.cf snapshot-19990627/conf/main.cf
  #alias_database = hash:/etc/aliases, hash:/opt/majordomo/aliases
  
  # DELIVERED-TO
-@@ -229,7 +229,7 @@
+@@ -230,7 +230,7 @@
  # UNIX-style mailboxes are kept. The default setting depends on the
  # system type.
  #
@@ -79,41 +96,8 @@ diff -urN snapshot-19990627.orig/conf/main.cf snapshot-19990627/conf/main.cf
  # mail_spool_directory = /var/spool/mail
  
  # The mailbox_command parameter specifies the optional external
-@@ -386,3 +386,4 @@
+@@ -389,3 +389,4 @@
  	 xxgdb $daemon_directory/$process_name $process_id & sleep 5
  
  # Other configurable parameters.
 +biff = no
-diff -urN snapshot-19990627.orig/global/mail_params.h snapshot-19990627/global/mail_params.h
---- snapshot-19990627.orig/global/mail_params.h	Mon Jul 19 19:09:49 1999
-+++ snapshot-19990627/global/mail_params.h	Mon Jul 19 19:13:50 1999
-@@ -180,7 +180,7 @@
-   */
- #define VAR_CONFIG_DIR		"config_directory"
- #ifndef DEF_CONFIG_DIR
--#define DEF_CONFIG_DIR		"/etc/postfix"
-+#define DEF_CONFIG_DIR		"/etc/mail"
- #endif
- extern char *var_config_dir;
- 
-diff -urN snapshot-19990627.orig/util/sys_defs.h snapshot-19990627/util/sys_defs.h
---- snapshot-19990627.orig/util/sys_defs.h	Mon Jul 19 19:09:49 1999
-+++ snapshot-19990627/util/sys_defs.h	Mon Jul 19 19:14:31 1999
-@@ -31,7 +31,7 @@
- #define HAS_DB
- #define HAS_SA_LEN
- #define DEF_DB_TYPE	"hash"
--#define ALIAS_DB_MAP	"hash:/etc/aliases"
-+#define ALIAS_DB_MAP	"hash:/etc/mail/aliases"
- #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
- #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
- #define USE_STATFS
-@@ -327,7 +327,7 @@
- #define HAS_FSYNC
- #define HAS_DB
- #define DEF_DB_TYPE	"hash"
--#define ALIAS_DB_MAP	"hash:/etc/aliases"
-+#define ALIAS_DB_MAP	"hash:/etc/mail/aliases"
- #define HAS_NIS
- #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
- #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"

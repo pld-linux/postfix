@@ -33,10 +33,12 @@ case "$1" in
 		busy
 		newaliases
 		$0 rebuilddb
-		if /usr/sbin/postfix start 2>/dev/null; then
+		MSG="`/usr/sbin/postfix start 2>&1`"
+		if [ "$?" = "0" ] ; then
 			deltext; ok
 		else
 			deltext; fail
+			echo "$MSG"
 		fi
 	else
 		echo "postfix already is running"
@@ -47,10 +49,12 @@ case "$1" in
 	# Stop daemons.
 	show "Shutting down postfix"
 	busy
-	if /usr/sbin/postfix stop 2>/dev/null; then
+	MSG="`/usr/sbin/postfix stop 2>&1`"
+	if [ "$?" = "0" ]; then
 		deltext; ok
 	else
 		deltext; fail
+		echo "$MSG"
 	fi
 	rm -f /var/lock/subsys/postfix
 	;;
