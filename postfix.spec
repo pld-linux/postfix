@@ -1,4 +1,4 @@
-%define		ver	20000511
+%define		ver	20000514
 %define		patchl	06
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
