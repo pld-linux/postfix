@@ -1,0 +1,25 @@
+--- postfix-2.0.7/man/man1/postalias.1.old	Sun Jan 12 18:12:00 2003
++++ postfix-2.0.7/man/man1/postalias.1	Mon Apr  7 22:56:18 2003
+@@ -91,6 +91,9 @@
+ .IP \fBhash\fR
+ The output is a hashed file, named \fIfile_name\fB.db\fR.
+ This is available only on systems with support for \fBdb\fR databases.
++.IP \fBcdb\fr
++The output is a cdb file, named \fIfile_name\fB.cdb\fR.
++This is available only on systems with support for \fBcdb\fR databases.
+ .PP
+ Use the command \fBpostconf -m\fR to find out what types of database
+ your Postfix installation can support.
+
+--- postfix-2.0.7/man/man1/postmap.1.old	Sun Jan 12 18:12:01 2003
++++ postfix-2.0.7/man/man1/postmap.1	Mon Apr  7 22:57:45 2003
+@@ -112,6 +112,9 @@
+ .IP \fBhash\fR
+ The output file is a hashed file, named \fIfile_name\fB.db\fR.
+ This is available only on systems with support for \fBdb\fR databases.
++.IP \fBcdb\fR
++The output file is a cdb file, named \fIfile_name\fB.cdb\fR.
++This is available only on systems with support for \fBcdb\fR databases.
+ .PP
+ Use the command \fBpostconf -m\fR to find out what types of database
+ your Postfix installation can support.
