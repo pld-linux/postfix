@@ -14,7 +14,7 @@
 # _with_polish		- with double English+Polish messages
 # _with_cdb		- tinycdb mapfile support
 #
-%define	tls_ver 0.8.13-2.0.6-0.9.7a
+%define	tls_ver 0.8.13-2.0.9-0.9.7b
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
 Summary(es):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -23,7 +23,7 @@ Summary(pl):	Serwer SMTP Postfix
 Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
-Version:	2.0.9
+Version:	2.0.10
 Release:	1
 Epoch:		2
 Group:		Networking/Daemons
