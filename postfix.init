@@ -28,7 +28,7 @@ else
 	exit 0
 fi
 
-
+RETVAL=0
 # See how we were called.
 case "$1" in
   start)
@@ -41,12 +41,12 @@ case "$1" in
 			ok
 			touch /var/lock/subsys/postfix
 		else
+			RETVAL=1
 			fail
 			echo "$MSG"
 		fi
 	else
 		msg_already_running Postfix
-		exit 1
 	fi
 	;;
   stop)
@@ -55,8 +55,7 @@ case "$1" in
 		msg_stopping Postfix
 		busy
 		MSG="`/usr/sbin/postfix stop 2>&1`"
-		RETVAL=$?
-		if [ $RETVAL -eq 0 ]; then
+		if [ $? -eq 0 ]; then
 			ok
 		else
 			fail
@@ -65,23 +64,24 @@ case "$1" in
 		rm -f /var/lock/subsys/postfix
 	else
 		msg_not_running Postfix
-		exit 1
 	fi
 	;;
   restart)
 	$0 stop
 	$0 start
+	exit $?
 	;;
-  reload)
+  reload|force-reload)
 	if [ -f /var/lock/subsys/postfix ]; then
 		msg_reloading Postfix
 		busy
 		/usr/sbin/postfix reload
 		RETVAL=$?
+		[ $RETVAL -ne 0 ] && RETVAL=7
 		[ $RETVAL -eq 0 ] && ok || died
 	else
-		msg_not_running Postfix
-		exit 1
+		msg_not_running Postfix >&2
+		exit 7
 	fi
 	;;
   status)
@@ -100,8 +100,8 @@ case "$1" in
 	/usr/bin/newaliases
 	;;
   *)
-	msg_usage "$0 {start|stop|restart|reload|rebuilddb|status}"
-	exit 1
+	msg_usage "$0 {start|stop|restart|reload|force-reload|rebuilddb|status}"
+	exit 3
 esac
 
 exit $RETVAL
