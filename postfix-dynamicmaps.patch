@@ -1,5 +1,6 @@
---- postfix-1.1.3.orig/conf/dynamicmaps.cf
-+++ postfix-1.1.3/conf/dynamicmaps.cf
+diff -uNr old-postfix-2.0.16/conf/dynamicmaps.cf postfix-2.0.16/conf/dynamicmaps.cf
+--- old-postfix-2.0.16/conf/dynamicmaps.cf	Thu Jan  1 00:00:00 1970
++++ postfix-2.0.16/conf/dynamicmaps.cf	Thu Sep 25 17:39:44 2003
 @@ -0,0 +1,9 @@
 +# Postfix dynamic maps configuration file.
 +#
@@ -7,22 +8,23 @@
 +# allowed is '*', which matches everything.  The first %s is expanded
 +# to the map type.
 +#
-+#type	location of .so file			name of open function
-+#====	================================	=====================
-+*	/usr/lib/postfix/dict_%s.so		dict_%s_open
---- postfix-1.1.3.orig/src/dns/Makefile.in
-+++ postfix-1.1.3/src/dns/Makefile.in
++#type  location of .so file                    name of open function
++#====  ================================        =====================
++*      /usr/lib/postfix/dict_%s.so             dict_%s_open
+diff -uNr old-postfix-2.0.16/src/dns/Makefile.in postfix-2.0.16/src/dns/Makefile.in
+--- old-postfix-2.0.16/src/dns/Makefile.in	Sun Sep 14 00:03:59 2003
++++ postfix-2.0.16/src/dns/Makefile.in	Thu Sep 25 17:41:33 2003
 @@ -15,7 +15,7 @@
  LIB_DIR	= ../../lib
  INC_DIR	= ../../include
  
 -.c.o:;	$(CC) $(CFLAGS) -c $*.c
-+.c.o:;	$(CC) -fPIC $(CFLAGS) -c $*.c
++.c.o:; $(CC) -fPIC $(CFLAGS) -c $*.c
  
  all: $(LIB)
  
-@@ -25,12 +25,10 @@
- test:	$(TESTPROG)
+@@ -27,12 +27,10 @@
+ tests:	test
  
  $(LIB):	$(OBJS)
 -	$(AR) $(ARFL) $(LIB) $?
@@ -35,20 +37,21 @@
  
  update: $(LIB_DIR)/$(LIB) $(HDRS)
  	-for i in $(HDRS); \
---- postfix-1.1.3.orig/src/global/Makefile.in
-+++ postfix-1.1.3/src/global/Makefile.in
-@@ -76,8 +76,9 @@
+diff -uNr old-postfix-2.0.16/src/global/Makefile.in postfix-2.0.16/src/global/Makefile.in
+--- old-postfix-2.0.16/src/global/Makefile.in	Thu Sep 25 17:25:19 2003
++++ postfix-2.0.16/src/global/Makefile.in	Thu Sep 25 17:44:36 2003
+@@ -83,8 +83,9 @@
  LIB_DIR	= ../../lib
  INC_DIR	= ../../include
  MAKES	=
 +LDAPSO  = dict_ldap.so
  
 -.c.o:;	$(CC) $(CFLAGS) -c $*.c
-+.c.o:;	$(CC) -fPIC $(CFLAGS) -c $*.c
++.c.o:; $(CC) -fPIC $(CFLAGS) -c $*.c
  
  all: $(LIB)
  
-@@ -87,14 +88,21 @@
+@@ -94,14 +95,21 @@
  test:	$(TESTPROG)
  
  $(LIB):	$(OBJS)
@@ -59,7 +62,7 @@
 +$(LDAPSO): dict_ldap.o
 +	gcc -shared -Wl,-soname,dict_ldap.so -o $@ $? -lldap -llber -L../../lib -lutil -L. -lglobal
 +
-+dict_ldap.c:	../util/dict_ldap.c
++dict_ldap.c:   ../util/dict_ldap.c
 +	ln -f $? $@
  
  $(LIB_DIR)/$(LIB): $(LIB)
@@ -69,12 +72,12 @@
 -update: $(LIB_DIR)/$(LIB) $(HDRS)
 +$(LIB_DIR)/$(LDAPSO): $(LDAPSO)
 +	cp $(LDAPSO) $(LIB_DIR)
-+
++	
 +update: $(LIB_DIR)/$(LIB) $(LIB_DIR)/${LDAPSO} $(HDRS)
  	-for i in $(HDRS); \
  	do \
  	  cmp -s $$i $(INC_DIR)/$$i 2>/dev/null || cp $$i $(INC_DIR); \
-@@ -232,7 +240,7 @@
+@@ -333,7 +341,7 @@
  	lint $(DEFS) $(SRCS) $(LINTFIX)
  
  clean:
@@ -92,8 +95,9 @@
  domain_list.o: domain_list.c
  domain_list.o: ../../include/sys_defs.h
  domain_list.o: ../../include/match_list.h
---- postfix-1.1.3.orig/src/global/mail_conf.c
-+++ postfix-1.1.3/src/global/mail_conf.c
+diff -uNr old-postfix-2.0.16/src/global/mail_conf.c postfix-2.0.16/src/global/mail_conf.c
+--- old-postfix-2.0.16/src/global/mail_conf.c	Mon Jan 14 16:24:35 2002
++++ postfix-2.0.16/src/global/mail_conf.c	Thu Sep 25 17:45:47 2003
 @@ -175,6 +175,13 @@
      path = concatenate(var_config_dir, "/", "main.cf", (char *) 0);
      dict_load_file(CONFIG_DICT, path);
@@ -104,30 +108,31 @@
 +    dict_open_dlinfo(path);
 +    myfree(path);
 +#endif
-+
++    
  }
  
  /* mail_conf_eval - expand macros in string */
---- postfix-1.1.3.orig/src/global/mail_params.c
-+++ postfix-1.1.3/src/global/mail_params.c
-@@ -148,6 +148,8 @@
+diff -uNr old-postfix-2.0.16/src/global/mail_params.c postfix-2.0.16/src/global/mail_params.c
+--- old-postfix-2.0.16/src/global/mail_params.c	Thu Sep 25 17:25:19 2003
++++ postfix-2.0.16/src/global/mail_params.c	Thu Sep 25 17:50:58 2003
+@@ -147,6 +147,8 @@
  #ifdef HAS_DB
  #include <dict_db.h>
  #endif
 +#include <safe_open.h>
 +#include <mymalloc.h>
-
+ 
  /* Global library. */
-
-@@ -204,6 +206,7 @@
+ 
+@@ -257,6 +257,7 @@
  char   *var_debug_peer_list;
  int     var_debug_peer_level;
  char   *var_reject_reply_msg_access_denied;
 +int     var_command_maxtime;
  int     var_fault_inj_code;
-
- #define MAIN_CONF_FILE "main.cf"
-@@ -367,6 +370,38 @@
+ char   *var_bounce_service;
+ char   *var_cleanup_service;
+@@ -437,6 +440,39 @@
  		  (long) var_sgid_gid);
  }
  
@@ -142,16 +147,16 @@
 +     * Ugly macros to make complex expressions less unreadable.
 +     */
 +#define SKIP(start, var, cond) \
-+	for (var = start; *var && (cond); var++);
++       for (var = start; *var && (cond); var++);
 +
 +#define TRIM(s) { \
-+	char *p; \
-+	for (p = (s) + strlen(s); p > (s) && ISSPACE(p[-1]); p--); \
-+	*p = 0; \
++       char *p; \
++       for (p = (s) + strlen(s); p > (s) && ISSPACE(p[-1]); p--); \
++       *p = 0; \
 +    }
 +
 +    if (!vp) {
-+	msg_fatal("%s: unable to open: %s",name,vstring_str(why));
++       msg_fatal("%s: unable to open: %s",name,vstring_str(why));
 +    }
 +    vstring_get_nonl(new_name,vp);
 +    vstream_fclose(vp);
@@ -163,10 +168,11 @@
 +    return ret;
 +}
 +
++
  /* mail_params_init - configure built-in parameters */
  
  void    mail_params_init()
-@@ -481,6 +516,9 @@
+@@ -598,6 +634,9 @@
       * Variables that are needed by almost every program.
       */
      get_mail_conf_str_table(other_str_defaults);
@@ -176,19 +182,20 @@
      get_mail_conf_int_table(other_int_defaults);
      get_mail_conf_bool_table(bool_defaults);
      get_mail_conf_time_table(time_defaults);
---- postfix-1.1.3.orig/src/master/Makefile.in
-+++ postfix-1.1.3/src/master/Makefile.in
+diff -uNr old-postfix-2.0.16/src/master/Makefile.in postfix-2.0.16/src/master/Makefile.in
+--- old-postfix-2.0.16/src/master/Makefile.in	Sun Sep 14 00:04:02 2003
++++ postfix-2.0.16/src/master/Makefile.in	Thu Sep 25 17:51:42 2003
 @@ -23,7 +23,7 @@
  INC_DIR	= ../../include
  BIN_DIR	= ../../libexec
  
 -.c.o:;	$(CC) $(CFLAGS) -c $*.c
-+.c.o:;	$(CC) `for i in $(LIB_OBJ); do [ $$i = $@ ] && echo -fPIC; done` $(CFLAGS) -c $*.c
++.c.o:; $(CC) `for i in $(LIB_OBJ); do [ $$i = $@ ] && echo -fPIC; done` $(CFLAGS) -c $*.c
  
  all:	$(PROG) $(LIB)
  
-@@ -36,12 +36,10 @@
- test:	$(TESTPROG)
+@@ -38,12 +38,10 @@
+ tests:	test
  
  $(LIB):	$(LIB_OBJ)
 -	$(AR) $(ARFL) $(LIB) $?
@@ -201,115 +208,10 @@
  
  $(BIN_DIR)/$(PROG): $(PROG)
  	 cp $(PROG) $(BIN_DIR)
---- postfix-1.1.5.orig/src/util/Makefile.in
-+++ postfix-1.1.5/src/util/Makefile.in
-@@ -3,7 +3,7 @@
- 	attr_scan0.c attr_scan64.c base64_code.c basename.c binhash.c \
- 	chroot_uid.c clean_env.c close_on_exec.c concatenate.c ctable.c \
- 	dict.c dict_alloc.c dict_db.c dict_dbm.c dict_debug.c dict_env.c \
--	dict_ht.c dict_ldap.c dict_mysql.c dict_ni.c dict_nis.c \
-+	dict_ht.c dict_mysql.c dict_ni.c dict_nis.c \
- 	dict_nisplus.c dict_open.c dict_pcre.c dict_regexp.c dict_static.c \
- 	dict_tcp.c dict_unix.c dir_forest.c doze.c duplex_pipe.c \
- 	environ.c events.c exec_command.c fifo_listen.c fifo_trigger.c \
-@@ -26,13 +26,13 @@
- 	unix_connect.c unix_listen.c unix_trigger.c unsafe.c username.c \
- 	valid_hostname.c vbuf.c vbuf_print.c vstream.c vstream_popen.c \
- 	vstring.c vstring_vstream.c watchdog.c writable.c write_buf.c \
--	write_wait.c strcasecmp.c nvtable.c host_port.c dict_sdbm.c sdbm.c
-+	write_wait.c strcasecmp.c nvtable.c host_port.c dict_sdbm.c sdbm.c load_lib.c
- OBJS	= alldig.o argv.o argv_split.o attr_print0.o attr_print64.o \
- 	attr_scan0.o attr_scan64.o base64_code.o basename.o binhash.o \
- 	chroot_uid.o clean_env.o close_on_exec.o concatenate.o ctable.o \
- 	dict.o dict_alloc.o dict_db.o dict_dbm.o dict_debug.o dict_env.o \
--	dict_ht.o dict_ldap.o dict_mysql.o dict_ni.o dict_nis.o \
--	dict_nisplus.o dict_open.o dict_pcre.o dict_regexp.o dict_static.o \
-+	dict_ht.o dict_ni.o dict_nis.o \
-+	dict_nisplus.o dict_open.o dict_regexp.o dict_static.o \
- 	dict_tcp.o dict_unix.o dir_forest.o doze.o duplex_pipe.o \
- 	environ.o events.o exec_command.o fifo_listen.o fifo_trigger.o \
- 	file_limit.o find_inet.o fsspace.o fullname.o get_domainname.o \
-@@ -54,7 +54,7 @@
- 	unix_connect.o unix_listen.o unix_trigger.o unsafe.o username.o \
- 	valid_hostname.o vbuf.o vbuf_print.o vstream.o vstream_popen.o \
- 	vstring.o vstring_vstream.o watchdog.o writable.o write_buf.o \
--	write_wait.o nvtable.o $(STRCASE) host_port.o dict_sdbm.o sdbm.o
-+	write_wait.o nvtable.o $(STRCASE) host_port.o dict_sdbm.o sdbm.o load_lib.o
- HDRS	= argv.h attr.h base64_code.h binhash.h chroot_uid.h clean_env.h \
- 	connect.h ctable.h dict.h dict_db.h dict_dbm.h dict_env.h \
- 	dict_ht.h dict_ldap.h dict_mysql.h dict_ni.h dict_nis.h \
-@@ -71,7 +71,7 @@
- 	scan_dir.h set_eugid.h set_ugid.h sigdelay.h spawn_command.h \
- 	split_at.h stat_as.h stringops.h sys_defs.h timed_connect.h \
- 	timed_wait.h trigger.h username.h valid_hostname.h vbuf.h \
--	vbuf_print.h vstream.h vstring.h vstring_vstream.h watchdog.h \
-+	vbuf_print.h vstream.h vstring.h vstring_vstream.h watchdog.h load_lib.h \
- 	nvtable.h host_port.h dict_sdbm.h sdbm.h
- TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
- 	stream_test.c dup2_pass_on_exec.c
-@@ -82,6 +82,8 @@
- CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
- FILES	= Makefile $(SRCS) $(HDRS)
- INCL	=
-+PCRESO  = dict_pcre.so
-+MYSQLSO = dict_mysql.so
- LIB	= libutil.a
- TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
- 	fifo_rdonly_bug fifo_rdwr_bug fifo_trigger fsspace fullname \
-@@ -94,8 +96,9 @@
- 
- LIB_DIR	= ../../lib
- INC_DIR	= ../../include
-+LIBS    = $(LIB_DIR)/$(LIB) $(LIB_DIR)/$(PCRESO) $(LIB_DIR)/$(MYSQLSO)
- 
--.c.o:;	$(CC) $(CFLAGS) -c $*.c
-+.c.o:;	$(CC) -fPIC $(CFLAGS) -c $*.c
- 
- all: $(LIB)
- 
-@@ -104,15 +107,25 @@
- 
- test:	$(TESTPROG)
- 
-+$(PCRESO): dict_pcre.o
-+	gcc -shared -Wl,-soname,dict_pcre.so -o $@ $? -lpcre -L. -lutil
-+
-+$(MYSQLSO): dict_mysql.o
-+	gcc -shared -Wl,-soname,dict_mysql.so -o $@ $? -lmysqlclient -L. -lutil
-+
- $(LIB):	$(OBJS)
--	$(AR) $(ARFL) $(LIB) $?
--	$(RANLIB) $(LIB)
-+	gcc -shared -Wl,-soname,libpostfix-util.so.1 -o $(LIB) $(OBJS) -ldl
- 
- $(LIB_DIR)/$(LIB): $(LIB)
- 	cp $(LIB) $(LIB_DIR)
--	$(RANLIB) $(LIB_DIR)/$(LIB)
- 
--update: $(LIB_DIR)/$(LIB) $(HDRS)
-+$(LIB_DIR)/$(PCRESO): $(PCRESO)
-+	cp $(PCRESO) $(LIB_DIR)
-+
-+$(LIB_DIR)/$(MYSQLSO): $(MYSQLSO)
-+	cp $(MYSQLSO) $(LIB_DIR)
-+
-+update: $(LIBS) $(HDRS)
- 	-for i in $(HDRS); \
- 	do \
- 	  cmp -s $$i $(INC_DIR)/$$i 2>/dev/null || cp $$i $(INC_DIR); \
-@@ -134,7 +147,8 @@
- 	lint $(SRCS)
- 
- clean:
--	rm -f *.o $(LIB) *core $(TESTPROG) junk $(MAKES) *.tmp
-+	rm -f *.o $(LIB) $(PCRESO) $(MYSQLSO) *core $(TESTPROG) \
-+		junk $(MAKES) *.tmp
- 	rm -rf printfck
- 
- tidy:	clean
---- postfix-1.1.3.orig/src/util/dict.h
-+++ postfix-1.1.3/src/util/dict.h
-@@ -74,6 +74,20 @@
+diff -uNr old-postfix-2.0.16/src/util/dict.h postfix-2.0.16/src/util/dict.h
+--- old-postfix-2.0.16/src/util/dict.h	Sun Jan  5 01:03:28 2003
++++ postfix-2.0.16/src/util/dict.h	Thu Sep 25 17:58:07 2003
+@@ -80,6 +80,21 @@
    */
  extern ARGV *dict_mapnames(void);
  
@@ -327,22 +229,23 @@
 +extern DLINFO *dict_open_dlfind(const char *type);
 +#endif
 +
++
   /*
    * High-level interface, with logical dictionary names.
    */
---- postfix-1.1.3.orig/src/util/dict_open.c
-+++ postfix-1.1.3/src/util/dict_open.c
-@@ -150,6 +150,9 @@
+diff -uNr old-postfix-2.0.16/src/util/dict_open.c postfix-2.0.16/src/util/dict_open.c
+--- old-postfix-2.0.16/src/util/dict_open.c	Thu Sep 25 17:25:19 2003
++++ postfix-2.0.16/src/util/dict_open.c	Thu Sep 25 18:03:34 2003
+@@ -157,6 +157,8 @@
+ #ifdef STRCASECMP_IN_STRINGS_H
  #include <strings.h>
  #endif
- 
 +#include <sys/stat.h>
 +#include <unistd.h>
-+
+ 
  /* Utility library. */
  
- #include <argv.h>
-@@ -173,6 +176,14 @@
+@@ -182,6 +184,15 @@
  #include <split_at.h>
  #include <htable.h>
  
@@ -354,10 +257,11 @@
 +#include <mvect.h>
 +#endif
 +
++
   /*
    * lookup table for available map types.
    */
-@@ -203,6 +214,7 @@
+@@ -213,6 +224,7 @@
  #ifdef HAS_NETINFO
      DICT_TYPE_NETINFO, dict_ni_open,
  #endif
@@ -365,7 +269,7 @@
  #ifdef HAS_LDAP
      DICT_TYPE_LDAP, dict_ldap_open,
  #endif
-@@ -212,6 +224,7 @@
+@@ -222,6 +234,7 @@
  #ifdef HAS_PCRE
      DICT_TYPE_PCRE, dict_pcre_open,
  #endif
@@ -373,7 +277,7 @@
  #ifdef HAS_POSIX_REGEXP
      DICT_TYPE_REGEXP, dict_regexp_open,
  #endif
-@@ -264,8 +277,38 @@
+@@ -275,8 +288,39 @@
  
      if (dict_open_hash == 0)
  	dict_open_init();
@@ -381,43 +285,44 @@
 -	msg_fatal("unsupported dictionary type: %s", dict_type);
 +    if ((dp = (DICT_OPEN_INFO *) htable_find(dict_open_hash, dict_type)) == 0) {
 +#ifndef NO_DYNAMIC_MAPS
-+	struct stat st;
-+	VSTRING *lib, *func;
-+	LIB_FN fn[2];
-+	DICT *(*open) (const char *, int, int);
-+	DLINFO *dl=dict_open_dlfind(dict_type);
-+	if (!dl)
++       struct stat st;
++       VSTRING *lib, *func;
++       LIB_FN fn[2];
++       DICT *(*open) (const char *, int, int);
++       DLINFO *dl=dict_open_dlfind(dict_type);
++       if (!dl)
 +#endif
-+	    msg_fatal("%s: unsupported dictionary type: %s", myname, dict_type);
++           msg_fatal("%s: unsupported dictionary type: %s", myname, dict_type);
 +#ifndef NO_DYNAMIC_MAPS
-+	lib=vstring_alloc(1);
-+	vstring_sprintf(lib,dl->soname,dict_type);
-+	if (stat(vstring_str(lib),&st) < 0) {
-+	    msg_fatal("%s: unsupported dictionary type: %s (%s not found.  Is the postfix-%s package installed?)",
-+		myname, dict_type, vstring_str(lib), dict_type);
-+	}
-+	func=vstring_alloc(1);
-+	vstring_sprintf(func,dl->openfunc,dict_type);
-+	fn[0].name = vstring_str(func);
-+	fn[0].ptr  = (void**)&open;
-+	fn[1].name = NULL;
-+	load_library_symbols(vstring_str(lib), fn, NULL);
-+	dict_open_register(dict_type, open);
-+	dp = (DICT_OPEN_INFO *) htable_find(dict_open_hash, dict_type);
-+	vstring_free(lib);
-+	vstring_free(func);
++       lib=vstring_alloc(1);
++       vstring_sprintf(lib,dl->soname,dict_type);
++       if (stat(vstring_str(lib),&st) < 0) {
++           msg_fatal("%s: unsupported dictionary type: %s (%s not found.  Is the postfix-%s package installed?)",
++               myname, dict_type, vstring_str(lib), dict_type);
++       }
++       func=vstring_alloc(1);
++       vstring_sprintf(func,dl->openfunc,dict_type);
++       fn[0].name = vstring_str(func);
++       fn[0].ptr  = (void**)&open;
++       fn[1].name = NULL;
++       load_library_symbols(vstring_str(lib), fn, NULL);
++       dict_open_register(dict_type, open);
++       dp = (DICT_OPEN_INFO *) htable_find(dict_open_hash, dict_type);
++       vstring_free(lib);
++       vstring_free(func);
 +#endif
 +    }
 +    if (msg_verbose>1) {
-+	msg_info("%s: calling %s open routine",myname,dict_type);
++       msg_info("%s: calling %s open routine",myname,dict_type);
 +    }
++
      if ((dict = dp->open(dict_name, open_flags, dict_flags)) == 0)
  	msg_fatal("opening %s:%s %m", dict_type, dict_name);
      if (msg_verbose)
-@@ -311,6 +354,76 @@
-     argv_terminate(mapnames);
+@@ -323,6 +367,77 @@
      return mapnames;
  }
+ 
 +
 +#ifndef NO_DYNAMIC_MAPS
 +static DLINFO  *dict_dlinfo;
@@ -436,41 +341,41 @@
 +    dict_dlinfo=(DLINFO*)mvect_alloc(&vector,sizeof(DLINFO),3,NULL,NULL);
 +
 +    if (!conf_fp) {
-+	msg_warn("%s: cannot open %s.  No dynamic maps will be allowed.",
-+		myname, path);
++       msg_warn("%s: cannot open %s.  No dynamic maps will be allowed.",
++               myname, path);
 +    } else {
-+	while (vstring_get_nonl(buf,conf_fp) != VSTREAM_EOF) {
-+	    cp = vstring_str(buf);
-+	    linenum++;
-+	    if (*cp == '#' || *cp == '\0')
-+		continue;
-+	    argv = argv_split(cp, " \t");
-+	    if (argv->argc != 3) {
-+		msg_fatal("%s: Expected \"pattern .so-name function\" at line %d",
-+			  myname, linenum);
-+	    }
-+	    if (argv->argv[1][0] != '/') {
-+		msg_fatal("%s: .so name must begin with a \"/\" at line %d",
-+			  myname, linenum);
-+	    }
-+	    if (nelm >= vector.nelm) {
-+		dict_dlinfo=(DLINFO*)mvect_realloc(&vector,vector.nelm+3);
-+	    }
-+	    dict_dlinfo[nelm].pattern  = mystrdup(argv->argv[0]);
-+	    dict_dlinfo[nelm].soname   = mystrdup(argv->argv[1]);
-+	    dict_dlinfo[nelm].openfunc = mystrdup(argv->argv[2]);
-+	    nelm++;
-+	    argv_free(argv);
-+	}
++       while (vstring_get_nonl(buf,conf_fp) != VSTREAM_EOF) {
++           cp = vstring_str(buf);
++           linenum++;
++           if (*cp == '#' || *cp == '\0')
++               continue;
++           argv = argv_split(cp, " \t");
++           if (argv->argc != 3) {
++               msg_fatal("%s: Expected \"pattern .so-name function\" at line %d",
++                         myname, linenum);
++           }
++           if (argv->argv[1][0] != '/') {
++               msg_fatal("%s: .so name must begin with a \"/\" at line %d",
++                         myname, linenum);
++           }
++           if (nelm >= vector.nelm) {
++              dict_dlinfo=(DLINFO*)mvect_realloc(&vector,vector.nelm+3);
++           }
++           dict_dlinfo[nelm].pattern  = mystrdup(argv->argv[0]);
++           dict_dlinfo[nelm].soname   = mystrdup(argv->argv[1]);
++           dict_dlinfo[nelm].openfunc = mystrdup(argv->argv[2]);
++           nelm++;
++           argv_free(argv);
++       }
 +    }
 +    if (nelm >= vector.nelm) {
-+	dict_dlinfo=(DLINFO*)mvect_realloc(&vector,vector.nelm+1);
++      dict_dlinfo=(DLINFO*)mvect_realloc(&vector,vector.nelm+1);
 +    }
 +    dict_dlinfo[nelm].pattern  = NULL;
 +    dict_dlinfo[nelm].soname   = NULL;
 +    dict_dlinfo[nelm].openfunc = NULL;
 +    if (conf_fp)
-+	vstream_fclose(conf_fp);
++       vstream_fclose(conf_fp);
 +    vstring_free(buf);
 +}
 +
@@ -479,60 +384,62 @@
 +    DLINFO *dp;
 +
 +    if (!dict_dlinfo)
-+	return NULL;
++       return NULL;
 +
 +    for (dp=dict_dlinfo; dp->pattern; dp++) {
-+	if (strcmp(dp->pattern,type)==0 || strcmp(dp->pattern,"*")==0)
-+	    return dp;
++       if (strcmp(dp->pattern,type)==0 || strcmp(dp->pattern,"*")==0)
++           return dp;
 +    }
 +    return NULL;
 +}
 +#endif /* !NO_DYNAMIC_MAPS */
- 
++                                                         
  #ifdef TEST
  
---- postfix-1.1.3.orig/src/util/load_lib.c
-+++ postfix-1.1.3/src/util/load_lib.c
+  /*
+diff -uNr old-postfix-2.0.16/src/util/load_lib.c postfix-2.0.16/src/util/load_lib.c
+--- old-postfix-2.0.16/src/util/load_lib.c	Thu Jan  1 00:00:00 1970
++++ postfix-2.0.16/src/util/load_lib.c	Thu Sep 25 18:06:44 2003
 @@ -0,0 +1,135 @@
 +/*++
 +/* NAME
-+/*	load_lib 3
++/*     load_lib 3
 +/* SUMMARY
-+/*	library loading wrappers
++/*     library loading wrappers
 +/* SYNOPSIS
-+/*	#include <load_lib.h>
++/*     #include <load_lib.h>
 +/*
-+/*	extern int  load_library_symbols(const char *, LIB_FN *, LIB_FN *);
-+/*	const char *libname;
++/*     extern int  load_library_symbols(const char *, LIB_FN *, LIB_FN *);
++/*     const char *libname;
 +/*      LIB_FN     *libfuncs;
 +/*      LIB_FN     *libdata;
 +/*
 +/* DESCRIPTION
-+/*	This module loads functions from libraries, returnine pointers
-+/*	to the named functions.
++/*     This module loads functions from libraries, returnine pointers
++/*     to the named functions.
 +/*
-+/*	load_library_symbols() loads all of the desired functions, and
-+/*	returns zero for success, or exits via msg_fatal().
++/*     load_library_symbols() loads all of the desired functions, and
++/*     returns zero for success, or exits via msg_fatal().
 +/*
 +/* SEE ALSO
-+/*	msg(3) diagnostics interface
++/*     msg(3) diagnostics interface
 +/* DIAGNOSTICS
-+/*	Problems are reported via the msg(3) diagnostics routines:
-+/*	library not found, symbols not found, other fatal errors.
++/*     Problems are reported via the msg(3) diagnostics routines:
++/*     library not found, symbols not found, other fatal errors.
 +/* LICENSE
 +/* .ad
 +/* .fi
-+/*	The Secure Mailer license must be distributed with this software.
++/*     The Secure Mailer license must be distributed with this software.
 +/* AUTHOR(S)
-+/*	LaMont Jones
-+/*	Hewlett-Packard Company
-+/*	3404 Harmony Road
-+/*	Fort Collins, CO 80528, USA
++/*     LaMont Jones
++/*     Hewlett-Packard Company
++/*     3404 Harmony Road
++/*     Fort Collins, CO 80528, USA
 +/*
-+/*	Wietse Venema
-+/*	IBM T.J. Watson Research
-+/*	P.O. Box 704
-+/*	Yorktown Heights, NY 10598, USA
++/*     Wietse Venema
++/*     IBM T.J. Watson Research
++/*     P.O. Box 704
++/*     Yorktown Heights, NY 10598, USA
 +/*--*/
 +
 +/* System libraries. */
@@ -564,35 +471,35 @@
 +    handle=dlopen(libname,RTLD_NOW);
 +    emsg=dlerror();
 +    if (emsg) {
-+	msg_fatal("%s: dlopen failure loading %s: %s", myname, libname, emsg);
++       msg_fatal("%s: dlopen failure loading %s: %s", myname, libname, emsg);
 +    }
 +
 +    if (libfuncs) {
-+	for (fn=libfuncs; fn->name; fn++) {
-+	    *(fn->ptr) = dlsym(handle,fn->name);
-+	    emsg=dlerror();
-+	    if (emsg) {
-+		msg_fatal("%s: dlsym failure looking up %s in %s: %s", myname,
-+			  fn->name, libname, emsg);
-+	    }
-+	    if (msg_verbose>1) {
-+		msg_info("loaded %s = %lx",fn->name, *((long*)(fn->ptr)));
-+	    }
-+	}
++       for (fn=libfuncs; fn->name; fn++) {
++           *(fn->ptr) = dlsym(handle,fn->name);
++           emsg=dlerror();
++           if (emsg) {
++               msg_fatal("%s: dlsym failure looking up %s in %s: %s", myname,
++                         fn->name, libname, emsg);
++           }
++           if (msg_verbose>1) {
++               msg_info("loaded %s = %lx",fn->name, *((long*)(fn->ptr)));
++           }
++       }
 +    }
 +
 +    if (libdata) {
-+	for (fn=libdata; fn->name; fn++) {
-+	    *(fn->ptr) = dlsym(handle,fn->name);
-+	    emsg=dlerror();
-+	    if (emsg) {
-+		msg_fatal("%s: dlsym failure looking up %s in %s: %s", myname,
-+			  fn->name, libname, emsg);
-+	    }
-+	    if (msg_verbose>1) {
-+		msg_info("loaded %s = %lx",fn->name, *((long*)(fn->ptr)));
-+	    }
-+	}
++       for (fn=libdata; fn->name; fn++) {
++           *(fn->ptr) = dlsym(handle,fn->name);
++           emsg=dlerror();
++           if (emsg) {
++               msg_fatal("%s: dlsym failure looking up %s in %s: %s", myname,
++                         fn->name, libname, emsg);
++           }
++           if (msg_verbose>1) {
++               msg_info("loaded %s = %lx",fn->name, *((long*)(fn->ptr)));
++           }
++       }
 +    }
 +#elif defined(HAS_SHL_LOAD)
 +    shl_t   handle;
@@ -600,48 +507,49 @@
 +    handle = shl_load(libname,BIND_IMMEDIATE,0);
 +
 +    if (libfuncs) {
-+	for (fn=libfuncs; fn->name; fn++) {
-+	    if (shl_findsym(&handle,fn->name,TYPE_PROCEDURE,fn->ptr) != 0) {
-+		msg_fatal("%s: shl_findsym failure looking up %s in %s: %m",
-+			  myname, fn->name, libname);
-+	    }
-+	    if (msg_verbose>1) {
-+		msg_info("loaded %s = %x",fn->name, *((long*)(fn->ptr)));
-+	    }
-+	}
++       for (fn=libfuncs; fn->name; fn++) {
++           if (shl_findsym(&handle,fn->name,TYPE_PROCEDURE,fn->ptr) != 0) {
++             msg_fatal("%s: shl_findsym failure looking up %s in %s: %m",
++                         myname, fn->name, libname);
++           }
++           if (msg_verbose>1) {
++               msg_info("loaded %s = %x",fn->name, *((long*)(fn->ptr)));
++           }
++       }
 +    }
 +
 +    if (libdata) {
-+	for (fn=libdata; fn->name; fn++) {
-+	    if (shl_findsym(&handle,fn->name,TYPE_DATA,fn->ptr) != 0) {
-+		msg_fatal("%s: shl_findsym failure looking up %s in %s: %m",
-+			  myname, fn->name, libname);
-+	    }
-+	    if (msg_verbose>1) {
-+		msg_info("loaded %s = %x",fn->name, *((long*)(fn->ptr)));
-+	    }
-+	}
++       for (fn=libdata; fn->name; fn++) {
++           if (shl_findsym(&handle,fn->name,TYPE_DATA,fn->ptr) != 0) {
++               msg_fatal("%s: shl_findsym failure looking up %s in %s: %m",
++                         myname, fn->name, libname);
++           }
++           if (msg_verbose>1) {
++               msg_info("loaded %s = %x",fn->name, *((long*)(fn->ptr)));
++           }
++       }
 +    }
 +
 +#else
 +    msg_fatal("%s: need dlopen or shl_load support for dynamic libraries",
-+		myname);
++               myname);
 +#endif
 +    return 0;
 +}
---- postfix-1.1.3.orig/src/util/load_lib.h
-+++ postfix-1.1.3/src/util/load_lib.h
-@@ -0,0 +1,41 @@
+diff -uNr old-postfix-2.0.16/src/util/load_lib.h postfix-2.0.16/src/util/load_lib.h
+--- old-postfix-2.0.16/src/util/load_lib.h	Thu Jan  1 00:00:00 1970
++++ postfix-2.0.16/src/util/load_lib.h	Thu Sep 25 18:07:47 2003
+@@ -0,0 +1,40 @@
 +#ifndef _LOAD_LIB_H_INCLUDED_
 +#define _LOAD_LIB_H_INCLUDED_
 +
 +/*++
 +/* NAME
-+/*	load_lib 3h
++/*     load_lib 3h
 +/* SUMMARY
-+/*	library loading wrappers
++/*     library loading wrappers
 +/* SYNOPSIS
-+/*	#include "load_lib.h"
++/*     #include "load_lib.h"
 +/* DESCRIPTION
 +/* .nf
 +
@@ -659,23 +567,23 @@
 +/* LICENSE
 +/* .ad
 +/* .fi
-+/*	The Secure Mailer license must be distributed with this software.
++/*     The Secure Mailer license must be distributed with this software.
 +/* AUTHOR(S)
-+/*	LaMont Jones
-+/*	Hewlett-Packard Company
-+/*	3404 Harmony Road
-+/*	Fort Collins, CO 80528, USA
++/*     LaMont Jones
++/*     Hewlett-Packard Company
++/*     3404 Harmony Road
++/*     Fort Collins, CO 80528, USA
 +/*
-+/*	Wietse Venema
-+/*	IBM T.J. Watson Research
-+/*	P.O. Box 704
-+/*	Yorktown Heights, NY 10598, USA
-+/*--*/
++/*     Wietse Venema
++/*     IBM T.J. Watson Research
++/*     P.O. Box 704
++/*     Yorktown Heights, NY 10598, USA
 +
 +#endif
---- postfix-1.1.3.orig/src/util/sys_defs.h
-+++ postfix-1.1.3/src/util/sys_defs.h
-@@ -498,6 +498,7 @@
+diff -uNr old-postfix-2.0.16/src/util/sys_defs.h postfix-2.0.16/src/util/sys_defs.h
+--- old-postfix-2.0.16/src/util/sys_defs.h	Thu Sep 11 00:33:31 2003
++++ postfix-2.0.16/src/util/sys_defs.h	Thu Sep 25 18:09:51 2003
+@@ -501,6 +501,7 @@
  #define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT
  #define PREPEND_PLUS_TO_OPTSTRING
  #define HAS_POSIX_REGEXP
@@ -683,7 +591,7 @@
  #define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
  #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
  #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
-@@ -526,6 +527,7 @@
+@@ -529,6 +530,7 @@
  #define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT	/* unverified */
  #define PREPEND_PLUS_TO_OPTSTRING
  #define HAS_POSIX_REGEXP
@@ -691,7 +599,7 @@
  #define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
  #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
  #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
-@@ -564,6 +566,7 @@
+@@ -567,6 +569,7 @@
  #define USE_STATFS
  #define STATFS_IN_SYS_VFS_H
  #define HAS_POSIX_REGEXP
@@ -699,7 +607,7 @@
  #define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
  #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
  #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
-@@ -599,6 +602,7 @@
+@@ -602,6 +605,7 @@
  #define USE_STATFS
  #define STATFS_IN_SYS_VFS_H
  #define HAS_POSIX_REGEXP
