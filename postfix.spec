@@ -403,18 +403,18 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %dir %{_libdir}/postfix
 %attr(755,root,root) %{_libdir}/postfix/[!d]*
 %attr(755,root,root) %dir %{_var}/spool/postfix
-%attr(700, postfix,root) %dir %{_var}/spool/postfix/active
-%attr(700, postfix,root) %dir %{_var}/spool/postfix/bounce
-%attr(700, postfix,root) %dir %{_var}/spool/postfix/corrupt
-%attr(700, postfix,root) %dir %{_var}/spool/postfix/defer
-%attr(700, postfix,root) %dir %{_var}/spool/postfix/deferred
-%attr(700, postfix,root) %dir %{_var}/spool/postfix/incoming
+%attr(700,postfix,root) %dir %{_var}/spool/postfix/active
+%attr(700,postfix,root) %dir %{_var}/spool/postfix/bounce
+%attr(700,postfix,root) %dir %{_var}/spool/postfix/corrupt
+%attr(700,postfix,root) %dir %{_var}/spool/postfix/defer
+%attr(700,postfix,root) %dir %{_var}/spool/postfix/deferred
+%attr(700,postfix,root) %dir %{_var}/spool/postfix/incoming
 %attr(1730,postfix,maildrop) %dir %{_var}/spool/postfix/maildrop
-%attr(755, postfix,root) %dir %{_var}/spool/postfix/pid
-%attr(700, postfix,root) %dir %{_var}/spool/postfix/private
-%attr(710, postfix,maildrop) %dir %{_var}/spool/postfix/public
-%attr(700, postfix,root) %dir %{_var}/spool/postfix/saved
-%attr(644, postfix,root) %{_var}/spool/postfix/.nofinger
+%attr(755,postfix,root) %dir %{_var}/spool/postfix/pid
+%attr(700,postfix,root) %dir %{_var}/spool/postfix/private
+%attr(710,postfix,maildrop) %dir %{_var}/spool/postfix/public
+%attr(700,postfix,root) %dir %{_var}/spool/postfix/saved
+%attr(644,postfix,root) %{_var}/spool/postfix/.nofinger
 %{_mandir}/man*/*
 
 %files devel
