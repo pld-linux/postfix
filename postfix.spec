@@ -53,6 +53,7 @@ nie denerwowaæ Twoich u¿ytkowników. Ta wersja wspiera IPv6 oraz LDAP.
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
+# postfix-tls.patch obsoletes pfixtls-%{pfixtls}/pfixtls.diff
 #patch -p1 <pfixtls-%{pfixtls}/pfixtls.diff
 
 %build
@@ -103,38 +104,71 @@ gzip -9nf $RPM_BUILD_ROOT%{_mandir}/man*/* \
 touch $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
 %pre
-if [ -f /var/lock/subsys/postfix ]; then
-	/etc/rc.d/init.d/postfix stop 2> /dev/null
+if [ -n "`getgid postfix`" ]; then
+	if [ "`getgid postfix`" != "62" ]; then
+		echo "Warning: group postfix haven't gid=62. Corect this before install postfix" 1>&2
+		exit 1
+	fi
+else
+	/usr/sbin/groupadd -g 62 -r -f postfix
+	if [ -f /var/db/group.db ]; then
+		/usr/bin/update-db 1>&2
+	fi
 fi
-%{_sbindir}/groupadd -f -g 62 postfix
-%{_sbindir}/useradd -M -g postfix -d /var/spool/postfix -u 62 -s /bin/false postfix 2> /dev/null
-%{_sbindir}/groupadd -f -g 63 maildrop
+if [ -n "`getgid maildrop`" ]; then
+	if [ "`getgid maildrop`" != "63" ]; then
+		echo "Warning: group maildrop haven't gid=63. Corect this before install postfix" 1>&2
+		exit 1
+	fi
+else
+	/usr/sbin/groupadd -g 63 -r -f maildrop
+	if [ -f /var/db/group.db ]; then
+		/usr/bin/update-db 1>&2
+	fi
+fi
+if [ -n "`id -u postfix 2>/dev/null`" ]; then
+	if [ "`id -u postfix`" != "62" ]; then
+		echo "Warning: user postfix haven't uid=62. Corect this before install postfix" 1>&2
+		exit 1
+	fi
+else
+	/usr/sbin/useradd -u 62 -r -d /var/spool/postfix -s /bin/false -c "Postfix User" -g postfix postfix 1>&2
+	if [ -f /var/db/passwd.db ]; then
+		/usr/bin/update-db 1>&2
+	fi
+fi
+
 
 %post
-if ! grep -q "^hostmaster:" /etc/mail/aliases; then
-        echo "Adding Entry for hostmaster in /etc/mail/aliases"
-        echo "hostmaster:       root" >>/etc/mail/aliases
+if ! grep -q "^postmaster:" /etc/mail/aliases; then
+        echo "Adding Entry for postmaster in /etc/mail/aliases" >&2
+        echo "postmaster:       root" >>/etc/mail/aliases
 fi
 newaliases
 /sbin/chkconfig --add postfix
 if [ -r /var/lock/subsys/postfix]; then
 	/etc/rc.d/init.d/postfix restart >&2
 else
-	echo "Run \"/etc/rc.d/init.d/postfix start\" to start postfix daemon."
+	echo "Run \"/etc/rc.d/init.d/postfix start\" to start postfix daemon." >&2
 fi
 
 %preun
 if [ $1 = 0 ]; then
 	if [ -f /var/lock/subsys/postfix ]; then
-		/etc/rc.d/init.d/postfix stop 2> /dev/null
+		/etc/rc.d/init.d/postfix stop >&2
 	fi
 	/sbin/chkconfig --del postfix
 fi
 
 %postun
-%{_sbindir}/groupdel maildrop 2> /dev/null
-%{_sbindir}/userdel postfix 2> /dev/null
-%{_sbindir}/groupdel postfix 2> /dev/null
+if [ $1 = 0 ]; then
+	%{_sbindir}/groupdel maildrop 2> /dev/null
+	%{_sbindir}/userdel postfix 2> /dev/null
+	%{_sbindir}/groupdel postfix 2> /dev/null
+	if [ -f /var/db/passwd.db ] || [ -f /var/db/group.db ]; then
+		/usr/bin/update-db 1>&2
+	fi
+fi
 
 %clean
 rm -rf $RPM_BUILD_ROOT
