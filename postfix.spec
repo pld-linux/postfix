@@ -22,7 +22,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.1.5
-Release:	3
+Release:	4
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -53,16 +53,18 @@ BuildRequires:	awk
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db-devel
 BuildRequires:	grep
-BuildRequires:	libinet6 >= 0.20030228-1
+# kill for now, is it really necessary ?
+#BuildRequires:	libinet6 >= 0.20030228-1
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.2.0}
 %{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7d}
 BuildRequires:	pcre-devel
 %{?with_pgsql:BuildRequires:	postgresql-devel}
+BuildRequires:	rpmbuild(macros) >= 1.159
 %{?with_cdb:BuildRequires:	tinycdb-devel}
+BuildConflicts:	libinet6
 PreReq:		rc-scripts
 PreReq:		sed
-BuildRequires:	rpmbuild(macros) >= 1.159
 Requires(post):	/bin/hostname
 Requires(pre):	/bin/id
 Requires(pre):	/usr/bin/getgid
