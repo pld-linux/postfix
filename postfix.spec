@@ -36,7 +36,7 @@ Source2:	%{name}.cron
 Source3:	%{name}.init
 Source5:	%{name}.sysconfig
 Source6:	ftp://ftp.aet.tu-cottbus.de/pub/pfixtls/pfixtls-%{tls_ver}.tar.gz
-# Source6-md5:	298f55e2d896a0240f5913a3b611e623
+# Source6-md5:	6823c6645d64c80b63597db8b4a29d16
 Source7:	%{name}.sasl
 Source8:	ftp://ftp.corpit.ru/pub/postfix/%{name}-dict_cdb-1.1.11-20021104.tar.gz
 # Source8-md5:	5731b5081725f4688dc6fae119d617e4
