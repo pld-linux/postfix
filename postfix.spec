@@ -23,8 +23,8 @@ Summary(pl):	Serwer SMTP Postfix
 Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
-Version:	2.0.8
-Release:	0.2
+Version:	2.0.9
+Release:	0.1
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -52,7 +52,7 @@ BuildRequires:	grep
 %{!?_without_ipv6:BuildRequires:	libinet6 >= 0.20030228-1}
 %{!?_without_mysql:BuildRequires:	mysql-devel}
 %{!?_without_ldap:BuildRequires:	openldap-devel >= 2.0.0}
-%{!?_without_ssl:BuildRequires:		openssl-devel >= 0.9.7a}
+%{!?_without_ssl:BuildRequires:		openssl-devel >= 0.9.7b}
 BuildRequires:	pcre-devel
 %{!?_without_pgsql:BuildRequires:	postgresql-devel}
 %{?_with_cdb:BuildRequires:		tinycdb-devel}
