@@ -7,11 +7,11 @@
 # --with mysql - build with MySQL support
 # --without ipv6  - build without IPv6 support
 #
-%define	tls_ver 0.7.12-snap20011105-0.9.6b
+%define	tls_ver 0.7.13c-snap20011127-0.9.6b
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Serwer SMTP Postfix
 Name:		postfix
-Version:	20011115
+Version:	20011127
 Release:	1
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
@@ -79,7 +79,7 @@ IPv6%{!?_without_ldap: oraz LDAP}.
 %patch0 -p1
 %patch1 -p1
 patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff 
-%patch2 -p1 
+%patch2 -p1
 %{!?_without_ipv6:%patch3 -p1 }
 
 %build
