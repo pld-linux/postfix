@@ -1,22 +1,34 @@
 #
-# Conditional build:	
+# Conditional build:
 # --without sasl - build wihtout SMTP AUTH support
-# --without ldap - build without LDAP support
-# --without pcre - build without Perl Compatible Regular Expresion support
 # --without ssl  - build without SSL/TLS support
-# --with mysql - build with MySQL support
-# --without ipv6  - build without IPv6 support
+# --without ipv6 - build without IPv6 support
 #
 %define	tls_ver 0.8.3-1.1.3-0.9.6c
 Summary:	Postfix Mail Transport Agent
+Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
+Summary(fr):	Agent de transport de courrier Postfix
 Summary(pl):	Serwer SMTP Postfix
+Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	1.1.3
-Release:	0.2
+Release:	0.5
 Epoch:		1
 Group:		Networking/Daemons
+Group(cs):	Sí»ové/Démoni
+Group(da):	Netværks/Dæmoner
 Group(de):	Netzwerkwesen/Server
+Group(es):	Red/Servidores
+Group(fr):	Réseau/Serveurs
+Group(is):	Net/Púkar
+Group(it):	Rete/Demoni
+Group(no):	Nettverks/Daemoner
 Group(pl):	Sieciowe/Serwery
+Group(pt):	Rede/Servidores
+Group(ru):	óÅÔØ/äÅÍÏÎÙ
+Group(sl):	Omre¾ni/Stre¾niki
+Group(sv):	Nätverk/Demoner
+Group(uk):	íÅÒÅÖÁ/äÅÍÏÎÉ
 License:	distributable
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
 Source1:	%{name}.aliases
@@ -29,28 +41,31 @@ Patch0:		%{name}-config.patch
 Patch1:		%{name}-pl.patch
 Patch2:		%{name}-conf_msg.patch
 Patch3:		%{name}-ipv6.patch
+Patch4:		%{name}-dynamicmaps.patch
 URL:		http://www.postfix.org/
-Provides:	smtpdaemon
-Prereq:		rc-scripts
-%{!?_without_ldap:BuildRequires:	openldap-devel >= 2.0.0}
-%{!?_without_ssl:BuildRequires:	openssl-devel >= 0.9.6a}
-%{!?_without_pcre:BuildRequires:	pcre-devel}
+BuildRequires:	awk
 %{!?_without_sasl:BuildRequires:	cyrus-sasl-devel}
-%{!?_without_ipv6:BuildRequires:	libinet6 >= 0.20010420-3}
 BuildRequires:	db3-devel
 BuildRequires:	grep
-BuildRequires:	awk
-Prereq:		/sbin/chkconfig
-Prereq:		/usr/sbin/useradd
-Prereq:		/usr/sbin/groupadd
-Prereq:		/usr/sbin/userdel
-Prereq:		/usr/sbin/groupdel
-Prereq:		/usr/bin/getgid
-Prereq:		/bin/id
-Prereq:		/bin/hostname
-%{!?_without_ldap:Prereq:	openldap >= 2.0.0}
-Prereq:		sed
+%{!?_without_ipv6:BuildRequires:	libinet6 >= 0.20010420-3}
+BuildRequires:	mysql-devel
+BuildRequires:	openldap-devel >= 2.0.0
+%{!?_without_ssl:BuildRequires:	openssl-devel >= 0.9.6a}
+BuildRequires:	pcre-devel
+PreReq:		rc-scripts
+PreReq:		sed
+Requires(pre):	/usr/sbin/useradd
+Requires(pre):	/usr/sbin/groupadd
+Requires(pre):	/usr/bin/getgid
+Requires(pre):	/bin/id
+Requires(post):	/bin/hostname
+Requires(post,postun):	/sbin/ldconfig
+Requires(post,preun):	/sbin/chkconfig
+Requires(postun):	/usr/sbin/userdel
+Requires(postun):	/usr/sbin/groupdel
+%{!?_without_ldap:PreReq:	openldap >= 2.0.0}
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
+Provides:	smtpdaemon
 Obsoletes:	smtpdaemon
 Obsoletes:	exim
 Obsoletes:	masqmail
@@ -67,37 +82,177 @@ Requires:	procmail
 Postfix is attempt to provide an alternative to the widely-used
 Sendmail program. Postfix attempts to be fast, easy to administer, and
 hopefully secure, while at the same time being sendmail compatible
-enough to not upset your users. This version have IPv6 support and
-%{!?_without_ldap:no }LDAP support.
+enough to not upset your users. This version has IPv6 support.
+
+%description -l fr
+Postfix (voir http://www.postfix.org/) se veut une alternative
+à sendmail, responsable de l'acheminement de 70% des courriers
+électroniques sur Internet. IBM en a suppotré le développement, mais
+ne contrôle pas son évolution. Le but est d'installer Postfix sur le
+plus grand nombre de systèmes possible. Dans cette optique, il a été
+écrit pour être totalement sous le contrôle de l'utilisateur.
+
+%description -l it
+Postfix (http://www.postfix.org/) e' un'alternativa al programma
+sendmail utilizzato per la gestione del 70 per cento della posta
+Internet.
+
+Seppur IBM supporti lo sviluppo di Postfix, non controlla la sua
+evoluzione.
+
+Consultate la pagine web http://www.moongroup.com/how-to.phtml nella
+quale troverete le indicazioni per una corretta installazione e
+configurazione di questo programma.
 
 %description -l pl
 Postfix jest prób± dostarczenia alternatywnego MTA w stosunku do
 szeroko u¿ywanego sendmaila. Postfix w zamierzeniu ma byæ szybki,
 ³atwy w administrowaniu, bezpieczny oraz ma byæ na tyle kompatybilny z
 sendmailem by nie denerwowaæ Twoich u¿ytkowników. Ta wersja wspiera
-IPv6%{!?_without_ldap: oraz LDAP}.
+IPv6.
+
+%description -l sk
+Postfix (pozri http://www.postfix.org/) má za cieµ by» alternatívou k
+¹iroko roz¹írenému programu sendmail, zodpovednému za 70% v¹etkej
+elektronickej po¹ty doruèenej na Internete.
+
+Aj keï IBM podporovala vývoj Postfixu, zdr¾iava sa vplyvu na jeho
+vývoj. Cieµom je in¹talácia Postfixu na èo najväè¹om poète systémov.
+Do tohoto momentu je softvér poskytovaný bez ovplyvòovania, tak¾e sa
+mô¾e vyvíja» podµa jeho pou¾ívateµov.
+
+Urèite si preèítajte http://www.moongroup.com/how-to.phtml, kde sú
+popísané kroky potrebné pred a po in¹talácii Postfixu.
+
+%package devel
+Summary:	Postfix loadable modules development package
+Summary(pl):	Pakiet dla programistów ³adowanych modu³ów do postfiksa
+Group:		Development/Libraries
+Group(cs):	Vývojové prostøedky/Knihovny
+Group(da):	Udvikling/Biblioteker
+Group(de):	Entwicklung/Bibliotheken
+Group(es):	Desarrollo/Bibliotecas
+Group(fr):	Development/Librairies
+Group(is):	Þróunartól/Aðgerðasöfn
+Group(it):	Sviluppo/Librerie
+Group(ja):	³«È¯/¥é¥¤¥Ö¥é¥ê
+Group(no):	Utvikling/Bibliotek
+Group(pl):	Programowanie/Biblioteki
+Group(pt_BR):	Desenvolvimento/Bibliotecas
+Group(pt):	Desenvolvimento/Bibliotecas
+Group(ru):	òÁÚÒÁÂÏÔËÁ/âÉÂÌÉÏÔÅËÉ
+Group(sl):	Razvoj/Knji¾nice
+Group(sv):	Utveckling/Bibliotek
+Group(uk):	òÏÚÒÏÂËÁ/â¦ÂÌ¦ÏÔÅËÉ
+Requires:	%{name} = %{version}
+
+%description devel
+Header files to build additional map types for Postfix.
+
+%description devel -l pl
+Pliki nag³ówkowe do tworzenia dodatkowych typów map dla Postfiksa.
+
+%package dict-ldap
+Summary:	LDAP map support for Postfix
+Summary(pl):	Obs³uga map LDAP dla Postfiksa
+Group:		Networking/Daemons
+Group(cs):	Sí»ové/Démoni
+Group(da):	Netværks/Dæmoner
+Group(de):	Netzwerkwesen/Server
+Group(es):	Red/Servidores
+Group(fr):	Réseau/Serveurs
+Group(is):	Net/Púkar
+Group(it):	Rete/Demoni
+Group(no):	Nettverks/Daemoner
+Group(pl):	Sieciowe/Serwery
+Group(pt):	Rede/Servidores
+Group(ru):	óÅÔØ/äÅÍÏÎÙ
+Group(sl):	Omre¾ni/Stre¾niki
+Group(sv):	Nätverk/Demoner
+Group(uk):	íÅÒÅÖÁ/äÅÍÏÎÉ
+Requires:	%{name} = %{version}
+
+%description dict-ldap
+This package provides support for LDAP maps in Postfix.
+
+%description dict-ldap -l pl
+Ten pakiet dodaje obs³ugê map LDAP do Postfiksa.
+
+%package dict-mysql
+Summary:	MySQL map support for Postfix
+Summary(pl):	Obs³uga map MySQL dla Postfiksa
+Group:		Networking/Daemons
+Group(cs):	Sí»ové/Démoni
+Group(da):	Netværks/Dæmoner
+Group(de):	Netzwerkwesen/Server
+Group(es):	Red/Servidores
+Group(fr):	Réseau/Serveurs
+Group(is):	Net/Púkar
+Group(it):	Rete/Demoni
+Group(no):	Nettverks/Daemoner
+Group(pl):	Sieciowe/Serwery
+Group(pt):	Rede/Servidores
+Group(ru):	óÅÔØ/äÅÍÏÎÙ
+Group(sl):	Omre¾ni/Stre¾niki
+Group(sv):	Nätverk/Demoner
+Group(uk):	íÅÒÅÖÁ/äÅÍÏÎÉ
+Requires:	%{name} = %{version}
+
+%description dict-mysql
+This package provides support for MySQL maps in Postfix.
+
+%description dict-mysql -l pl
+Ten pakiet dodaje obs³ugê map MySQL do Postfiksa.
+
+
+%package dict-pcre
+Summary:	PCRE map support for Postfix
+Summary(pl):	Obs³uga map PCRE dla Postfiksa
+Group:		Networking/Daemons
+Group(cs):	Sí»ové/Démoni
+Group(da):	Netværks/Dæmoner
+Group(de):	Netzwerkwesen/Server
+Group(es):	Red/Servidores
+Group(fr):	Réseau/Serveurs
+Group(is):	Net/Púkar
+Group(it):	Rete/Demoni
+Group(no):	Nettverks/Daemoner
+Group(pl):	Sieciowe/Serwery
+Group(pt):	Rede/Servidores
+Group(ru):	óÅÔØ/äÅÍÏÎÙ
+Group(sl):	Omre¾ni/Stre¾niki
+Group(sv):	Nätverk/Demoner
+Group(uk):	íÅÒÅÖÁ/äÅÍÏÎÉ
+Requires:	%{name} = %{version}
+
+%description dict-pcre
+This package provides support for PCRE maps in Postfix.
+
+%description dict-pcre -l pl
+Ten pakiet dodaje obs³ugê map PCRE do Postfiksa.
 
 %prep
-%setup -q -a6 
+%setup -q -a6
 %patch0 -p1
 %patch1 -p1
-patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff 
+patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 %patch2 -p1
 %{!?_without_ipv6:%patch3 -p1 }
+%patch4 -p1
 
 %build
 %{__make} -f Makefile.init makefiles
 %{__make} tidy
 %{__make} DEBUG="" OPT="%{rpmcflags}" \
-	CCARGS="%{!?_without_ldap:-DHAS_LDAP} %{!?_without_pcre:-DHAS_PCRE} %{!?_without_sasl:-DUSE_SASL_AUTH} %{?_with_mysql:-DHAS_MYSQL -I%{_includedir}/mysql} %{!?_without_ssl:-DHAS_SSL -I%{_includedir}/openssl}" \
-	AUXLIBS="%{!?_without_ldap:-llber -lldap} -lnsl -ldb -lresolv %{!?_without_pcre:-lpcre} %{!?_without_sasl:-lsasl} %{?_with_mysql:-lmysqlclient} %{!?_without_ssl:-lssl -lcrypto}"
+	CCARGS="-DHAS_LDAP -DHAS_PCRE %{!?_without_sasl:-DUSE_SASL_AUTH} -DHAS_MYSQL -I%{_includedir}/mysql %{!?_without_ssl:-DHAS_SSL -I%{_includedir}/openssl} -DMAX_DYNAMIC_MAPS" \
+	AUXLIBS="-lnsl -ldb -lresolv %{!?_without_sasl:-lsasl} %{!?_without_ssl:-lssl -lcrypto}"
 
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT%{_sysconfdir}/{mail,cron.daily,rc.d/init.d,sasl,sysconfig} \
-	   $RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,%{_mandir}/man{1,5,8}} \
-	   $RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public} \
-	   pfixtls
+	$RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,%{_includedir}/postfix,%{_mandir}/man{1,5,8}} \
+	$RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public} \
+	pfixtls
 
 rm -f {html,man}/Makefile.in conf/{LICENSE,main.cf.default}
 
@@ -106,6 +261,13 @@ install -d sample-conf; mv -f conf/sample* sample-conf/ || :
 install bin/* $RPM_BUILD_ROOT%{_sbindir}
 install libexec/* $RPM_BUILD_ROOT%{_libdir}/postfix
 install conf/* $RPM_BUILD_ROOT%{_sysconfdir}/mail
+
+for f in dns global master util ; do
+	install lib/lib${f}.a $RPM_BUILD_ROOT%{_libdir}/libpostfix-${f}.so.1
+	ln -sf lib${f}.so.1 $RPM_BUILD_ROOT%{_libdir}/libpostfix-${f}.so
+done
+install lib/dict*.so $RPM_BUILD_ROOT%{_libdir}/postfix
+install include/*.h $RPM_BUILD_ROOT%{_includedir}/postfix
 
 (cd man; tar cf - .) | (cd $RPM_BUILD_ROOT%{_mandir}; tar xf -)
 
@@ -126,7 +288,7 @@ touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 gzip -9nf *README COMPATIBILITY HISTORY LICENSE RELEASE_NOTES \
 	README_FILES/*README
 
-touch $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
+> $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -158,9 +320,10 @@ else
 fi
 
 %post
+/sbin/ldconfig
 if ! grep -q "^postmaster:" /etc/mail/aliases; then
-        echo "Adding Entry for postmaster in /etc/mail/aliases" >&2
-        echo "postmaster:	root" >>/etc/mail/aliases
+	echo "Adding Entry for postmaster in /etc/mail/aliases" >&2
+	echo "postmaster:	root" >>/etc/mail/aliases
 fi
 if ! grep -q "^myhostname" /etc/mail/main.cf; then
 	postconf -e myhostname=`/bin/hostname -f`
@@ -183,6 +346,7 @@ if [ "$1" = "0" ]; then
 fi
 
 %postun
+/sbin/ldconfig
 if [ "$1" = "0" ]; then
 	/usr/sbin/groupdel maildrop 2> /dev/null
 	/usr/sbin/userdel postfix 2> /dev/null
@@ -207,6 +371,7 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/virtual
 #%ghost %{_sysconfdir}/mail/*.db
 %dir %{_sysconfdir}/mail
+%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/dynamicmaps.cf
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/main.cf
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/master.cf
 %attr(755,root,root) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/postfix-script
@@ -216,6 +381,7 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %attr(754,root,root) /etc/rc.d/init.d/postfix
 %attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/postfix
 %{!?_without_sasl:%config(noreplace) %verify(not size mtime md5) /etc/sasl/smtpd.conf}
+%attr(755,root,root) %{_libdir}/libpostfix-*.so.*
 %attr(755,root,root) %{_bindir}/*
 %attr(755,root,root) %{_sbindir}/s*
 %attr(755,root,root) %{_sbindir}/postfix
@@ -229,7 +395,8 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %attr(2755,root,maildrop) %{_sbindir}/postdrop
 %attr(755,root,root) %{_sbindir}/qmqp-source
 %attr(755,root,root) %{_libdir}/sendmail
-%attr(755,root,root) %{_libdir}/postfix
+%dir %{_libdir}/postfix
+%attr(755,root,root) %{_libdir}/postfix/[^d]*
 %attr(755,root,root) %dir %{_var}/spool/postfix
 %attr(700, postfix,root) %dir %{_var}/spool/postfix/active
 %attr(700, postfix,root) %dir %{_var}/spool/postfix/bounce
@@ -244,3 +411,20 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %attr(700, postfix,root) %dir %{_var}/spool/postfix/saved
 %attr(644, postfix,root) %{_var}/spool/postfix/.nofinger
 %{_mandir}/man*/*
+
+%files devel
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/libpostfix-*.so
+%{_includedir}/postfix
+
+%files dict-ldap
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/postfix/dict_ldap.so
+
+%files dict-mysql
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/postfix/dict_mysql.so
+
+%files dict-pcre
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/postfix/dict_pcre.so
