@@ -1,0 +1,298 @@
+diff -durN postfix-1.1.11.orig/src/lmtp/lmtp.h postfix-1.1.11/src/lmtp/lmtp.h
+--- postfix-1.1.11.orig/src/lmtp/lmtp.h	Tue May 22 20:37:14 2001
++++ postfix-1.1.11/src/lmtp/lmtp.h	Mon Jan 13 12:27:52 2003
+@@ -12,8 +12,8 @@
+   * SASL library.
+   */
+ #ifdef USE_SASL_AUTH
+-#include <sasl.h>
+-#include <saslutil.h>
++#include <sasl/sasl.h>
++#include <sasl/saslutil.h>
+ #endif
+ 
+  /*
+diff -durN postfix-1.1.11.orig/src/lmtp/lmtp_sasl_glue.c postfix-1.1.11/src/lmtp/lmtp_sasl_glue.c
+--- postfix-1.1.11.orig/src/lmtp/lmtp_sasl_glue.c	Fri Jan 19 22:46:44 2001
++++ postfix-1.1.11/src/lmtp/lmtp_sasl_glue.c	Mon Jan 13 12:31:32 2003
+@@ -138,10 +138,10 @@
+ {
+     switch (priority) {
+ 	case SASL_LOG_ERR:
+-	case SASL_LOG_WARNING:
++	case SASL_LOG_WARN:
+ 	msg_warn("%s", message);
+ 	break;
+-    case SASL_LOG_INFO:
++    case SASL_LOG_NOTE:
+ 	if (msg_verbose)
+ 	    msg_info("%s", message);
+ 	break;
+@@ -318,6 +318,7 @@
+     for (cp = state->sasl_callbacks; cp->id != SASL_CB_LIST_END; cp++)
+ 	cp->context = (void *) state;
+     if (sasl_client_new("smtp", state->session->host,
++		        NULL, NULL,
+ 			state->sasl_callbacks, NULL_SECFLAGS,
+ 			(sasl_conn_t **) &state->sasl_conn) != SASL_OK)
+ 	msg_fatal("per-session SASL client initialization");
+@@ -354,7 +355,7 @@
+     char   *myname = "lmtp_sasl_authenticate";
+     unsigned enc_length;
+     unsigned enc_length_out;
+-    char   *clientout;
++    const char *clientout;
+     unsigned clientoutlen;
+     unsigned serverinlen;
+     LMTP_RESP *resp;
+@@ -376,7 +377,7 @@
+      */
+     result = sasl_client_start((sasl_conn_t *) state->sasl_conn,
+ 			       state->sasl_mechanism_list,
+-			       NO_SASL_SECRET, NO_SASL_INTERACTION,
++			       NO_SASL_INTERACTION,
+ 			       &clientout, &clientoutlen, &mechanism);
+     if (result != SASL_OK && result != SASL_CONTINUE) {
+ 	vstring_sprintf(why, "cannot SASL authenticate to server %s: %s",
+@@ -404,7 +405,6 @@
+ 			  STR(state->sasl_encoded), enc_length,
+ 			  &enc_length_out) != SASL_OK)
+ 	    msg_panic("%s: sasl_encode64 botch", myname);
+-	free(clientout);
+ 	lmtp_chat_cmd(state, "AUTH %s %s", mechanism, STR(state->sasl_encoded));
+     } else {
+ 	lmtp_chat_cmd(state, "AUTH %s", mechanism);
+@@ -424,7 +424,7 @@
+ 	serverinlen = strlen(line);
+ 	VSTRING_SPACE(state->sasl_decoded, serverinlen);
+ 	if (sasl_decode64(line, serverinlen,
+-			STR(state->sasl_decoded), &enc_length) != SASL_OK) {
++			STR(state->sasl_decoded), serverinlen, &enc_length) != SASL_OK) {
+ 	    vstring_sprintf(why, "malformed SASL challenge from server %s",
+ 			    state->session->namaddr);
+ 	    return (-1);
+@@ -456,7 +456,6 @@
+ 			      STR(state->sasl_encoded), enc_length,
+ 			      &enc_length_out) != SASL_OK)
+ 		msg_panic("%s: sasl_encode64 botch", myname);
+-	    free(clientout);
+ 	} else {
+ 	    vstring_strcat(state->sasl_encoded, "");
+ 	}
+diff -durN postfix-1.1.11.orig/src/smtp/smtp.h postfix-1.1.11/src/smtp/smtp.h
+--- postfix-1.1.11.orig/src/smtp/smtp.h	Mon Jan 13 12:33:43 2003
++++ postfix-1.1.11/src/smtp/smtp.h	Mon Jan 13 12:10:16 2003
+@@ -12,8 +12,8 @@
+   * SASL library.
+   */
+ #ifdef USE_SASL_AUTH
+-#include <sasl.h>
+-#include <saslutil.h>
++#include <sasl/sasl.h>
++#include <sasl/saslutil.h>
+ #endif
+ 
+  /*
+diff -durN postfix-1.1.11.orig/src/smtp/smtp_sasl_glue.c postfix-1.1.11/src/smtp/smtp_sasl_glue.c
+--- postfix-1.1.11.orig/src/smtp/smtp_sasl_glue.c	Mon Jul  2 21:12:54 2001
++++ postfix-1.1.11/src/smtp/smtp_sasl_glue.c	Mon Jan 13 12:17:57 2003
+@@ -138,10 +138,10 @@
+ {
+     switch (priority) {
+ 	case SASL_LOG_ERR:
+-	case SASL_LOG_WARNING:
++	case SASL_LOG_WARN:
+ 	msg_warn("SASL authentication problem: %s", message);
+ 	break;
+-    case SASL_LOG_INFO:
++    case SASL_LOG_NOTE:
+ 	if (msg_verbose)
+ 	    msg_info("SASL authentication info: %s", message);
+ 	break;
+@@ -317,9 +317,10 @@
+     memcpy((char *) state->sasl_callbacks, callbacks, sizeof(callbacks));
+     for (cp = state->sasl_callbacks; cp->id != SASL_CB_LIST_END; cp++)
+ 	cp->context = (void *) state;
+-    if (sasl_client_new("smtp", state->session->host,
++    if (sasl_client_new("smtp", state->session->host, NULL, NULL,
+ 			state->sasl_callbacks, NULL_SECFLAGS,
+ 			(sasl_conn_t **) &state->sasl_conn) != SASL_OK)
++	    
+ 	msg_fatal("per-session SASL client initialization");
+ 
+     /*
+@@ -354,7 +355,7 @@
+     char   *myname = "smtp_sasl_authenticate";
+     unsigned enc_length;
+     unsigned enc_length_out;
+-    char   *clientout;
++    const char   *clientout;
+     unsigned clientoutlen;
+     unsigned serverinlen;
+     SMTP_RESP *resp;
+@@ -362,8 +363,7 @@
+     int     result;
+     char   *line;
+ 
+-#define NO_SASL_SECRET		0
+-#define NO_SASL_INTERACTION	0
++#define NO_SASL_INTERACTION	NULL
+ #define NO_SASL_LANGLIST	((const char *) 0)
+ #define NO_SASL_OUTLANG		((const char **) 0)
+ 
+@@ -376,7 +376,7 @@
+      */
+     result = sasl_client_start((sasl_conn_t *) state->sasl_conn,
+ 			       state->sasl_mechanism_list,
+-			       NO_SASL_SECRET, NO_SASL_INTERACTION,
++			       NO_SASL_INTERACTION,
+ 			       &clientout, &clientoutlen, &mechanism);
+     if (result != SASL_OK && result != SASL_CONTINUE) {
+ 	vstring_sprintf(why, "cannot SASL authenticate to server %s: %s",
+@@ -404,7 +404,6 @@
+ 			  STR(state->sasl_encoded), enc_length,
+ 			  &enc_length_out) != SASL_OK)
+ 	    msg_panic("%s: sasl_encode64 botch", myname);
+-	free(clientout);
+ 	smtp_chat_cmd(state, "AUTH %s %s", mechanism, STR(state->sasl_encoded));
+     } else {
+ 	smtp_chat_cmd(state, "AUTH %s", mechanism);
+@@ -424,7 +423,7 @@
+ 	serverinlen = strlen(line);
+ 	VSTRING_SPACE(state->sasl_decoded, serverinlen);
+ 	if (sasl_decode64(line, serverinlen,
+-			STR(state->sasl_decoded), &enc_length) != SASL_OK) {
++			STR(state->sasl_decoded), serverinlen, &enc_length) != SASL_OK) {
+ 	    vstring_sprintf(why, "malformed SASL challenge from server %s",
+ 			    state->session->namaddr);
+ 	    return (-1);
+diff -durN postfix-1.1.11.orig/src/smtpd/smtpd.h postfix-1.1.11/src/smtpd/smtpd.h
+--- postfix-1.1.11.orig/src/smtpd/smtpd.h	Mon Jan 13 12:33:43 2003
++++ postfix-1.1.11/src/smtpd/smtpd.h	Mon Jan 13 12:26:29 2003
+@@ -17,8 +17,8 @@
+   * SASL library.
+   */
+ #ifdef USE_SASL_AUTH
+-#include <sasl.h>
+-#include <saslutil.h>
++#include <sasl/sasl.h>
++#include <sasl/saslutil.h>
+ #endif
+ 
+  /*
+@@ -69,7 +69,7 @@
+     off_t   msg_size;
+     int     junk_cmds;
+ #ifdef USE_SASL_AUTH
+-    char   *sasl_mechanism_list;
++    const char   *sasl_mechanism_list;
+     char   *sasl_method;
+     char   *sasl_username;
+     char   *sasl_sender;
+diff -durN postfix-1.1.11.orig/src/smtpd/smtpd_sasl_glue.c postfix-1.1.11/src/smtpd/smtpd_sasl_glue.c
+--- postfix-1.1.11.orig/src/smtpd/smtpd_sasl_glue.c	Mon Nov 26 01:14:01 2001
++++ postfix-1.1.11/src/smtpd/smtpd_sasl_glue.c	Mon Jan 13 12:27:15 2003
+@@ -117,10 +117,10 @@
+ {
+     switch (priority) {
+ 	case SASL_LOG_ERR:
+-	case SASL_LOG_WARNING:
++	case SASL_LOG_WARN:
+ 	msg_warn("SASL authentication problem: %s", message);
+ 	break;
+-    case SASL_LOG_INFO:
++	case SASL_LOG_NOTE:
+ 	if (msg_verbose)
+ 	    msg_info("SASL authentication info: %s", message);
+ 	break;
+@@ -196,6 +196,7 @@
+ #define NO_SESSION_CALLBACKS	((sasl_callback_t *) 0)
+ 
+     if (sasl_server_new("smtp", var_myhostname, var_smtpd_sasl_realm,
++ 		        NULL, NULL,
+ 			NO_SESSION_CALLBACKS, NO_SECURITY_LAYERS,
+ 			&state->sasl_conn) != SASL_OK)
+ 	msg_fatal("SASL per-connection server initialization");
+@@ -238,10 +239,6 @@
+ 
+ void    smtpd_sasl_disconnect(SMTPD_STATE *state)
+ {
+-    if (state->sasl_mechanism_list) {
+-	free(state->sasl_mechanism_list);
+-	state->sasl_mechanism_list = 0;
+-    }
+     if (state->sasl_conn) {
+ 	sasl_dispose(&state->sasl_conn);
+ 	state->sasl_conn = 0;
+@@ -262,10 +259,9 @@
+     unsigned enc_length;
+     unsigned enc_length_out;
+     unsigned reply_len;
+-    char   *serverout = 0;
++    const char   *serverout = 0;
+     unsigned serveroutlen;
+     int     result;
+-    const char *errstr = 0;
+ 
+ #define IFELSE(e1,e2,e3) ((e1) ? (e2) : (e3))
+ 
+@@ -289,7 +285,7 @@
+ 	VSTRING_SPACE(state->sasl_decoded, reply_len);
+ 	dec_buffer = STR(state->sasl_decoded);
+ 	if (sasl_decode64(init_response, reply_len,
+-			  dec_buffer, &dec_length) != SASL_OK)
++			  dec_buffer, reply_len, &dec_length) != SASL_OK)
+ 	    return ("501 Authentication failed: malformed initial response");
+ 	if (msg_verbose)
+ 	    msg_info("%s: decoded initial response %s", myname, dec_buffer);
+@@ -298,7 +294,7 @@
+ 	dec_length = 0;
+     }
+     result = sasl_server_start(state->sasl_conn, sasl_method, dec_buffer,
+-			    dec_length, &serverout, &serveroutlen, &errstr);
++			    dec_length, &serverout, &serveroutlen);
+ 
+     /*
+      * Repeat until done or until the client gives up.
+@@ -327,7 +323,6 @@
+ 	if (sasl_encode64(serverout, serveroutlen, STR(state->sasl_encoded),
+ 			  enc_length, &enc_length_out) != SASL_OK)
+ 	    msg_panic("%s: sasl_encode64 botch", myname);
+-	free(serverout);
+ 	serverout = 0;
+ 	smtpd_chat_reply(state, "334 %s", STR(state->sasl_encoded));
+ 
+@@ -343,22 +338,16 @@
+ 	reply_len = VSTRING_LEN(state->buffer);
+ 	VSTRING_SPACE(state->sasl_decoded, reply_len);
+ 	if (sasl_decode64(vstring_str(state->buffer), reply_len,
+-			  STR(state->sasl_decoded), &dec_length) != SASL_OK)
++			  STR(state->sasl_decoded), reply_len, &dec_length) != SASL_OK)
+ 	    return ("501 Error: malformed authentication response");
+ 	if (msg_verbose)
+ 	    msg_info("%s: decoded response: %.*s",
+ 		     myname, (int) dec_length, STR(state->sasl_decoded));
+ 	result = sasl_server_step(state->sasl_conn, STR(state->sasl_decoded),
+-			    dec_length, &serverout, &serveroutlen, &errstr);
++			    dec_length, &serverout, &serveroutlen);
+     }
+ 
+     /*
+-     * Cleanup. What an awful interface.
+-     */
+-    if (serverout)
+-	free(serverout);
+-
+-    /*
+      * The authentication protocol was completed.
+      */
+     if (result != SASL_OK)
+@@ -370,7 +359,7 @@
+      * authentication method that was used. XXX Do not free(serverout).
+      */
+     result = sasl_getprop(state->sasl_conn, SASL_USERNAME,
+-			  (void **) &serverout);
++			  (const void **) &serverout);
+     if (result != SASL_OK || serverout == 0)
+ 	msg_panic("%s: sasl_getprop SASL_USERNAME botch", myname);
+     state->sasl_username = mystrdup(serverout);
