@@ -329,7 +329,7 @@ diff -Nur postfix-1.1.2.orig/src/global/own_inet_addr.c postfix-1.1.2/src/global
 diff -Nur postfix-1.1.2.orig/src/global/own_inet_addr.h postfix-1.1.2/src/global/own_inet_addr.h
 --- postfix-1.1.2.orig/src/global/own_inet_addr.h	Sat Feb 24 02:25:32 2001
 +++ postfix-1.1.2/src/global/own_inet_addr.h	Mon Jan 28 12:40:04 2002
-@@ -15,11 +15,18 @@
+@@ -15,14 +15,25 @@
    * System library.
    */
  #include <netinet/in.h>
@@ -347,7 +347,14 @@ diff -Nur postfix-1.1.2.orig/src/global/own_inet_addr.h postfix-1.1.2/src/global
 +#endif
  extern struct INET_ADDR_LIST *own_inet_addr_list(void);
  extern struct INET_ADDR_LIST *own_inet_mask_list(void);
++#ifdef INET6
++extern int proxy_inet_addr(struct sockaddr *);
++#else
+ extern int proxy_inet_addr(struct in_addr *);
++#endif
+ extern struct INET_ADDR_LIST *proxy_inet_addr_list(void);
  
+ /* LICENSE
 diff -Nur postfix-1.1.2.orig/src/global/peer_name.c postfix-1.1.2/src/global/peer_name.c
 --- postfix-1.1.2.orig/src/global/peer_name.c	Sun Jan 28 16:23:02 2001
 +++ postfix-1.1.2/src/global/peer_name.c	Mon Jan 28 12:40:04 2002
