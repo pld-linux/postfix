@@ -8,7 +8,7 @@
 # _without_mysql - no MySQL support
 # _without_ldap  - no LDAP support
 #
-%define	tls_ver 0.8.11a-1.1.11-0.9.6d
+%define	tls_ver 0.8.12-1.1.12-0.9.6h
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
 Summary(es):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -17,8 +17,8 @@ Summary(pl):	Serwer SMTP Postfix
 Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
-Version:	1.1.12
-Release:	1
+Version:	2.0.0
+Release:	0.1
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -196,6 +196,7 @@ Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 %prep
 %setup -q -a6
 %patch0 -p1
+echo Postfix TLS patch:
 patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 %patch1 -p1
 %patch2 -p1
