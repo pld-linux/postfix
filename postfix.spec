@@ -4,7 +4,7 @@ Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
 Name:		postfix
 Version:	%{ver}
-Release:	1.16
+Release:	2
 Group:		Networking/Daemons
 Group(pl):	Sieciowe/Serwery
 Copyright:	Distributable
@@ -23,6 +23,7 @@ Requires:	rc-scripts
 BuildRequires:	openldap-devel
 BuildRequires:	openssl-devel >= 0.9.4-2
 BuildRequires:	pcre-devel
+BuildRequires:	sasl-devel
 BuildRequires:	grep
 Obsoletes:	smtpdaemon
 Obsoletes:	sendmail
