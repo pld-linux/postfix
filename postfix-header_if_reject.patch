@@ -1,0 +1,189 @@
+--- src/smtpd/smtpd.h.org	Wed Feb  9 03:00:14 2005
++++ src/smtpd/smtpd.h	Mon Feb  7 20:06:58 2005
+@@ -111,6 +111,7 @@
+     int     sender_rcptmap_checked;	/* sender validated against maps */
+     int     recipient_rcptmap_checked;	/* recipient validated against maps */
+     int     warn_if_reject;		/* force reject into warning */
++    int     header_if_reject;		/* add header instead of rejecting */
+     SMTPD_DEFER defer_if_reject;	/* force reject into deferral */
+     SMTPD_DEFER defer_if_permit;	/* force permit into deferral */
+     int     defer_if_permit_client;	/* force permit into warning */
+--- src/global/mail_params.h.org	Wed Feb  9 03:01:31 2005
++++ src/global/mail_params.h	Wed Feb  9 02:01:01 2005
+@@ -1578,6 +1578,7 @@
+ #define CHECK_RECIP_NS_ACL	"check_recipient_ns_access"
+ 
+ #define WARN_IF_REJECT		"warn_if_reject"
++#define HEADER_IF_REJECT	"header_if_reject"
+ 
+ #define REJECT_RBL		"reject_rbl"	/* LaMont compatibility */
+ #define REJECT_RBL_CLIENT	"reject_rbl_client"
+--- src/smtpd/smtpd_check.c.org	Sat Dec 27 03:54:03 2003
++++ src/smtpd/smtpd_check.c	Wed Feb  9 06:04:25 2005
+@@ -351,29 +351,29 @@
+   * permit-style restriction fails. Otherwise, we could reject legitimate
+   * mail.
+   */
+-static void PRINTFLIKE(3, 4) defer_if(SMTPD_DEFER *, int, const char *,...);
++static void PRINTFLIKE(4, 5) defer_if(SMTPD_STATE *, SMTPD_DEFER *, int, const char *,...);
+ 
+ #define DEFER_IF_REJECT2(state, class, fmt, a1, a2) \
+-    defer_if(&(state)->defer_if_reject, (class), (fmt), (a1), (a2))
++    defer_if((state), &(state)->defer_if_reject, (class), (fmt), (a1), (a2))
+ #define DEFER_IF_REJECT3(state, class, fmt, a1, a2, a3) \
+-    defer_if(&(state)->defer_if_reject, (class), (fmt), (a1), (a2), (a3))
++    defer_if((state), &(state)->defer_if_reject, (class), (fmt), (a1), (a2), (a3))
+ #define DEFER_IF_REJECT4(state, class, fmt, a1, a2, a3, a4) \
+     defer_if(&(state)->defer_if_reject, (class), (fmt), (a1), (a2), (a3), (a4))
+ #define DEFER_IF_PERMIT2(state, class, fmt, a1, a2) do { \
+     if ((state)->warn_if_reject == 0) \
+-	defer_if(&(state)->defer_if_permit, (class), (fmt), (a1), (a2)); \
++	defer_if((state), &(state)->defer_if_permit, (class), (fmt), (a1), (a2)); \
+     else \
+ 	(void) smtpd_check_reject((state), (class), (fmt), (a1), (a2)); \
+     } while (0)
+ #define DEFER_IF_PERMIT3(state, class, fmt, a1, a2, a3) do { \
+     if ((state)->warn_if_reject == 0) \
+-	defer_if(&(state)->defer_if_permit, (class), (fmt), (a1), (a2), (a3)); \
++	defer_if((state), &(state)->defer_if_permit, (class), (fmt), (a1), (a2), (a3)); \
+     else \
+ 	(void) smtpd_check_reject((state), (class), (fmt), (a1), (a2), (a3)); \
+     } while (0)
+ #define DEFER_IF_PERMIT4(state, class, fmt, a1, a2, a3, a4) do { \
+     if ((state)->warn_if_reject == 0) \
+-	defer_if(&(state)->defer_if_permit, (class), (fmt), (a1), (a2), (a3), (a4)); \
++	defer_if((state), &(state)->defer_if_permit, (class), (fmt), (a1), (a2), (a3), (a4)); \
+     else \
+ 	(void) smtpd_check_reject((state), (class), (fmt), (a1), (a2), (a3), (a4)); \
+     } while (0)
+@@ -712,7 +712,18 @@
+ 			              char *format,...)
+ {
+     va_list ap;
++
++    va_start(ap, format);
++    vstring_vsprintf(error_text, format, ap);
++    va_end(ap);
++    
++    return(xsmtpd_check_reject(state, error_class, error_text));
++}
++static int xsmtpd_check_reject(SMTPD_STATE *state, int error_class,
++		VSTRING *error_text)
++{
+     int     warn_if_reject;
++    int     header_if_reject;
+     const char *whatsup;
+ 
+     /*
+@@ -726,15 +737,18 @@
+ 	warn_if_reject = 0;
+ 	whatsup = "reject";
+     }
++    if (state->header_if_reject && error_class != MAIL_ERROR_SOFTWARE) {
++	    header_if_reject = 1;
++	    whatsup = "header_warning";
++    } else {
++	    header_if_reject = 0;
++    }
+ 
+     /*
+      * Update the error class mask, and format the response. XXX What about
+      * multi-line responses? For now we cheat and send whitespace.
+      */
+     state->error_mask |= error_class;
+-    va_start(ap, format);
+-    vstring_vsprintf(error_text, format, ap);
+-    va_end(ap);
+ 
+     /*
+      * Ensure RFC compliance. We could do this inside smtpd_chat_reply() and
+@@ -796,15 +810,58 @@
+      */
+     log_whatsup(state, whatsup, STR(error_text));
+ 
+-    return (warn_if_reject ? 0 : SMTPD_CHECK_REJECT);
++    if (state->header_if_reject) {
++        VSTRING *hbuf = vstring_alloc(100);
++	int elen = strlen(STR(error_text));
++
++        if (state->prepend == 0)
++            state->prepend = argv_alloc(1);
++        printable(STR(error_text), '?');
++
++#define PRETTY_HEADER
++#ifdef PRETTY_HEADER
++        if (elen > 65) {
++	    int len = 0, n;
++            char *p;
++
++            vstring_sprintf(hbuf, "%s", "X-Reject: ");
++            while (len < elen-65 && (p = strchr(STR(error_text)+len+64, ' '))) {
++		*p = '\t';
++                n = p-(STR(error_text)+len);
++    		vstring_sprintf_append(hbuf, "%.*s\n", n, STR(error_text)+len);
++    		len+=n;
++            }
++    	    vstring_sprintf_append(hbuf, "%s", STR(error_text)+len);
++        }
++        else {
++            vstring_sprintf(hbuf, "X-Reject: %s", STR(error_text));
++        }
++#else
++        vstring_sprintf(hbuf, "X-Reject: %.*s", 999, STR(error_text));
++#endif
++        argv_add(state->prepend, STR(hbuf), ARGV_END);
++        vstring_free(hbuf);
++    }
++
++    return (warn_if_reject || header_if_reject ? 0 : SMTPD_CHECK_REJECT);    
+ }
+ 
+ /* defer_if - prepare to change our mind */
+ 
+-static void defer_if(SMTPD_DEFER *defer, int error_class, const char *fmt,...)
++static void defer_if(SMTPD_STATE *state, SMTPD_DEFER *defer, int error_class, const char *fmt,...)
+ {
+     va_list ap;
+ 
++    if (state->header_if_reject) {
++        va_start(ap, fmt);
++        vstring_vsprintf(error_text, fmt, ap);
++        va_end(ap);
++        if (STR(error_text)[0] == '5') {
++            xsmtpd_check_reject(state, error_class, error_text);
++            return;
++        }
++    }
++
+     /*
+      * Keep the first reason for this type of deferral, to minimize
+      * confusion.
+@@ -3147,6 +3204,11 @@
+ 		state->warn_if_reject = state->recursion;
+ 	    continue;
+ 	}
++	if (strcasecmp(name, HEADER_IF_REJECT) == 0) {
++	    if (state->header_if_reject == 0)
++		state->header_if_reject = state->recursion;
++	    continue;
++	}
+ 
+ 	/*
+ 	 * Spoof the is_map_command() routine, so that we do not have to make
+@@ -3500,6 +3562,8 @@
+ 
+ 	if (state->warn_if_reject >= state->recursion)
+ 	    state->warn_if_reject = 0;
++	if (state->header_if_reject >= state->recursion)
++		state->header_if_reject = 0;
+ 
+ 	if (status != 0)
+ 	    break;
+@@ -3554,6 +3618,7 @@
+ #define SMTPD_CHECK_RESET() { \
+ 	state->recursion = 0; \
+ 	state->warn_if_reject = 0; \
++	state->header_if_reject = 0; \
+ 	state->defer_if_reject.active = 0; \
+     }
+ 
