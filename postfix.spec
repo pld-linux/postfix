@@ -1,30 +1,30 @@
-Summary:     Postfix Mail Transport Agent
-Name:        postfix
-Version:     19990122-pl01
-Release:     3
-URL:         http://www.postfix.org/
-Source0:     ftp://postfix.cloud9.net/%{name}-beta-%{version}.tar.gz
-Source1:     postfix.aliases
-Source2:     postfix.cron
-Source3:     postfix.init
-Source4:     postfix-contrib-beta.tar.gz
-Source5:     postfix-beta-19990122-pl01.tar.gz.sig
-Source6:     postfix-contrib-beta.tar.gz.sig
-Source7:     mail.sh
-Patch0:      postfix-config.patch
-Patch1:	     postfix-postconf.diff
-Copyright:   Distributable
-Group:       Networking/Daemons
-Provides:    smtpdaemon
-Conflicts:   sendmail
-Conflicts:   smail
-Conflicts:   zmailer
-Conflicts:   zmail
-Conflicts:   exim
-Conflicts:   qmail
-Prereq:      /sbin/chkconfig
+Summary:	Postfix Mail Transport Agent
+Summary(pl):	Agent Pocztowy Postfix
+Name:		postfix
+Version:	19990122-pl01
+Release:	3
+URL:		http://www.postfix.org/
+Source0:	ftp://postfix.cloud9.net/%{name}-beta-%{version}.tar.gz
+Source1:	postfix.aliases
+Source2:	postfix.cron
+Source3:	postfix.init
+Source4:	postfix-contrib-beta.tar.gz
+Source5:	postfix-beta-19990122-pl01.tar.gz.sig
+Source6:	postfix-contrib-beta.tar.gz.sig
+Source7:	mail.sh
+Patch0:		postfix-config.patch
+Patch1:		postfix-postconf.diff
+Copyright:	Distributable
+Group:		Networking/Daemons
+Provides:	smtpdaemon
+Conflicts:	sendmail
+Conflicts:	smail
+Conflicts:	zmailer
+Conflicts:	zmail
+Conflicts:	exim
+Conflicts:	qmail
+Prereq:		/sbin/chkconfig
 BuildRoot:	/tmp/%{name}-%{version}-root
-Summary(pl): Agent Pocztowy Postfix
 
 %description
 Postfix is attempt to provide an alternative to the widely-used
@@ -164,16 +164,16 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) /usr/lib/postfix
 %attr(755,root,root) %dir /var/spool/postfix
 %dir %attr(700, postfix,root, 700) %dir /var/spool/postfix/active
-%dir %attr(700, postfix,root, 700) %dir /var/spool/postfix/bounce
-%dir %attr(700, postfix,root, 700) %dir /var/spool/postfix/corrupt
-%dir %attr(700, postfix,root, 700) %dir /var/spool/postfix/defer
-%dir %attr(700, postfix,root, 700) %dir /var/spool/postfix/deferred
-%dir %attr(700, postfix,root, 700) %dir /var/spool/postfix/incoming
-%dir %attr(1733,postfix,root,1733) %dir /var/spool/postfix/maildrop
-%dir %attr(755, postfix,root,755) %dir /var/spool/postfix/pid
-%dir %attr(700, postfix,root, 700) %dir /var/spool/postfix/private
-%dir %attr(755, postfix,root,755) %dir /var/spool/postfix/public
-%dir %attr(700, postfix,root, 700) %dir /var/spool/postfix/saved
+%attr(700, postfix,root, 700) %dir /var/spool/postfix/bounce
+%attr(700, postfix,root, 700) %dir /var/spool/postfix/corrupt
+%attr(700, postfix,root, 700) %dir /var/spool/postfix/defer
+%attr(700, postfix,root, 700) %dir /var/spool/postfix/deferred
+%attr(700, postfix,root, 700) %dir /var/spool/postfix/incoming
+%attr(1733,postfix,root,1733) %dir /var/spool/postfix/maildrop
+%attr(755, postfix,root,755) %dir /var/spool/postfix/pid
+%attr(700, postfix,root, 700) %dir /var/spool/postfix/private
+%attr(755, postfix,root,755) %dir /var/spool/postfix/public
+%attr(700, postfix,root, 700) %dir /var/spool/postfix/saved
 %attr(644, postfix,root) /var/spool/postfix/.nofinger
 
 %changelog
