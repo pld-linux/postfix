@@ -1,4 +1,4 @@
-%define		ver	20000514
+%define		ver	20000529
 %define		patchl	06
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
@@ -99,8 +99,9 @@ touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 {aliases,access,canonical,relocated,transport,virtual}{,.db}
 
 gzip -9nf $RPM_BUILD_ROOT%{_mandir}/man*/* \
-	LDAP_README HISTORY MYSQL_README UUCP_README 
-#	pfixtls/{README,TODO,CHANGES}
+	LDAP_README HISTORY MYSQL_README UUCP_README \
+	0README BEWARE COMPATIBILITY DEBUG_README LICENSE LMTP_README PCRE_README  \
+	RELEASE_NOTES RESTRICTION_CLASS SASL_README TODO INSPECTION_README
 		
 touch $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
@@ -180,6 +181,8 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(644,root,root,755)
 %doc html {LDAP_README,HISTORY,MYSQL_README,UUCP_README}.gz 
+%doc {0README,BEWARE,COMPATIBILITY,DEBUG_README,LICENSE,LMTP_README,PCRE_README}gz
+%doc {RELEASE_NOTES,RESTRICTION_CLASS,SASL_README,TODO,INSPECTION_README}.gz
 #pfixtls
 %doc sample-conf
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/access
