@@ -4,6 +4,7 @@ Name:		postfix
 Version:	20000922
 Release:	1
 Group:		Networking/Daemons
+Group(de):	Netzwerkwesen/Server
 Group(pl):	Sieciowe/Serwery
 Copyright:	Distributable
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-%{version}.tar.gz
@@ -92,7 +93,7 @@ ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_libdir}/sendmail
 mv -f  $RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script-sgid \
 	$RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script
 
-rm $RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script-{diff,nosgid}
+rm -f $RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script-{diff,nosgid}
 
 touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 	{aliases,access,canonical,relocated,transport,virtual}{,.db}
