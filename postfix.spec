@@ -24,6 +24,7 @@ Provides:	smtpdaemon
 Requires:	rc-scripts
 BuildRequires:	openldap-devel
 BuildRequires:	openssl-devel >= 0.9.4-2
+BuildRequires:	pcre-devel
 BuildRequires:	grep
 Obsoletes:	smtpdaemon
 Obsoletes:	sendmail
@@ -153,14 +154,14 @@ fi
 
 newaliases
 /sbin/chkconfig --add postfix
-if [ -r /var/lock/subsys/postfix ]; then
+if [ -f /var/lock/subsys/postfix ]; then
 	/etc/rc.d/init.d/postfix restart >&2
 else
 	echo "Run \"/etc/rc.d/init.d/postfix start\" to start postfix daemon." >&2
 fi
 
 %preun
-if [ $1 = 0 ]; then
+if [ "$1" = "0" ]; then
 	if [ -f /var/lock/subsys/postfix ]; then
 		/etc/rc.d/init.d/postfix stop >&2
 	fi
