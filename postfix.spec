@@ -5,13 +5,13 @@
 #	  tunnels are present
 #
 # Conditional build:
-# _without_ipv6	- no IPv6 support
-# _without_ldap	- no LDAP support
-# _without_mysql- no MySQL support
-# _without_psql	- no Postgres support
-# _without_sasl	- no SMTP AUTH support
-# _without_ssl	- no SSL/TLS support
-# _with_polish	- polish messages support
+# _without_ipv6		- without IPv6 support
+# _without_ldap		- without LDAP map module
+# _without_mysql	- without MySQL map module
+# _without_pgsql	- without PostgreSQL map module
+# _without_sasl		- without SMTP AUTH support
+# _without_ssl		- without SSL/TLS support
+# _with_polish		- with double English+Polish messages
 #
 %define	tls_ver 0.8.13-2.0.3-0.9.7
 Summary:	Postfix Mail Transport Agent
@@ -51,7 +51,7 @@ BuildRequires:	grep
 %{!?_without_ldap:BuildRequires:	openldap-devel >= 2.0.0}
 %{!?_without_ssl:BuildRequires:	openssl-devel >= 0.9.6h}
 BuildRequires:	pcre-devel
-%{!?_without_psql:BuildRequires:	postgresql-devel}
+%{!?_without_pgsql:BuildRequires:	postgresql-devel}
 PreReq:		rc-scripts
 PreReq:		sed
 Requires(pre):	/usr/sbin/useradd
@@ -213,10 +213,10 @@ patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 %{__make} -f Makefile.init makefiles
 %{__make} tidy
 %{__make} DEBUG="" OPT="%{rpmcflags}" \
-	%{?_without_psql:PGSQLSO=""} \
-	%{?_without_mysql:MYSQLSO=""} \
 	%{?_without_ldap:LDAPSO=""} \
-	CCARGS="%{!?_without_ldap:-DHAS_LDAP} -DHAS_PCRE %{!?_without_sasl:-DUSE_SASL_AUTH -I%{_includedir}/sasl} %{!?_without_mysql:-DHAS_MYSQL} %{!?_without_psql:-DHAS_PGSQL} %{!?_without_mysql:-I%{_includedir}/mysql} %{!?_without_psql:-I%{_includedir}/postgresql} %{!?_without_ssl:-DHAS_SSL -I%{_includedir}/openssl} -DMAX_DYNAMIC_MAPS" \
+	%{?_without_mysql:MYSQLSO=""} \
+	%{?_without_pgsql:PGSQLSO=""} \
+	CCARGS="%{!?_without_ldap:-DHAS_LDAP} -DHAS_PCRE %{!?_without_sasl:-DUSE_SASL_AUTH -I/usr/include/sasl} %{!?_without_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{!?_without_pgsql:-DHAS_PGSQL -I/usr/include/postgresql} %{!?_without_ssl:-DHAS_SSL -I/usr/include/openssl} -DMAX_DYNAMIC_MAPS" \
 	AUXLIBS="-ldb -lresolv %{!?_without_sasl:-lsasl} %{!?_without_ssl:-lssl -lcrypto}"
 
 %install
@@ -389,13 +389,13 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %attr(755,root,root) %{_libdir}/libpostfix-*.so
 %{_includedir}/postfix
 
-%if %{!?_without_ldap:1}%{?_without_ldap:0}
+%if 0%{!?_without_ldap:1}
 %files dict-ldap
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_ldap.so
 %endif
 
-%if %{!?_without_mysql:1}%{?_without_mysql:0}
+%if 0%{!?_without_mysql:1}
 %files dict-mysql
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_mysql.so
@@ -405,7 +405,7 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_pcre.so
 
-%if %{!?_without_psql:1}%{?_without_psql:0}
+%if 0%{!?_without_pgsql:1}
 %files dict-pgsql
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_pgsql.so
