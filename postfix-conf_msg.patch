@@ -1,6 +1,6 @@
---- snapshot-20010329/src/global/mail_params.h.wiget	Thu Apr 26 14:55:19 2001
-+++ snapshot-20010329/src/global/mail_params.h	Thu Apr 26 14:55:20 2001
-@@ -1423,6 +1423,13 @@
+--- snapshot-20010525/src/global/mail_params.h.wiget	Tue May 29 16:39:02 2001
++++ snapshot-20010525/src/global/mail_params.h	Tue May 29 16:39:02 2001
+@@ -1434,6 +1434,13 @@
  #define DEF_SYSLOG_NAME			"postfix"
  extern char *var_syslog_name;
  
@@ -14,25 +14,25 @@
  /* LICENSE
  /* .ad
  /* .fi
---- snapshot-20010329/src/global/mail_params.c.wiget	Thu Apr 26 14:55:19 2001
-+++ snapshot-20010329/src/global/mail_params.c	Thu Apr 26 14:55:20 2001
-@@ -65,6 +65,7 @@
- /*
- /*	char	*var_import_environ;
+--- snapshot-20010525/src/global/mail_params.c.wiget	Tue May 29 16:39:02 2001
++++ snapshot-20010525/src/global/mail_params.c	Tue May 29 16:41:04 2001
+@@ -67,6 +67,7 @@
  /*	char	*var_export_environ;
+ /*	char	*var_debug_peer_list;
+ /*	int	var_debug_peer_level;
 +/*  char 	*var_reject_reply_msg_access_denied;
  /*
  /*	void	mail_params_init()
  /* DESCRIPTION
-@@ -206,6 +207,7 @@
- 
- char   *var_import_environ;
+@@ -210,6 +211,7 @@
  char   *var_export_environ;
+ char   *var_debug_peer_list;
+ int     var_debug_peer_level;
 +char   *var_reject_reply_msg_access_denied;
  
  /* check_myhostname - lookup hostname and validate */
  
-@@ -343,6 +345,7 @@
+@@ -348,6 +350,7 @@
  	VAR_SMTP_TLS_CLIST, DEF_SMTP_TLS_CLIST, &var_smtp_tls_cipherlist, 0, 0,
  	VAR_SMTP_TLS_SCACHE_DB, DEF_SMTP_TLS_SCACHE_DB, &var_smtp_tls_scache_db, 0, 0,
  	VAR_TLS_DAEMON_RAND_SOURCE, DEF_TLS_DAEMON_RAND_SOURCE, &var_tls_daemon_rand_source, 0, 0,
@@ -40,9 +40,9 @@
  	0,
      };
      static CONFIG_STR_FN_TABLE function_str_defaults_2[] = {
---- snapshot-20010329/src/smtpd/smtpd_check.c.wiget	Thu Apr 26 14:55:20 2001
-+++ snapshot-20010329/src/smtpd/smtpd_check.c	Thu Apr 26 15:17:10 2001
-@@ -823,6 +823,7 @@
+--- snapshot-20010525/src/smtpd/smtpd_check.c.wiget	Tue May 29 16:39:02 2001
++++ snapshot-20010525/src/smtpd/smtpd_check.c	Tue May 29 16:39:02 2001
+@@ -890,6 +890,7 @@
  			               char *reply_name, char *reply_class)
  {
      char   *myname = "check_relay_domains";
@@ -50,7 +50,7 @@
  
      if (msg_verbose)
  	msg_info("%s: %s", myname, recipient);
-@@ -842,9 +843,10 @@
+@@ -909,9 +910,10 @@
      /*
       * Deny relaying between sites that both are not in relay_domains.
       */
@@ -63,7 +63,7 @@
  }
  
  /* permit_auth_destination - OK for message relaying */
-@@ -902,6 +904,7 @@
+@@ -970,6 +972,7 @@
  static int reject_unauth_destination(SMTPD_STATE *state, char *recipient)
  {
      char   *myname = "reject_unauth_destination";
@@ -71,7 +71,7 @@
  
      if (msg_verbose)
  	msg_info("%s: %s", myname, recipient);
-@@ -915,9 +918,10 @@
+@@ -983,9 +986,10 @@
      /*
       * Reject relaying to sites that are not listed in relay_domains.
       */
@@ -84,9 +84,9 @@
  }
  
  /* reject_unauth_pipelining - reject improper use of SMTP command pipelining */
---- snapshot-20010329/src/smtpd/smtpd.c.wiget	Thu Apr 26 14:55:19 2001
-+++ snapshot-20010329/src/smtpd/smtpd.c	Thu Apr 26 14:55:20 2001
-@@ -1734,6 +1734,7 @@
+--- snapshot-20010525/src/smtpd/smtpd.c.wiget	Tue May 29 16:39:02 2001
++++ snapshot-20010525/src/smtpd/smtpd.c	Tue May 29 16:39:02 2001
+@@ -1804,6 +1804,7 @@
  	VAR_SMTPD_SASL_REALM, DEF_SMTPD_SASL_REALM, &var_smtpd_sasl_realm, 1, 0,
  	VAR_FILTER_XPORT, DEF_FILTER_XPORT, &var_filter_xport, 0, 0,
  	VAR_RELAY_CCERTS, DEF_RELAY_CCERTS, &var_relay_ccerts, 0, 0,
