@@ -66,10 +66,9 @@ diff -urN snapshot-20011127/conf/main.cf snapshot-20011127.dzikus/conf/main.cf
  
  # The mailbox_transport specifies the optional transport in master.cf
  # to use after processing aliases and .forward files. This parameter
-@@ -503,3 +503,4 @@
+@@ -503,2 +503,3 @@
  	 xxgdb $daemon_directory/$process_name $process_id & sleep 5
  
- # Other configurable parameters.
 +biff = no
 diff -urN snapshot-20011127/src/global/mail_params.h snapshot-20011127.dzikus/src/global/mail_params.h
 --- snapshot-20011127/src/global/mail_params.h	Wed Nov 28 01:04:35 2001
