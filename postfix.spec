@@ -1,11 +1,11 @@
 %define		ver	19991231
-%define		patchl	04
-%define		pfixtls	0.5.5-19991231-pl04-0.9.5
+%define		patchl	05
+%define		pfixtls	0.6.1-19991231-pl05-0.9.5
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
 Name:		postfix
 Version:	%{ver}_pl%{patchl}
-Release:	2
+Release:	1
 Group:		Networking/Daemons
 Group(pl):	Sieciowe/Serwery
 Copyright:	Distributable
