@@ -7,13 +7,13 @@ Group:		Networking/Daemons
 Group(pl):	Sieciowe/Serwery
 Copyright:	Distributable
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-%{version}.tar.gz
-Source1:	postfix.aliases
-Source2:	postfix.cron
-Source3:	postfix.init
-Source5:	postfix.sysconfig
-Patch0:		postfix-config.patch
-Patch1:		http://www.misiek.eu.org/ipv6/postfix-ver20000514-ipv6-20000522.patch.gz
-Patch2:		postfix-pl.patch
+Source1:	%{name}.aliases
+Source2:	%{name}.cron
+Source3:	%{name}.init
+Source5:	%{name}.sysconfig
+Patch0:		%{name}-config.patch
+Patch1:		http://www.misiek.eu.org/ipv6/%{name}-ver20000514-ipv6-20000522.patch.gz
+Patch2:		%{name}-pl.patch
 URL:		http://www.postfix.org/
 Provides:	smtpdaemon
 Requires:	rc-scripts
@@ -90,13 +90,13 @@ ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
 ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/newaliases
 ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_libdir}/sendmail
 
-mv -f	$RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script-sgid \
+mv -f $RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script\
 	$RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script
 
-rm -f	$RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script-{diff,nosgid}
+rm $RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script-{diff,nosgid}
 
 touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
-{aliases,access,canonical,relocated,transport,virtual}{,.db}
+	{aliases,access,canonical,relocated,transport,virtual}{,.db}
 
 gzip -9nf $RPM_BUILD_ROOT%{_mandir}/man*/* \
 	LDAP_README HISTORY MYSQL_README UUCP_README \
