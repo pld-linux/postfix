@@ -37,7 +37,7 @@ case "$1" in
 		msg_starting Postfix
 		busy
 		MSG="`/usr/sbin/postfix start 2>&1`"
-		if [ "$?" = "0" ] ; then
+		if [ $? -eq 0 ]; then
 			ok
 			touch /var/lock/subsys/postfix
 		else
@@ -93,7 +93,7 @@ case "$1" in
 	extra_db=$(ls -1 /etc/mail/*.db 2> /dev/null | grep -v aliases.db | sed -e 's#.db$##')
 	for base in $standard_db $extra_db; do
 		I=$(basename "$base")
-		if [ -f /etc/mail/$I ] ; then
+		if [ -f /etc/mail/$I ]; then
 			/usr/sbin/postmap hash:/etc/mail/$I < /etc/mail/$I
 		fi
 	done
