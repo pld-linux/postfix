@@ -44,6 +44,7 @@ Patch3:		%{name}-pgsql.patch
 Patch4:		%{name}-master.cf_cyrus.patch
 Patch5:		%{name}-ipv6.patch
 Patch6:		%{name}-pl.patch
+%{?_with_cdb:Patch7:%{name}-cdb_man.patch}
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{!?_without_sasl:BuildRequires:	cyrus-sasl-devel}
@@ -81,6 +82,7 @@ Obsoletes:	smail
 Obsoletes:	zmailer
 Requires:	diffutils
 Requires:	findutils
+%{?_with_cdb:Requires:tinycdb}
 
 %description
 Postfix is attempt to provide an alternative to the widely-used
@@ -211,6 +213,7 @@ patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 %patch4 -p1
 %{!?_without_ipv6:%patch5 -p1}
 %{?_with_polish:%patch6 -p1}
+%{?_with_cdb:%patch7 -p1}
 %{?_with_cdb:sh dict_cdb.sh}
 
 %build
