@@ -271,7 +271,7 @@ touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 
 > $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
-rm -rf /etc/mail/makedefs.out /usr/share/man/cat*
+rm -rf $RPM_BUILD_ROOT/etc/mail/makedefs.out $RPM_BUILD_ROOT/usr/share/man/cat*
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -353,6 +353,8 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %doc html *README COMPATIBILITY HISTORY LICENSE RELEASE_NOTES
 %doc README_FILES/*README
 %doc sample-conf
+%doc examples/smtpd-policy
+%doc pfixtls
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/access
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/aliases
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/canonical
