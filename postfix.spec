@@ -18,7 +18,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	1.1.12
-Release:	2
+Release:	3
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -41,7 +41,7 @@ BuildRequires:	awk
 %{!?_without_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db3-devel
 BuildRequires:	grep
-%{!?_without_ipv6:BuildRequires:	libinet6 >= 0.20010420-3}
+%{!?_without_ipv6:BuildRequires:	libinet6 >= 0.20030228}
 %{!?_without_mysql:BuildRequires:	mysql-devel}
 %{!?_without_ldap:BuildRequires:	openldap-devel >= 2.0.0}
 %{!?_without_ssl:BuildRequires:	openssl-devel >= 0.9.6i}
