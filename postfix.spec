@@ -1,6 +1,6 @@
 #
 # Conditional build:
-# --without sasl - build wihtout SMTP AUTH support
+# --without sasl - build without SMTP AUTH support
 # --without ssl  - build without SSL/TLS support
 # --without ipv6 - build without IPv6 support
 #
