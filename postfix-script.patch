@@ -1,0 +1,22 @@
+--- snapshot-20010329/conf/postfix-script-sgid.orig	Wed Apr 25 15:23:06 2001
++++ snapshot-20010329/conf/postfix-script-sgid	Wed Apr 25 15:24:08 2001
+@@ -171,7 +171,7 @@
+ 		-exec $WARN not owned by root: {} \;
+ 
+ 	find $daemon_directory/. $config_directory/. \
+-		\( -perm -020 -o -perm -002 \) \
++		\( -perm +020 -o -perm +002 \) \
+ 		-exec $WARN group or other writable: {} \;
+ 
+ 	find $queue_directory/* $config_directory/* -name '*core' \
+--- snapshot-20010329/conf/postfix-script-nosgid.orig	Wed Apr 25 15:22:53 2001
++++ snapshot-20010329/conf/postfix-script-nosgid	Wed Apr 25 15:23:46 2001
+@@ -171,7 +171,7 @@
+ 		-exec $WARN not owned by root: {} \;
+ 
+ 	find $daemon_directory/. $config_directory/. \
+-		\( -perm -020 -o -perm -002 \) \
++		\( -perm +020 -o -perm +002 \) \
+ 		-exec $WARN group or other writable: {} \;
+ 
+ 	find $queue_directory/* $config_directory/* -name '*core' \
