@@ -1,7 +1,7 @@
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
 Name:		postfix
-Version:	20000922
+Version:	20000923
 Release:	1
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
