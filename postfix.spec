@@ -18,7 +18,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.0.19
-Release:	3
+Release:	4
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -43,6 +43,7 @@ Patch6:		%{name}-cdb_man.patch
 Patch7:		%{name}-ns-mx-acl.patch
 Patch8:		%{name}-kill_warnings.patch
 Patch9:		%{name}-ipv6-kill_warnings.patch
+Patch10:	%{name}-dict_ldap.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
@@ -50,7 +51,7 @@ BuildRequires:	db-devel
 BuildRequires:	grep
 BuildRequires:	libinet6 >= 0.20030228-1
 %{?with_mysql:BuildRequires:	mysql-devel}
-%{?with_ldap:BuildRequires:	openldap-devel >= 2.0.0}
+%{?with_ldap:BuildRequires:	openldap-devel >= 2.2.0}
 %{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7d}
 BuildRequires:	pcre-devel
 %{?with_pgsql:BuildRequires:	postgresql-devel}
@@ -217,6 +218,7 @@ zcat %{SOURCE8} | patch -p1 -s
 %patch8 -p1
 %patch9 -p1
 %{?with_cdb:sh dict_cdb.sh}
+%patch10 -p1
 
 %build
 %{__make} -f Makefile.init makefiles
