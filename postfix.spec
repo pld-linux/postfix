@@ -1,11 +1,11 @@
-%define		ver	19990906
-%define		patchl	09
-%define		pfixtls	0.4.7-19990906-pl09-0.9.4
+%define		ver	19991231
+%define		patchl	01
+%define		pfixtls	0.5.1-19991231-pl01-0.9.4
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
 Name:		postfix
 Version:	%{ver}_pl%{patchl}
-Release:	3
+Release:	1
 Group:		Networking/Daemons
 Group(pl):	Sieciowe/Serwery
 Copyright:	Distributable
@@ -51,8 +51,8 @@ nie denerwowaæ Twoich u¿ytkowników. Ta wersja wspiera IPv6 oraz LDAP.
 
 %prep
 %setup -q -n postfix-%{ver}-pl%{patchl} -a 4
-%patch0 -p1
 patch -p1 -s <pfixtls-%{pfixtls}/pfixtls.diff
+%patch0 -p1 -b .wiget
 # patch1 or patch2 (with or without tls patch applied)
 #%patch1 -p1 
 #%patch2 -p1
@@ -61,8 +61,8 @@ patch -p1 -s <pfixtls-%{pfixtls}/pfixtls.diff
 %build
 make -f Makefile.init makefiles
 make tidy
-make DEBUG="" OPT="$RPM_OPT_FLAGS" CCARGS="-DHAS_LDAP -DHAS_SSL" \
-     AUXLIBS="-llber -lldap -lssl -lcrypto"
+make DEBUG="-DINET6_DEBUG" OPT="$RPM_OPT_FLAGS" CCARGS="-DHAS_LDAP -DHAS_SSL" \
+     AUXLIBS="-llber -lldap -lssl -lcrypto -lnsl -ldb -lresolv"
 
 %install
 rm -rf $RPM_BUILD_ROOT
