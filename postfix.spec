@@ -6,6 +6,7 @@
 %bcond_without	sasl	# without SMTP AUTH support
 %bcond_without	ssl	# without SSL/TLS support
 %bcond_without	cdb	# without cdb map support
+%bcond_with	vda	# with VDA patch
 #%bcond_with	polish	# with double English+Polish messages
 #
 # TODO:
@@ -37,6 +38,8 @@ Source7:	ftp://ftp.corpit.ru/pub/postfix/%{name}-dict_cdb-1.1.11-20021104.tar.gz
 Source8:	http://www.ipnet6.org/postfix/download/tls+ipv6-%{_tls_ipv6_ver}.patch.gz
 # Source8-md5:	5b02ebf2ec104c43f805d2bcb7bb16ef
 Source9:	%{name}.pamd
+Source10:	http://web.onda.com.br/nadal/postfix/VDA/%{name}-%{version}-trash.patch.gz
+# Source10-md5:	868209c12cf214566130b9c8b968cfed
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
@@ -211,6 +214,7 @@ Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 %prep
 %setup -q %{?with_cdb:-a7}
 zcat %{SOURCE8} | patch -p1 -s
+%{?with_vda:zcat %{SOURCE10} | patch -p1 -s}
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
