@@ -271,6 +271,8 @@ touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 
 > $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
+rm -rf /etc/mail/makedefs.out /usr/share/man/cat*
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -311,6 +313,8 @@ if [ "$1" = "1" ]; then
 	if ! grep -q "^myhostname" /etc/mail/main.cf; then
 		postconf -e myhostname=`/bin/hostname -f`
 	fi
+else
+	postfix upgrade-configuration
 fi
 
 newaliases
@@ -352,11 +356,12 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/access
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/aliases
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/canonical
-%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/pcre_table
-%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/regexp_table
+#%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/pcre_table
+#%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/regexp_table
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/relocated
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/transport
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/virtual
+%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/header_checks
 #%ghost %{_sysconfdir}/mail/*.db
 %dir %{_sysconfdir}/mail
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/dynamicmaps.cf
