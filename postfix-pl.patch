@@ -343,7 +343,7 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_check.c postfix-1.1.2/src/smtpd/smt
  	    && NOMATCH(virtual_maps, CONST_STR(reply->recipient))) {
  	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
 -				   "%d <%s>: User unknown", 550, recipient);
-++ 				   "%d <%s>: Nieznany uzytkownik / User unknown", 550, recipient);
++ 				   "%d <%s>: Nieznany uzytkownik / User unknown", 550, recipient);
  	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
  	}
      }
