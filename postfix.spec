@@ -35,16 +35,18 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 %define		_sysconfdir	/etc
 
 %description
-Postfix is attempt to provide an alternative to the widely-used Sendmail
-program. Postfix attempts to be fast, easy to administer, and hopefully
-secure, while at the same time being sendmail compatible enough to not upset
-your users. This version have IPv6 support and LDAP support.
-	 
+Postfix is attempt to provide an alternative to the widely-used
+Sendmail program. Postfix attempts to be fast, easy to administer, and
+hopefully secure, while at the same time being sendmail compatible
+enough to not upset your users. This version have IPv6 support and
+LDAP support.
+
 %description -l pl
-Postfix jest prób± dostarczenia alternatywnego MTA w stosunku do szeroko
-u¿ywanego sendmaila. Postfix w zamierzeniu ma byæ szybki, ³atwy w
-administrowaniu, bezpieczny oraz ma byæ na tyle kompatybilny z sendmailem by
-nie denerwowaæ Twoich u¿ytkowników. Ta wersja wspiera IPv6 oraz LDAP.
+Postfix jest prób± dostarczenia alternatywnego MTA w stosunku do
+szeroko u¿ywanego sendmaila. Postfix w zamierzeniu ma byæ szybki,
+³atwy w administrowaniu, bezpieczny oraz ma byæ na tyle kompatybilny z
+sendmailem by nie denerwowaæ Twoich u¿ytkowników. Ta wersja wspiera
+IPv6 oraz LDAP.
 
 %prep
 %setup -q -n snapshot-%{version}
@@ -141,7 +143,7 @@ fi
 %post
 if ! grep -q "^postmaster:" /etc/mail/aliases; then
         echo "Adding Entry for postmaster in /etc/mail/aliases" >&2
-        echo "postmaster:       root" >>/etc/mail/aliases
+        echo "postmaster:	root" >>/etc/mail/aliases
 fi
 if ! grep -q "^myhostname" /etc/mail/main.cf; then
 	postconf -e myhostname=`hostname -f`
