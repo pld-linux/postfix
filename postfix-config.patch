@@ -1,5 +1,5 @@
---- postfix-19991231-pl01/global/mail_params.h.wiget	Mon Jan  3 17:30:43 2000
-+++ postfix-19991231-pl01/global/mail_params.h	Mon Jan  3 17:30:43 2000
+--- snapshot-20000507/global/mail_params.h.wiget	Mon May  8 01:42:27 2000
++++ snapshot-20000507/global/mail_params.h	Tue May  9 16:42:16 2000
 @@ -187,7 +187,7 @@
    */
  #define VAR_CONFIG_DIR		"config_directory"
@@ -9,18 +9,9 @@
  #endif
  extern char *var_config_dir;
  
---- postfix-19991231-pl01/util/sys_defs.h.wiget	Thu Nov 18 03:33:35 1999
-+++ postfix-19991231-pl01/util/sys_defs.h	Mon Jan  3 17:30:43 2000
-@@ -31,7 +31,7 @@
- #define HAS_DB
- #define HAS_SA_LEN
- #define DEF_DB_TYPE	"hash"
--#define ALIAS_DB_MAP	"hash:/etc/aliases"
-+#define ALIAS_DB_MAP	"hash:/etc/mail/aliases"
- #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
- #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
- #define USE_STATFS
-@@ -331,7 +331,7 @@
+--- snapshot-20000507/util/sys_defs.h.wiget	Sun May  7 19:30:37 2000
++++ snapshot-20000507/util/sys_defs.h	Tue May  9 16:42:16 2000
+@@ -358,7 +358,7 @@
  #define HAS_FSYNC
  #define HAS_DB
  #define DEF_DB_TYPE	"hash"
@@ -29,8 +20,8 @@
  #define HAS_NIS
  #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
  #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
---- postfix-19991231-pl01/conf/main.cf.wiget	Sun Jan  2 20:19:11 2000
-+++ postfix-19991231-pl01/conf/main.cf	Mon Jan  3 17:48:19 2000
+--- snapshot-20000507/conf/main.cf.wiget	Fri Jan 28 15:44:47 2000
++++ snapshot-20000507/conf/main.cf	Tue May  9 16:42:16 2000
 @@ -24,7 +24,7 @@
  # default value is $program_directory. This directory must be owned
  # by root.
@@ -49,17 +40,15 @@
  
  # INTERNET HOST AND DOMAIN NAMES
  # 
-@@ -69,8 +69,8 @@
+@@ -69,7 +69,7 @@
  # a domain-wide alias database that aliases each user to
  # user@that.users.mailhost.
  #
 -#myorigin = $myhostname
--#myorigin = $mydomain
 +myorigin = $myhostname
-+#myorigin = $mydomain
+ #myorigin = $mydomain
  
  # RECEIVING MAIL
- 
 @@ -168,7 +168,7 @@
  # "postfix reload" to eliminate the delay.
  #
@@ -98,7 +87,7 @@
  
  # The mailbox_transport specifies the optional transport in master.cf
  # to use after processing aliases and .forward files. This parameter
-@@ -381,3 +381,4 @@
+@@ -379,3 +379,4 @@
  	 xxgdb $daemon_directory/$process_name $process_id & sleep 5
  
  # Other configurable parameters.
