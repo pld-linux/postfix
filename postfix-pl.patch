@@ -1,245 +1,32 @@
---- postfix-19991231-pl06/src/global/pipe_command.c.wiget	Fri Nov 19 21:54:37 1999
-+++ postfix-19991231-pl06/src/global/pipe_command.c	Tue Apr  4 21:11:22 2000
-@@ -462,9 +462,9 @@
- 	if (pipe_command_wait_or_kill(pid, &wait_status, SIGKILL) < 0)
- 	    msg_fatal("wait: %m");
- 	if (pipe_command_timeout) {
--	    vstring_sprintf(why, "Command time limit exceeded: \"%s\"%s%s",
-+	    vstring_sprintf(why, "Przekroczony czas wykonania polecania / Command time limit exceeded: \"%s\"%s%s",
- 			    args.command,
--			    log_len ? ". Command output: " : "", log_buf);
-+			    log_len ? ". Wyniki polecenia / Command output: " : "", log_buf);
- 	    return (PIPE_STAT_BOUNCE);
- 	}
- 
-@@ -474,26 +474,26 @@
- 	 */
- 	if (!NORMAL_EXIT_STATUS(wait_status)) {
- 	    if (WIFSIGNALED(wait_status)) {
--		vstring_sprintf(why, "Command died with signal %d: \"%s\"%s%s",
-+		vstring_sprintf(why, "Polecenie zakonczone bledem / Command died with signal %d: \"%s\"%s%s",
- 				WTERMSIG(wait_status),
- 				args.command,
--			      log_len ? ". Command output: " : "", log_buf);
-+			      log_len ? ". Wynik polecenia / Command output: " : "", log_buf);
- 		return (PIPE_STAT_BOUNCE);
- 	    } else if (SYS_EXITS_CODE(WEXITSTATUS(wait_status))) {
- 		vstring_sprintf(why, "%s%s%s",
- 				sys_exits_strerror(WEXITSTATUS(wait_status)),
--			      log_len ? ". Command output: " : "", log_buf);
-+			      log_len ? ". Wyniki polecenia / Command output: " : "", log_buf);
- 		return (sys_exits_softerror(WEXITSTATUS(wait_status)) ?
- 			PIPE_STAT_DEFER : PIPE_STAT_BOUNCE);
- 	    } else {
--		vstring_sprintf(why, "Command died with status %d: \"%s\"%s%s",
-+		vstring_sprintf(why, "Polecenie zakonczone bledem / Command died with status %d: \"%s\"%s%s",
- 				WEXITSTATUS(wait_status),
- 				args.command,
--			      log_len ? ". Command output: " : "", log_buf);
-+			      log_len ? ". Wyniki polecenia / Command output: " : "", log_buf);
- 		return (PIPE_STAT_BOUNCE);
- 	    }
- 	} else if (write_status && errno != EPIPE) {
--	    vstring_sprintf(why, "Command failed: %m: \"%s\"", args.command);
-+	    vstring_sprintf(why, "Polecenia niepowiodlo sie / Command failed: %m: \"%s\"", args.command);
- 	    return (PIPE_STAT_DEFER);
- 	} else {
- 	    return (PIPE_STAT_OK);
---- postfix-19991231-pl06/src/global/sys_exits.c.wiget	Tue Apr  4 21:11:49 2000
-+++ postfix-19991231-pl06/src/global/sys_exits.c	Tue Apr  4 21:26:36 2000
-@@ -60,21 +60,21 @@
- } SYS_EXITS_TABLE;
- 
- static SYS_EXITS_TABLE sys_exits_table[] = {
--    0, EX_USAGE, "command line usage error",
--    0, EX_DATAERR, "data format error",
-+    0, EX_USAGE, "bledne wywylanie polecanie / command line usage error",
-+    0, EX_DATAERR, "blad formatu danych / data format error",
-     0, EX_NOINPUT, "cannot open input",
--    0, EX_NOUSER, "user unknown",
-+    0, EX_NOUSER, "nieznany uzytkownik / user unknown",
-     0, EX_NOHOST, "host name unknown",
--    0, EX_UNAVAILABLE, "service unavailable",
--    0, EX_SOFTWARE, "internal software error",
-+    0, EX_UNAVAILABLE, "niedostepny serwis / service unavailable",
-+    0, EX_SOFTWARE, "wewnetrzny blad oprogramowania / internal software error",
-     1, EX_OSERR, "system resource problem",
-     0, EX_OSFILE, "critical OS file missing",
-     0, EX_CANTCREAT, "can't create user output file",
-     0, EX_IOERR, "input/output error",
--    1, EX_TEMPFAIL, "temporary failure",
-+    1, EX_TEMPFAIL, "chwilowe niepowodzenie / temporary failure",
-     0, EX_PROTOCOL, "remote error in protocol",
--    0, EX_NOPERM, "permission denied",
--    0, EX_CONFIG, "local configuration error",
-+    0, EX_NOPERM, "brak dostêpu / permission denied",
-+    0, EX_CONFIG, "blad lokalnej konfiguracji / local configuration error",
- };
- 
- /* sys_exits_strerror - map exit status to error string */
---- postfix-19991231-pl06/src/smtpd/smtpd_check.c.wiget	Tue Apr  4 21:11:22 2000
-+++ postfix-19991231-pl06/src/smtpd/smtpd_check.c	Tue Apr  4 21:11:22 2000
-@@ -638,7 +638,7 @@
-      */
-     if (!valid_hostaddr(test_addr))
- 	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
--				  "%d <%s>: %s rejected: invalid ip address",
-+				  "%d <%s>: %s odrzucony/rejected: niepoprawny adres IP/invalid IP address",
- 				var_bad_name_code, reply_name, reply_class);
-     else
- 	stat = SMTPD_CHECK_DUNNO;
-@@ -674,7 +674,7 @@
-      */
-     if (!valid_hostname(test_name))
- 	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
--				  "%d <%s>: %s rejected: Invalid name",
-+				  "%d <%s>: %s odrzucony/rejected: Niepoprawna nazwa / Invalid name",
- 				var_bad_name_code, reply_name, reply_class);
-     else
- 	stat = SMTPD_CHECK_DUNNO;
-@@ -710,7 +710,7 @@
-      */
-     if (!valid_hostname(test_name) || !strchr(test_name, '.'))
- 	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
--		      "%d <%s>: %s rejected: need fully-qualified hostname",
-+		      "%d <%s>: %s odrzucowny/rejected: need fully-qualified hostname",
- 				var_non_fqdn_code, reply_name, reply_class);
-     else
- 	stat = SMTPD_CHECK_DUNNO;
-@@ -739,7 +739,7 @@
- 				  (VSTRING *) 0, T_A, T_MX, 0);
-     if (dns_status != DNS_OK)
- 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
--				   "%d <%s>: %s rejected: Host not found",
-+				   "%d <%s>: %s odrzucony/rejected: Host not found",
- 				   dns_status == DNS_NOTFOUND ?
- 				   var_unk_name_code : 450,
- 				   reply_name, reply_class));
-@@ -761,7 +761,7 @@
- 				  (VSTRING *) 0, T_A, T_MX, 0);
-     if (dns_status != DNS_OK)
- 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
--				   "%d <%s>: %s rejected: Domain not found",
-+				   "%d <%s>: %s odrzucony/rejected: Domain not found",
- 				   dns_status == DNS_NOTFOUND ?
- 				   var_unk_addr_code : 450,
- 				   reply_name, reply_class));
-@@ -807,7 +807,7 @@
-      * Deny relaying between sites that both are not in relay_domains.
-      */
-     return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
--			       "%d <%s>: %s rejected: Relay access denied",
-+			       "%d <%s>: %s odrzucony/rejected: Relay access denied",
- 			       var_relay_code, reply_name, reply_class));
- }
- 
-@@ -1075,7 +1075,7 @@
-      */
-     if (!*test_dom || !valid_hostname(test_dom) || !strchr(test_dom, '.'))
- 	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
--		       "%d <%s>: %s rejected: need fully-qualified address",
-+		       "%d <%s>: %s odrzucony/rejected: need fully-qualified address",
- 				var_non_fqdn_code, reply_name, reply_class);
-     else
- 	stat = SMTPD_CHECK_DUNNO;
-@@ -1153,7 +1153,7 @@
-      */
-     if (strcasecmp(value, "REJECT") == 0)
- 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
--				   "%d <%s>: %s rejected: Access denied",
-+				   "%d <%s>: %s odrzucony/rejected: Brak dostepu / Access denied",
- 			     var_access_map_code, reply_name, reply_class));
- 
-     /*
-@@ -1172,7 +1172,7 @@
- 	while (ISDIGIT(*value) || ISSPACE(*value))
- 	    value++;
- 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
--				   "%d <%s>: %s rejected: %s",
-+				   "%d <%s>: %s odrzucony/rejected: %s",
- 				   code, reply_name, reply_class, value));
-     }
- 
-@@ -1485,7 +1485,7 @@
- 	    rbl_fodder = rbl_reason = "";
- 	}
- 	result = smtpd_check_reject(state, MAIL_ERROR_POLICY,
--			"%d Service unavailable; [%s] blocked using %s%s%s",
-+			"%d Niedostepny serwis / Service unavailable; [%s] blocked using %s%s%s",
- 				 var_maps_rbl_code, state->addr, rbl_domain,
- 				    rbl_fodder, rbl_reason);
- 	if (txt_list)
-@@ -1563,7 +1563,7 @@
- 			 cpp[1], PERMIT_ALL);
- 	} else if (strcasecmp(name, REJECT_ALL) == 0) {
- 	    status = smtpd_check_reject(state, MAIL_ERROR_POLICY,
--				      "%d <%s>: %s rejected: Access denied",
-+				      "%d <%s>: %s odrzucony/rejected: Brak dostepu / Access denied",
- 				  var_reject_code, reply_name, reply_class);
- 	    if (cpp[1] != 0)
- 		msg_warn("restriction `%s' after `%s' is ignored",
-@@ -1992,7 +1992,7 @@
- 	    && !mail_addr_find(relocated_maps, STR(reply.recipient), NOP)
- 	    && !mail_addr_find(local_rcpt_maps, STR(reply.recipient), NOP)) {
- 	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
--				      "%d <%s>: User unknown",
-+				      "%d <%s>: Nieznany uzytkownik / User unknown",
- 				      dict_errno ? 450 : 550, recipient);
- 	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
- 	}
-@@ -2005,7 +2005,7 @@
- 	    && !mail_addr_find(virtual_maps, STR(reply.recipient), NOP)
- 	    && maps_find(virtual_maps, domain, 0)) {
- 	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
--				      "%d <%s>: User unknown",
-+				      "%d <%s>: Nieznany uzytkownik / User unknown",
- 				      dict_errno ? 450 : 550, recipient);
- 	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
- 	}
-@@ -2028,7 +2028,7 @@
- 
-     if (var_message_limit > 0 && size > var_message_limit) {
- 	(void) smtpd_check_reject(state, MAIL_ERROR_POLICY,
--				  "552 Message size exceeds fixed limit");
-+				  "552 Przekroczony rozmiar wiadomosci / Message size exceeds fixed limit");
- 	return (STR(error_text));
-     }
-     fsspace(".", &fsbuf);
---- postfix-19991231-pl06/src/bounce/bounce_notify_service.c.wiget	Tue Jun  1 15:18:38 1999
-+++ postfix-19991231-pl06/src/bounce/bounce_notify_service.c	Tue Apr  4 21:11:22 2000
-@@ -108,12 +108,12 @@
+--- snapshot-20000924/src/bounce/bounce_notify_util.c.wiget	Mon Sep 25 01:01:22 2000
++++ snapshot-20000924/src/bounce/bounce_notify_util.c	Mon Oct  2 16:44:14 2000
+@@ -273,7 +273,7 @@
  	post_mail_fputs(bounce, dest == var_bounce_rcpt
  		     || dest == var_2bounce_rcpt || dest == var_delay_rcpt ?
  			"Subject: Postmaster Copy: Undelivered Mail" :
 -			"Subject: Undelivered Mail Returned to Sender");
 +			"Subject: Zwrot niedostarczonej poczty / Undelivered Mail Returned to Sender");
-     } else {
+     }
+ 
+     /*
+@@ -283,7 +283,7 @@
  	post_mail_fputs(bounce, dest == var_bounce_rcpt
  		     || dest == var_2bounce_rcpt || dest == var_delay_rcpt ?
  			"Subject: Postmaster Warning: Delayed Mail" :
 -			"Subject: Delayed Mail (still being retried)");
-+			"Subject: Opoznienie wyslania/Delayed Mail (still being retried)");
++			"Subject:  Opoznienie wyslania / Delayed Mail (still being retried)");
      }
-     post_mail_fprintf(bounce, "To: %s", STR(quote_822_local(buf, dest)));
- 
-@@ -121,7 +121,7 @@
-      * MIME header.
-      */
-     post_mail_fprintf(bounce, "MIME-Version: 1.0");
--#ifdef DSN
-+#if 1 /* DSN */
-     post_mail_fprintf(bounce, "Content-Type: %s; report-type=%s;",
- 		      "multipart/report", "delivery-status");
- #else
-@@ -131,15 +131,6 @@
+     post_mail_fprintf(bounce, "To: %s",
+ 		      STR(quote_822_local(bounce_info->buf, dest)));
+@@ -298,15 +298,6 @@
      post_mail_fputs(bounce, "");
      post_mail_fputs(bounce, "This is a MIME-encapsulated message.");
  
 -    /*
--     * More MIME header.
+-     * MIME header.
 -     */
 -    post_mail_fputs(bounce, "");
--    post_mail_fprintf(bounce, "--%s", boundary);
+-    post_mail_fprintf(bounce, "--%s", bounce_info->mime_boundary);
 -    post_mail_fprintf(bounce, "Content-Description: %s", "Notification");
 -    post_mail_fprintf(bounce, "Content-Type: %s", "text/plain");
 -    post_mail_fputs(bounce, "");
@@ -247,14 +34,15 @@
      return (vstream_ferror(bounce));
  }
  
-@@ -156,6 +147,72 @@
+@@ -322,6 +313,73 @@
       * word wrapping to make the text look nicer. No matter how hard we would
       * try, receiving bounced mail will always suck.
       */
++
 +    
 +    /* teraz po polsku */
 +    post_mail_fputs(bounce, "");
-+    post_mail_fprintf(bounce, "--%s", boundary);
++    post_mail_fprintf(bounce, "--%s", bounce_info->mime_boundary);
 +    post_mail_fprintf(bounce, "Content-Description: %s", "Informacja");
 +    post_mail_fprintf(bounce, "Content-Type: %s", "text/plain; charset=iso-8859-2");
 +    post_mail_fprintf(bounce, "Content-Transfer-Encoding: %s", "8bit");
@@ -263,7 +51,7 @@
 +    post_mail_fprintf(bounce, "Informacja od systemu pocztowego %s.",
 +		      var_myhostname);
 +    post_mail_fputs(bounce, "");
-+    if (flush) {
++    if (bounce_info->flush) {
 +	post_mail_fputs(bounce,
 +		"Twój list nie móg³ byæ dostarczony do jednego");
 +	post_mail_fputs(bounce,
@@ -306,13 +94,13 @@
 +    post_mail_fputs(bounce, "");
 +    post_mail_fprintf(bounce, "\t\t\tProgram %s", var_mail_name);
 +    post_mail_fputs(bounce, "");
-+#endif    
-+
-+     /*
-+     * More MIME header.
++#endif   
++		
++	/*
++     * MIME header.
 +     */
 +    post_mail_fputs(bounce, "");
-+    post_mail_fprintf(bounce, "--%s", boundary);
++    post_mail_fprintf(bounce, "--%s", bounce_info->mime_boundary);
 +    post_mail_fprintf(bounce, "Content-Description: %s", "Notification");
 +    post_mail_fprintf(bounce, "Content-Type: %s", "text/plain");
 +    post_mail_fputs(bounce, "");
@@ -320,60 +108,253 @@
      post_mail_fprintf(bounce, "This is the %s program at host %s.",
  		      var_mail_name, var_myhostname);
      post_mail_fputs(bounce, "");
-@@ -181,6 +238,7 @@
+@@ -345,7 +403,7 @@
+ 			  "It will be retried until it is %d days old.",
+ 			  var_max_queue_time);
      }
- 
+-
++#if 0 
      post_mail_fputs(bounce, "");
-+#if 0    
      post_mail_fprintf(bounce,
- 		      "For further assistance, please contact <%s>",
- 		      STR(canon_addr_external(buf, MAIL_ADDR_POSTMASTER)));
-@@ -190,9 +248,14 @@
- 	       "If you do so, please include this problem report. You can");
+ 		      "For further assistance, please send mail to <%s>",
+@@ -357,6 +415,7 @@
  	post_mail_fprintf(bounce,
  		   "delete your own text from the message returned below.");
-+	post_mail_fprintf(bounce,
-+	       "If you do so, please include this problem report. You can");
-+	post_mail_fprintf(bounce,
-+		   "delete your own text from the message returned below.");
      }
++#endif	
      post_mail_fputs(bounce, "");
      post_mail_fprintf(bounce, "\t\t\tThe %s program", var_mail_name);
-+#endif
-     post_mail_fputs(bounce, "");
      return (vstream_ferror(bounce));
- }
-@@ -216,11 +279,12 @@
-     /*
-      * MIME header.
-      */
--#ifdef DSN
-+#if 1 /* DSN */
-     post_mail_fputs(bounce, "");
-     post_mail_fprintf(bounce, "--%s", boundary);
-     post_mail_fprintf(bounce, "Content-Description: %s", "Delivery error report");
--    post_mail_fprintf(bounce, "Content-Type: %s", "message/delivery-status");
-+    post_mail_fprintf(bounce, "Content-Type: %s", "message/delivery-status; charset=iso-8859-2");
-+    post_mail_fprintf(bounce, "Content-Transfer-Encoding: %s", "8bit");
-     post_mail_fputs(bounce, "");
- #endif
- 
-@@ -236,6 +300,7 @@
- 	if (errno != ENOENT)
- 	    msg_fatal("open %s %s: %m", service, queue_id);
+@@ -418,6 +477,7 @@
+     if (bounce_info->log_handle == 0
+ 	|| bounce_log_rewind(bounce_info->log_handle)) {
  	post_mail_fputs(bounce, "\t--- Delivery error report unavailable ---");
 +	post_mail_fputs(bounce, "\t--- Raport dostarczenia niedostepny   ---");
- 	post_mail_fputs(bounce, "");
-     }
+     } else {
+ 	while (bounce_log_read(bounce_info->log_handle) != 0)
+ 	    if (bounce_recipient_log(bounce, bounce_info) != 0)
+@@ -438,7 +498,8 @@
+     post_mail_fprintf(bounce, "--%s", bounce_info->mime_boundary);
+     post_mail_fprintf(bounce, "Content-Description: %s",
+ 		      "Delivery error report");
+-    post_mail_fprintf(bounce, "Content-Type: %s", "message/delivery-status");
++    post_mail_fprintf(bounce, "Content-Type: %s", "message/delivery-status; charset=iso-8859-2");
++	post_mail_fprintf(bounce, "Content-Transfer-Encoding: %s", "8bit");
  
-@@ -294,8 +359,8 @@
-     if ((src = mail_queue_open(queue_name, queue_id, O_RDONLY, 0)) == 0) {
- 	if (errno != ENOENT)
- 	    msg_fatal("open %s %s: %m", service, queue_id);
--	post_mail_fputs(bounce, "\t--- Undelivered message unavailable ---");
--	post_mail_fputs(bounce, "");
-+	post_mail_fputs(bounce, "\t--- Undelivered message unavailable  ---");
+     /*
+      * According to RFC 1894: The body of a message/delivery-status consists
+@@ -527,6 +588,7 @@
+     if (bounce_info->orig_offs == 0 || vstream_fseek(bounce_info->orig_fp,
+ 				    bounce_info->orig_offs, SEEK_SET) < 0) {
+ 	post_mail_fputs(bounce, "\t--- Undelivered message unavailable ---");
 +	post_mail_fputs(bounce, "\t--- Niedostepna kopia niedostarczonego listu ---");
  	return (vstream_ferror(bounce));
      }
  
+--- snapshot-20000924/src/global/pipe_command.c.wiget	Fri Apr 28 22:54:29 2000
++++ snapshot-20000924/src/global/pipe_command.c	Mon Sep 25 16:46:25 2000
+@@ -470,9 +470,9 @@
+ 	if (pipe_command_wait_or_kill(pid, &wait_status, SIGKILL) < 0)
+ 	    msg_fatal("wait: %m");
+ 	if (pipe_command_timeout) {
+-	    vstring_sprintf(why, "Command time limit exceeded: \"%s\"%s%s",
++	    vstring_sprintf(why, "Przekroczony czas wykonania polecania / Command time limit exceeded: \"%s\"%s%s",
+ 			    args.command,
+-			    log_len ? ". Command output: " : "", log_buf);
++			    log_len ? ". Wyniki polecenia / Command output: " : "", log_buf);
+ 	    return (PIPE_STAT_BOUNCE);
+ 	}
+ 
+@@ -482,26 +482,26 @@
+ 	 */
+ 	if (!NORMAL_EXIT_STATUS(wait_status)) {
+ 	    if (WIFSIGNALED(wait_status)) {
+-		vstring_sprintf(why, "Command died with signal %d: \"%s\"%s%s",
++		vstring_sprintf(why, "Polecenie zakonczone bledem / Command died with signal %d: \"%s\"%s%s",
+ 				WTERMSIG(wait_status),
+ 				args.command,
+-			      log_len ? ". Command output: " : "", log_buf);
++			      log_len ? ". Wynik polecenia / Command output: " : "", log_buf);
+ 		return (PIPE_STAT_BOUNCE);
+ 	    } else if (SYS_EXITS_CODE(WEXITSTATUS(wait_status))) {
+ 		vstring_sprintf(why, "%s%s%s",
+ 				sys_exits_strerror(WEXITSTATUS(wait_status)),
+-			      log_len ? ". Command output: " : "", log_buf);
++			      log_len ? ". Wyniki polecenia / Command output: " : "", log_buf);
+ 		return (sys_exits_softerror(WEXITSTATUS(wait_status)) ?
+ 			PIPE_STAT_DEFER : PIPE_STAT_BOUNCE);
+ 	    } else {
+-		vstring_sprintf(why, "Command died with status %d: \"%s\"%s%s",
++		vstring_sprintf(why, "Polecenie zakonczone bledem / Command died with status %d: \"%s\"%s%s",
+ 				WEXITSTATUS(wait_status),
+ 				args.command,
+-			      log_len ? ". Command output: " : "", log_buf);
++			      log_len ? ". Wyniki polecenia / Command output: " : "", log_buf);
+ 		return (PIPE_STAT_BOUNCE);
+ 	    }
+ 	} else if (write_status && errno != EPIPE) {
+-	    vstring_sprintf(why, "Command failed: %m: \"%s\"", args.command);
++	    vstring_sprintf(why, "Polecenia niepowiodlo sie / Command failed: %m: \"%s\"", args.command);
+ 	    return (PIPE_STAT_DEFER);
+ 	} else {
+ 	    return (PIPE_STAT_OK);
+--- snapshot-20000924/src/global/sys_exits.c.wiget	Fri Dec 11 19:55:25 1998
++++ snapshot-20000924/src/global/sys_exits.c	Mon Sep 25 16:46:25 2000
+@@ -60,21 +60,21 @@
+ } SYS_EXITS_TABLE;
+ 
+ static SYS_EXITS_TABLE sys_exits_table[] = {
+-    0, EX_USAGE, "command line usage error",
+-    0, EX_DATAERR, "data format error",
++    0, EX_USAGE, "bledne wywylanie polecanie / command line usage error",
++    0, EX_DATAERR, "blad formatu danych / data format error",
+     0, EX_NOINPUT, "cannot open input",
+-    0, EX_NOUSER, "user unknown",
++    0, EX_NOUSER, "nieznany uzytkownik / user unknown",
+     0, EX_NOHOST, "host name unknown",
+-    0, EX_UNAVAILABLE, "service unavailable",
+-    0, EX_SOFTWARE, "internal software error",
++    0, EX_UNAVAILABLE, "niedostepny serwis / service unavailable",
++    0, EX_SOFTWARE, "wewnetrzny blad oprogramowania / internal software error",
+     1, EX_OSERR, "system resource problem",
+     0, EX_OSFILE, "critical OS file missing",
+     0, EX_CANTCREAT, "can't create user output file",
+     0, EX_IOERR, "input/output error",
+-    1, EX_TEMPFAIL, "temporary failure",
++    1, EX_TEMPFAIL, "chwilowe niepowodzenie / temporary failure",
+     0, EX_PROTOCOL, "remote error in protocol",
+-    0, EX_NOPERM, "permission denied",
+-    0, EX_CONFIG, "local configuration error",
++    0, EX_NOPERM, "brak dostêpu / permission denied",
++    0, EX_CONFIG, "blad lokalnej konfiguracji / local configuration error",
+ };
+ 
+ /* sys_exits_strerror - map exit status to error string */
+--- snapshot-20000924/src/smtpd/smtpd_check.c.wiget	Mon Sep 25 16:46:25 2000
++++ snapshot-20000924/src/smtpd/smtpd_check.c	Mon Sep 25 16:46:25 2000
+@@ -638,7 +638,7 @@
+      */
+     if (!valid_hostaddr(test_addr))
+ 	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
+-				  "%d <%s>: %s rejected: invalid ip address",
++				  "%d <%s>: %s odrzucony/rejected: niepoprawny adres IP/invalid IP address",
+ 				var_bad_name_code, reply_name, reply_class);
+     else
+ 	stat = SMTPD_CHECK_DUNNO;
+@@ -674,7 +674,7 @@
+      */
+     if (!valid_hostname(test_name))
+ 	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
+-				  "%d <%s>: %s rejected: Invalid name",
++				  "%d <%s>: %s odrzucony/rejected: Niepoprawna nazwa / Invalid name",
+ 				var_bad_name_code, reply_name, reply_class);
+     else
+ 	stat = SMTPD_CHECK_DUNNO;
+@@ -710,7 +710,7 @@
+      */
+     if (!valid_hostname(test_name) || !strchr(test_name, '.'))
+ 	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
+-		      "%d <%s>: %s rejected: need fully-qualified hostname",
++		      "%d <%s>: %s odrzucowny/rejected: need fully-qualified hostname",
+ 				var_non_fqdn_code, reply_name, reply_class);
+     else
+ 	stat = SMTPD_CHECK_DUNNO;
+@@ -743,7 +743,7 @@
+ 				  0);
+     if (dns_status != DNS_OK)
+ 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
+-				   "%d <%s>: %s rejected: Host not found",
++				   "%d <%s>: %s odrzucony/rejected: Host not found",
+ 				   dns_status == DNS_NOTFOUND ?
+ 				   var_unk_name_code : 450,
+ 				   reply_name, reply_class));
+@@ -769,7 +769,7 @@
+ 				  0);
+     if (dns_status != DNS_OK)
+ 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
+-				   "%d <%s>: %s rejected: Domain not found",
++				   "%d <%s>: %s odrzucony/rejected: Domain not found",
+ 				   dns_status == DNS_NOTFOUND ?
+ 				   var_unk_addr_code : 450,
+ 				   reply_name, reply_class));
+@@ -804,7 +804,7 @@
+      * Deny relaying between sites that both are not in relay_domains.
+      */
+     return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
+-			       "%d <%s>: %s rejected: Relay access denied",
++			       "%d <%s>: %s odrzucony/rejected: Relay access denied",
+ 			       var_relay_code, reply_name, reply_class));
+ }
+ 
+@@ -1078,7 +1078,7 @@
+      */
+     if (!*test_dom || !valid_hostname(test_dom) || !strchr(test_dom, '.'))
+ 	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
+-		       "%d <%s>: %s rejected: need fully-qualified address",
++		       "%d <%s>: %s odrzucony/rejected: need fully-qualified address",
+ 				var_non_fqdn_code, reply_name, reply_class);
+     else
+ 	stat = SMTPD_CHECK_DUNNO;
+@@ -1156,7 +1156,7 @@
+      */
+     if (strcasecmp(value, "REJECT") == 0)
+ 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
+-				   "%d <%s>: %s rejected: Access denied",
++				   "%d <%s>: %s odrzucony/rejected: Brak dostepu / Access denied",
+ 			     var_access_map_code, reply_name, reply_class));
+ 
+     /*
+@@ -1175,7 +1175,7 @@
+ 	while (ISDIGIT(*value) || ISSPACE(*value))
+ 	    value++;
+ 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
+-				   "%d <%s>: %s rejected: %s",
++				   "%d <%s>: %s odrzucony/rejected: %s",
+ 				   code, reply_name, reply_class, value));
+     }
+ 
+@@ -1488,7 +1488,7 @@
+ 	    rbl_fodder = rbl_reason = "";
+ 	}
+ 	result = smtpd_check_reject(state, MAIL_ERROR_POLICY,
+-			"%d Service unavailable; [%s] blocked using %s%s%s",
++			"%d Niedostepny serwis / Service unavailable; [%s] blocked using %s%s%s",
+ 				 var_maps_rbl_code, state->addr, rbl_domain,
+ 				    rbl_fodder, rbl_reason);
+ 	if (txt_list)
+@@ -1566,7 +1566,7 @@
+ 			 cpp[1], PERMIT_ALL);
+ 	} else if (strcasecmp(name, REJECT_ALL) == 0) {
+ 	    status = smtpd_check_reject(state, MAIL_ERROR_POLICY,
+-				      "%d <%s>: %s rejected: Access denied",
++				      "%d <%s>: %s odrzucony/rejected: Brak dostepu / Access denied",
+ 				  var_reject_code, reply_name, reply_class);
+ 	    if (cpp[1] != 0)
+ 		msg_warn("restriction `%s' after `%s' is ignored",
+@@ -1998,7 +1998,7 @@
+ 	    && !mail_addr_find(relocated_maps, STR(reply.recipient), NOP)
+ 	    && !mail_addr_find(local_rcpt_maps, STR(reply.recipient), NOP)) {
+ 	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
+-				      "%d <%s>: User unknown",
++				      "%d <%s>: Nieznany uzytkownik / User unknown",
+ 				      dict_errno ? 450 : 550, recipient);
+ 	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
+ 	}
+@@ -2011,7 +2011,7 @@
+ 	    && !mail_addr_find(virtual_maps, STR(reply.recipient), NOP)
+ 	    && maps_find(virtual_maps, domain, 0)) {
+ 	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
+-				      "%d <%s>: User unknown",
++				      "%d <%s>: Nieznany uzytkownik / User unknown",
+ 				      dict_errno ? 450 : 550, recipient);
+ 	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
+ 	}
+@@ -2034,7 +2034,7 @@
+ 
+     if (var_message_limit > 0 && size > var_message_limit) {
+ 	(void) smtpd_check_reject(state, MAIL_ERROR_POLICY,
+-				  "552 Message size exceeds fixed limit");
++				  "552 Przekroczony rozmiar wiadomosci / Message size exceeds fixed limit");
+ 	return (STR(error_text));
+     }
+     fsspace(".", &fsbuf);
