@@ -32,7 +32,7 @@ Source6:	%{name}.sasl
 Source7:	ftp://ftp.corpit.ru/pub/postfix/%{name}-dict_cdb-1.1.11-20021104.tar.gz
 # Source7-md5:	5731b5081725f4688dc6fae119d617e4
 Source8:	http://www.ipnet6.org/postfix/download/tls+ipv6-%{_tls_ipv6_ver}.patch.gz
-# Source8-md5:	f22ddc33b8fc103c0ab953579e90ecd0
+# Source8-md5:	e013ff8d4aa49e17d7ee85419481cfc7
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
