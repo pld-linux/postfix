@@ -1,5 +1,5 @@
---- snapshot-20000924/src/bounce/bounce_notify_util.c.wiget	Mon Sep 25 01:01:22 2000
-+++ snapshot-20000924/src/bounce/bounce_notify_util.c	Mon Oct  2 16:44:14 2000
+--- snapshot-20001121/src/bounce/bounce_notify_util.c.wiget	Mon Nov 20 19:05:04 2000
++++ snapshot-20001121/src/bounce/bounce_notify_util.c	Thu Nov 30 14:52:37 2000
 @@ -273,7 +273,7 @@
  	post_mail_fputs(bounce, dest == var_bounce_rcpt
  		     || dest == var_2bounce_rcpt || dest == var_delay_rcpt ?
@@ -151,8 +151,8 @@
  	return (vstream_ferror(bounce));
      }
  
---- snapshot-20000924/src/global/pipe_command.c.wiget	Fri Apr 28 22:54:29 2000
-+++ snapshot-20000924/src/global/pipe_command.c	Mon Sep 25 16:46:25 2000
+--- snapshot-20001121/src/global/pipe_command.c.wiget	Tue Nov 21 19:08:58 2000
++++ snapshot-20001121/src/global/pipe_command.c	Thu Nov 30 14:56:00 2000
 @@ -470,9 +470,9 @@
  	if (pipe_command_wait_or_kill(pid, &wait_status, SIGKILL) < 0)
  	    msg_fatal("wait: %m");
@@ -170,17 +170,17 @@
  	if (!NORMAL_EXIT_STATUS(wait_status)) {
  	    if (WIFSIGNALED(wait_status)) {
 -		vstring_sprintf(why, "Command died with signal %d: \"%s\"%s%s",
-+		vstring_sprintf(why, "Polecenie zakonczone bledem / Command died with signal %d: \"%s\"%s%s",
++		vstring_sprintf(why, "Polecenia zakonczone blendem / Command died with signal %d: \"%s\"%s%s",
  				WTERMSIG(wait_status),
  				args.command,
 -			      log_len ? ". Command output: " : "", log_buf);
 +			      log_len ? ". Wynik polecenia / Command output: " : "", log_buf);
- 		return (PIPE_STAT_BOUNCE);
+ 		return (PIPE_STAT_DEFER);
  	    } else if (SYS_EXITS_CODE(WEXITSTATUS(wait_status))) {
  		vstring_sprintf(why, "%s%s%s",
  				sys_exits_strerror(WEXITSTATUS(wait_status)),
 -			      log_len ? ". Command output: " : "", log_buf);
-+			      log_len ? ". Wyniki polecenia / Command output: " : "", log_buf);
++			      log_len ? ". Wynik polecenia / Command output: " : "", log_buf);
  		return (sys_exits_softerror(WEXITSTATUS(wait_status)) ?
  			PIPE_STAT_DEFER : PIPE_STAT_BOUNCE);
  	    } else {
@@ -189,17 +189,17 @@
  				WEXITSTATUS(wait_status),
  				args.command,
 -			      log_len ? ". Command output: " : "", log_buf);
-+			      log_len ? ". Wyniki polecenia / Command output: " : "", log_buf);
++			      log_len ? ". Wynik polecenia / Command output: " : "", log_buf);
  		return (PIPE_STAT_BOUNCE);
  	    }
  	} else if (write_status && errno != EPIPE) {
 -	    vstring_sprintf(why, "Command failed: %m: \"%s\"", args.command);
-+	    vstring_sprintf(why, "Polecenia niepowiodlo sie / Command failed: %m: \"%s\"", args.command);
++	    vstring_sprintf(why, "Polecenie niepowiodlo sie / Command failed: %m: \"%s\"", args.command);
  	    return (PIPE_STAT_DEFER);
  	} else {
  	    return (PIPE_STAT_OK);
---- snapshot-20000924/src/global/sys_exits.c.wiget	Fri Dec 11 19:55:25 1998
-+++ snapshot-20000924/src/global/sys_exits.c	Mon Sep 25 16:46:25 2000
+--- snapshot-20001121/src/global/sys_exits.c.wiget	Fri Dec 11 19:55:25 1998
++++ snapshot-20001121/src/global/sys_exits.c	Thu Nov 30 14:52:37 2000
 @@ -60,21 +60,21 @@
  } SYS_EXITS_TABLE;
  
@@ -230,8 +230,8 @@
  };
  
  /* sys_exits_strerror - map exit status to error string */
---- snapshot-20000924/src/smtpd/smtpd_check.c.wiget	Mon Sep 25 16:46:25 2000
-+++ snapshot-20000924/src/smtpd/smtpd_check.c	Mon Sep 25 16:46:25 2000
+--- snapshot-20001121/src/smtpd/smtpd_check.c.wiget	Thu Nov 30 14:52:37 2000
++++ snapshot-20001121/src/smtpd/smtpd_check.c	Thu Nov 30 14:58:39 2000
 @@ -638,7 +638,7 @@
       */
      if (!valid_hostaddr(test_addr))
@@ -331,25 +331,25 @@
  				  var_reject_code, reply_name, reply_class);
  	    if (cpp[1] != 0)
  		msg_warn("restriction `%s' after `%s' is ignored",
-@@ -1998,7 +1998,7 @@
- 	    && !mail_addr_find(relocated_maps, STR(reply.recipient), NOP)
- 	    && !mail_addr_find(local_rcpt_maps, STR(reply.recipient), NOP)) {
+@@ -1982,7 +1982,7 @@
+ 	    && NOMATCH(relocated_maps, STR(reply.recipient))
+ 	    && NOMATCH(virtual_maps, STR(reply.recipient))) {
  	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
--				      "%d <%s>: User unknown",
-+				      "%d <%s>: Nieznany uzytkownik / User unknown",
- 				      dict_errno ? 450 : 550, recipient);
+-				   "%d <%s>: User unknown", 550, recipient);
++				   "%d <%s>: Nieznany uzytkonik / User unknown", 550, recipient);
  	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
  	}
-@@ -2011,7 +2011,7 @@
- 	    && !mail_addr_find(virtual_maps, STR(reply.recipient), NOP)
- 	    && maps_find(virtual_maps, domain, 0)) {
+     }
+@@ -1999,7 +1999,7 @@
+ 	    && NOMATCH(virtual_maps, STR(reply.recipient))
+ 	    && NOMATCH(local_rcpt_maps, STR(reply.recipient))) {
  	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
--				      "%d <%s>: User unknown",
-+				      "%d <%s>: Nieznany uzytkownik / User unknown",
- 				      dict_errno ? 450 : 550, recipient);
+-				   "%d <%s>: User unknown", 550, recipient);
++				   "%d <%s>: Nieznany uzytkownik / User unknown", 550, recipient);
  	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
  	}
-@@ -2034,7 +2034,7 @@
+     }
+@@ -2026,7 +2026,7 @@
  
      if (var_message_limit > 0 && size > var_message_limit) {
  	(void) smtpd_check_reject(state, MAIL_ERROR_POLICY,
