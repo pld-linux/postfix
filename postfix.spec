@@ -5,7 +5,6 @@
 #	  tunnels are present
 #
 # Conditional build:
-%bcond_without	ipv6	# without IPv6 support
 %bcond_without	ldap	# without LDAP map module
 %bcond_without	mysql	# without MySQL map module
 %bcond_without	pgsql	# without PostgreSQL map module
@@ -24,7 +23,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.0.18
-Release:	1
+Release:	1.1
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -34,17 +33,16 @@ Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
 Source5:	%{name}.sysconfig
-Source6:	ftp://ftp.aet.tu-cottbus.de/pub/pfixtls/pfixtls-%{tls_ver}.tar.gz
-# Source6-md5:	b39c08eabe807db4af5bcb1cafc9761e
-Source7:	%{name}.sasl
-Source8:	ftp://ftp.corpit.ru/pub/postfix/%{name}-dict_cdb-1.1.11-20021104.tar.gz
+Source6:	%{name}.sasl
+Source7:	ftp://ftp.corpit.ru/pub/postfix/%{name}-dict_cdb-1.1.11-20021104.tar.gz
 # Source8-md5:	5731b5081725f4688dc6fae119d617e4
-Patch0:		%{name}-config.patch
-Patch1:		%{name}-conf_msg.patch
-Patch2:		%{name}-dynamicmaps.patch
-Patch3:		%{name}-pgsql.patch
-Patch4:		%{name}-master.cf_cyrus.patch
-Patch5:		%{name}-ipv6.patch
+# http://www.ipnet6.org/postfix/
+Patch0:		tls+ipv6-1.20-pf-2.0.16.patch
+Patch1:		%{name}-config.patch
+Patch2:		%{name}-conf_msg.patch
+Patch3:		%{name}-dynamicmaps.patch
+Patch4:		%{name}-pgsql.patch
+Patch5:		%{name}-master.cf_cyrus.patch
 Patch6:		%{name}-pl.patch
 Patch7:		%{name}-cdb_man.patch
 Patch8:         %{name}-ns-mx-acl.patch
@@ -54,7 +52,7 @@ BuildRequires:	awk
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db-devel
 BuildRequires:	grep
-%{?with_ipv6:BuildRequires:	libinet6 >= 0.20030228-1}
+BuildRequires:	libinet6 >= 0.20030228-1}
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.0.0}
 %{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7c}
@@ -92,7 +90,7 @@ BuildRoot:      %{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 Postfix is attempt to provide an alternative to the widely-used
 Sendmail program. Postfix attempts to be fast, easy to administer, and
 hopefully secure, while at the same time being sendmail compatible
-enough to not upset your users. %{?with_ipv6:This version has IPv6 support.}
+enough to not upset your users. This version has IPv6 support.
 
 %description -l pt_BR
 O Postfix é uma alternativa para o mundialmente utilizado sendmail. Se
@@ -126,7 +124,7 @@ configurazione di questo programma.
 Postfix jest prób± dostarczenia alternatywnego MTA w stosunku do
 szeroko u¿ywanego sendmaila. Postfix w zamierzeniu ma byæ szybki,
 ³atwy w administrowaniu, bezpieczny oraz ma byæ na tyle kompatybilny z
-sendmailem by nie denerwowaæ Twoich u¿ytkowników. %{?with_ipv6:Ta wersja wspiera IPv6.}
+sendmailem by nie denerwowaæ Twoich u¿ytkowników. Ta wersja wspiera IPv6.
 
 %description -l pt_BR
 O Postfix é uma alternativa para o mundialmente utilizado sendmail. Se
@@ -207,15 +205,13 @@ This package provides support for PostgreSQL maps in Postfix.
 Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 
 %prep
-%setup -q -a6 %{?with_cdb:-a8}
-echo Postfix TLS patch:
-patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
+%setup -q %{?with_cdb:-a8}
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
-%{?with_ipv6:%patch5 -p1}
+%patch5 -p1
 %{?with_polish:%patch6 -p1}
 %{?with_cdb:%patch7 -p1}
 %patch8 -p1
@@ -264,7 +260,7 @@ install %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/mail/aliases
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.daily/postfix
 install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/postfix
 install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/postfix
-install %{SOURCE7} $RPM_BUILD_ROOT%{_sysconfdir}/sasl/smtpd.conf
+install %{SOURCE6} $RPM_BUILD_ROOT%{_sysconfdir}/sasl/smtpd.conf
 install auxiliary/rmail/rmail $RPM_BUILD_ROOT%{_bindir}/rmail
 
 ln -sf /usr/sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
