@@ -250,7 +250,7 @@ rm -rf $RPM_BUILD_ROOT
 %pre
 if [ -n "`/usr/bin/getgid postfix`" ]; then
 	if [ "`getgid postfix`" != "62" ]; then
-		echo "Warning: group postfix haven't gid=62. Correct this before installing postfix" 1>&2
+		echo "Error: group postfix doesn't have gid=62. Correct this before installing postfix." 1>&2
 		exit 1
 	fi
 else
@@ -258,7 +258,7 @@ else
 fi
 if [ -n "`/usr/bin/getgid maildrop`" ]; then
 	if [ "`/usr/bin/getgid maildrop`" != "63" ]; then
-		echo "Warning: group maildrop haven't gid=63. Correct this before installing postfix" 1>&2
+		echo "Error: group maildrop doesn't have gid=63. Correct this before installing postfix." 1>&2
 		exit 1
 	fi
 else
@@ -266,7 +266,7 @@ else
 fi
 if [ -n "`/bin/id -u postfix 2>/dev/null`" ]; then
 	if [ "`/bin/id -u postfix`" != "62" ]; then
-		echo "Warning: user postfix haven't uid=62. Correct this before installing postfix" 1>&2
+		echo "Error: user postfix doesn't have uid=62. Correct this before installing postfix." 1>&2
 		exit 1
 	fi
 else
