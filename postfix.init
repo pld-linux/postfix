@@ -20,7 +20,7 @@
 
 # Check that networking is up.
 if is_no "${NETWORKING}"; then
-        msg_Network_Down Postfix
+        msg_network_down Postfix
         exit 1
 fi
 
@@ -40,7 +40,7 @@ case "$1" in
 			echo "$MSG"
 		fi
 	else
-		msg_Already_Running Postfix
+		msg_already_running Postfix
 	fi
 	;;
   stop)
@@ -57,7 +57,7 @@ case "$1" in
 		fi
 		rm -f /var/lock/subsys/postfix
         else
-                msg_Not_Running Postfix
+                msg_not_running Postfix
                 exit 1
 	fi
 	;;
@@ -84,7 +84,7 @@ case "$1" in
 	/usr/bin/newaliases
   	;;
   *)
-	msg_Usage "$0 {start|stop|status|restart|reload|rebuilddb}"
+	msg_usage "$0 {start|stop|status|restart|reload|rebuilddb}"
 	exit 1
 esac
 
