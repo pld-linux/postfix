@@ -1,6 +1,6 @@
-diff -Nur postfix-1.1.2.orig/conf/main.cf postfix-1.1.2/conf/main.cf
---- postfix-1.1.2.orig/conf/main.cf	Tue Jan 15 15:27:55 2002
-+++ postfix-1.1.2/conf/main.cf	Wed Jan 30 13:09:30 2002
+diff -Nur postfix-1.1.13.orig/conf/main.cf postfix-1.1.13/conf/main.cf
+--- postfix-1.1.13.orig/conf/main.cf	Tue May 28 19:35:57 2002
++++ postfix-1.1.13/conf/main.cf	Mon Dec  1 14:09:43 2003
 @@ -38,7 +38,7 @@
  # default value is $program_directory. This directory must be owned
  # by root.
@@ -28,7 +28,7 @@ diff -Nur postfix-1.1.2.orig/conf/main.cf postfix-1.1.2/conf/main.cf
  #myorigin = $mydomain
  
  # RECEIVING MAIL
-@@ -296,7 +296,7 @@
+@@ -294,7 +294,7 @@
  # "postfix reload" to eliminate the delay.
  #
  #alias_maps = dbm:/etc/aliases
@@ -37,7 +37,7 @@ diff -Nur postfix-1.1.2.orig/conf/main.cf postfix-1.1.2/conf/main.cf
  #alias_maps = hash:/etc/aliases, nis:mail.aliases
  #alias_maps = netinfo:/aliases
  
-@@ -307,7 +307,7 @@
+@@ -305,7 +305,7 @@
  #
  #alias_database = dbm:/etc/aliases
  #alias_database = dbm:/etc/mail/aliases
@@ -46,7 +46,7 @@ diff -Nur postfix-1.1.2.orig/conf/main.cf postfix-1.1.2/conf/main.cf
  #alias_database = hash:/etc/aliases, hash:/opt/majordomo/aliases
  
  # ADDRESS EXTENSIONS (e.g., user+foo)
-@@ -335,7 +335,7 @@
+@@ -333,7 +333,7 @@
  # UNIX-style mailboxes are kept. The default setting depends on the
  # system type.
  #
@@ -55,7 +55,7 @@ diff -Nur postfix-1.1.2.orig/conf/main.cf postfix-1.1.2/conf/main.cf
  #mail_spool_directory = /var/spool/mail
  
  # The mailbox_command parameter specifies the optional external
-@@ -357,8 +357,8 @@
+@@ -355,8 +355,8 @@
  # IF YOU USE THIS TO DELIVER MAIL SYSTEM-WIDE, YOU MUST SET UP AN
  # ALIAS THAT FORWARDS MAIL FOR ROOT TO A REAL USER.
  #
@@ -66,7 +66,7 @@ diff -Nur postfix-1.1.2.orig/conf/main.cf postfix-1.1.2/conf/main.cf
  
  # The mailbox_transport specifies the optional transport in master.cf
  # to use after processing aliases and .forward files. This parameter
-@@ -502,39 +502,12 @@
+@@ -501,39 +501,12 @@
  	 PATH=/usr/bin:/usr/X11R6/bin
  	 xxgdb $daemon_directory/$process_name $process_id & sleep 5
  
@@ -108,9 +108,9 @@ diff -Nur postfix-1.1.2.orig/conf/main.cf postfix-1.1.2/conf/main.cf
 -#
 -readme_directory =
 +setgid_group = maildrop
-diff -Nur postfix-1.1.2.orig/src/global/mail_params.h postfix-1.1.2/src/global/mail_params.h
---- postfix-1.1.2.orig/src/global/mail_params.h	Tue Jan 15 16:24:34 2002
-+++ postfix-1.1.2/src/global/mail_params.h	Wed Jan 30 13:08:29 2002
+diff -Nur postfix-1.1.13.orig/src/global/mail_params.h postfix-1.1.13/src/global/mail_params.h
+--- postfix-1.1.13.orig/src/global/mail_params.h	Tue May 28 22:07:30 2002
++++ postfix-1.1.13/src/global/mail_params.h	Mon Dec  1 14:09:43 2003
 @@ -50,7 +50,7 @@
  extern gid_t var_owner_gid;
  
@@ -129,9 +129,9 @@ diff -Nur postfix-1.1.2.orig/src/global/mail_params.h postfix-1.1.2/src/global/m
  #endif
  extern char *var_config_dir;
  
-diff -Nur postfix-1.1.2.orig/src/util/sys_defs.h postfix-1.1.2/src/util/sys_defs.h
---- postfix-1.1.2.orig/src/util/sys_defs.h	Thu Jan  3 20:20:56 2002
-+++ postfix-1.1.2/src/util/sys_defs.h	Wed Jan 30 13:08:29 2002
+diff -Nur postfix-1.1.13.orig/src/util/sys_defs.h postfix-1.1.13/src/util/sys_defs.h
+--- postfix-1.1.13.orig/src/util/sys_defs.h	Thu Mar 28 20:57:54 2002
++++ postfix-1.1.13/src/util/sys_defs.h	Mon Dec  1 14:09:43 2003
 @@ -484,7 +484,7 @@
  #define HAS_FSYNC
  #define HAS_DB
@@ -141,3 +141,232 @@ diff -Nur postfix-1.1.2.orig/src/util/sys_defs.h postfix-1.1.2/src/util/sys_defs
  #define HAS_NIS
  #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
  #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
+diff -Nur postfix-1.1.13.orig/man/man1/postdrop.1 postfix-1.1.13/man/man1/postdrop.1
+--- postfix-1.1.13.orig/man/man1/postdrop.1	Sun Jan  6 02:00:27 2002
++++ postfix-1.1.13/man/man1/postdrop.1	Mon Dec  1 14:10:09 2003
+@@ -61,7 +61,7 @@
+ .na
+ .nf
+ /var/spool/postfix, mail queue
+-/etc/postfix, configuration files
++/etc/mail, configuration files
+ .SH CONFIGURATION PARAMETERS
+ .na
+ .nf
+diff -Nur postfix-1.1.13.orig/man/man1/postqueue.1 postfix-1.1.13/man/man1/postqueue.1
+--- postfix-1.1.13.orig/man/man1/postqueue.1	Mon May 13 21:40:40 2002
++++ postfix-1.1.13/man/man1/postqueue.1	Mon Dec  1 14:10:20 2003
+@@ -78,7 +78,7 @@
+ .na
+ .nf
+ /var/spool/postfix, mail queue
+-/etc/postfix, configuration files
++/etc/mail, configuration files
+ .SH CONFIGURATION PARAMETERS
+ .na
+ .nf
+diff -Nur postfix-1.1.13.orig/man/man1/sendmail.1 postfix-1.1.13/man/man1/sendmail.1
+--- postfix-1.1.13.orig/man/man1/sendmail.1	Mon Mar 25 20:57:33 2002
++++ postfix-1.1.13/man/man1/sendmail.1	Mon Dec  1 14:10:34 2003
+@@ -60,7 +60,7 @@
+ \fBjust-send-eight\fR.
+ .IP "\fB-C \fIconfig_file\fR (ignored :-)"
+ The path name of the \fBsendmail.cf\fR file. Postfix configuration
+-files are kept in \fB/etc/postfix\fR.
++files are kept in \fB/etc/mail\fR.
+ .IP "\fB-F \fIfull_name\fR
+ Set the sender full name. This is used only with messages that
+ have no \fBFrom:\fR message header.
+@@ -203,7 +203,7 @@
+ .na
+ .nf
+ /var/spool/postfix, mail queue
+-/etc/postfix, configuration files
++/etc/mail, configuration files
+ .SH CONFIGURATION PARAMETERS
+ .na
+ .nf
+diff -Nur postfix-1.1.13.orig/man/man5/access.5 postfix-1.1.13/man/man5/access.5
+--- postfix-1.1.13.orig/man/man5/access.5	Tue May 28 23:01:17 2002
++++ postfix-1.1.13/man/man5/access.5	Mon Dec  1 14:10:53 2003
+@@ -8,7 +8,7 @@
+ .SH SYNOPSIS
+ .na
+ .nf
+-\fBpostmap /etc/postfix/access\fR
++\fBpostmap /etc/mail/access\fR
+ .SH DESCRIPTION
+ .ad
+ .fi
+@@ -21,7 +21,7 @@
+ that serves as input to the \fBpostmap\fR(1) command.
+ The result, an indexed file in \fBdbm\fR or \fBdb\fR format,
+ is used for fast searching by the mail system. Execute the command
+-\fBpostmap /etc/postfix/access\fR in order to rebuild the indexed
++\fBpostmap /etc/mail/access\fR in order to rebuild the indexed
+ file after changing the access table.
+ 
+ When the table is provided via other means such as NIS, LDAP
+diff -Nur postfix-1.1.13.orig/man/man5/canonical.5 postfix-1.1.13/man/man5/canonical.5
+--- postfix-1.1.13.orig/man/man5/canonical.5	Mon Jan  7 00:21:18 2002
++++ postfix-1.1.13/man/man5/canonical.5	Mon Dec  1 14:11:05 2003
+@@ -8,7 +8,7 @@
+ .SH SYNOPSIS
+ .na
+ .nf
+-\fBpostmap /etc/postfix/canonical\fR
++\fBpostmap /etc/mail/canonical\fR
+ .SH DESCRIPTION
+ .ad
+ .fi
+@@ -20,7 +20,7 @@
+ that serves as input to the \fBpostmap\fR(1) command.
+ The result, an indexed file in \fBdbm\fR or \fBdb\fR format,
+ is used for fast searching by the mail system. Execute the command
+-\fBpostmap /etc/postfix/canonical\fR in order to rebuild the indexed
++\fBpostmap /etc/mail/canonical\fR in order to rebuild the indexed
+ file after changing the text file.
+ 
+ When the table is provided via other means such as NIS, LDAP
+diff -Nur postfix-1.1.13.orig/man/man5/pcre_table.5 postfix-1.1.13/man/man5/pcre_table.5
+--- postfix-1.1.13.orig/man/man5/pcre_table.5	Mon Dec 24 03:01:01 2001
++++ postfix-1.1.13/man/man5/pcre_table.5	Mon Dec  1 14:11:11 2003
+@@ -8,7 +8,7 @@
+ .SH SYNOPSIS
+ .na
+ .nf
+-pcre:/etc/postfix/filename
++pcre:/etc/mail/filename
+ .SH DESCRIPTION
+ .ad
+ .fi
+diff -Nur postfix-1.1.13.orig/man/man5/regexp_table.5 postfix-1.1.13/man/man5/regexp_table.5
+--- postfix-1.1.13.orig/man/man5/regexp_table.5	Mon Dec 24 03:01:01 2001
++++ postfix-1.1.13/man/man5/regexp_table.5	Mon Dec  1 14:11:16 2003
+@@ -8,7 +8,7 @@
+ .SH SYNOPSIS
+ .na
+ .nf
+-regexp:/etc/postfix/filename
++regexp:/etc/mail/filename
+ .SH DESCRIPTION
+ .ad
+ .fi
+diff -Nur postfix-1.1.13.orig/man/man5/relocated.5 postfix-1.1.13/man/man5/relocated.5
+--- postfix-1.1.13.orig/man/man5/relocated.5	Mon Jan  7 00:21:18 2002
++++ postfix-1.1.13/man/man5/relocated.5	Mon Dec  1 14:11:24 2003
+@@ -8,7 +8,7 @@
+ .SH SYNOPSIS
+ .na
+ .nf
+-\fBpostmap /etc/postfix/relocated\fR
++\fBpostmap /etc/mail/relocated\fR
+ .SH DESCRIPTION
+ .ad
+ .fi
+@@ -19,7 +19,7 @@
+ that serves as input to the \fBpostmap\fR(1) command.
+ The result, an indexed file in \fBdbm\fR or \fBdb\fR format,
+ is used for fast searching by the mail system. Execute the command
+-\fBpostmap /etc/postfix/relocated\fR in order to rebuild the indexed
++\fBpostmap /etc/mail/relocated\fR in order to rebuild the indexed
+ file after changing the relocated table.
+ 
+ When the table is provided via other means such as NIS, LDAP
+diff -Nur postfix-1.1.13.orig/man/man5/transport.5 postfix-1.1.13/man/man5/transport.5
+--- postfix-1.1.13.orig/man/man5/transport.5	Tue May 28 23:01:17 2002
++++ postfix-1.1.13/man/man5/transport.5	Mon Dec  1 14:11:32 2003
+@@ -8,7 +8,7 @@
+ .SH SYNOPSIS
+ .na
+ .nf
+-\fBpostmap /etc/postfix/transport\fR
++\fBpostmap /etc/mail/transport\fR
+ .SH DESCRIPTION
+ .ad
+ .fi
+@@ -20,7 +20,7 @@
+ that serves as input to the \fBpostmap\fR(1) command.
+ The result, an indexed file in \fBdbm\fR or \fBdb\fR format, is used
+ for fast searching by the mail system. Execute the command
+-\fBpostmap /etc/postfix/transport\fR in order to rebuild the indexed
++\fBpostmap /etc/mail/transport\fR in order to rebuild the indexed
+ file after changing the transport table.
+ 
+ When the table is provided via other means such as NIS, LDAP
+diff -Nur postfix-1.1.13.orig/man/man5/virtual.5 postfix-1.1.13/man/man5/virtual.5
+--- postfix-1.1.13.orig/man/man5/virtual.5	Mon Jan  7 00:21:18 2002
++++ postfix-1.1.13/man/man5/virtual.5	Mon Dec  1 14:11:49 2003
+@@ -8,7 +8,7 @@
+ .SH SYNOPSIS
+ .na
+ .nf
+-\fBpostmap /etc/postfix/virtual\fR
++\fBpostmap /etc/mail/virtual\fR
+ .SH DESCRIPTION
+ .ad
+ .fi
+@@ -25,7 +25,7 @@
+ serves as input to the \fBpostmap\fR(1) command.
+ The result, an indexed file in \fBdbm\fR or \fBdb\fR format,
+ is used for fast searching by the mail system. Execute the command
+-\fBpostmap /etc/postfix/virtual\fR in order to rebuild the indexed
++\fBpostmap /etc/mail/virtual\fR in order to rebuild the indexed
+ file after changing the text file.
+ 
+ When the table is provided via other means such as NIS, LDAP
+@@ -51,7 +51,7 @@
+ 
+ Support for a Postfix-style virtual domain looks like:
+ .sp
+-/etc/postfix/virtual:
++/etc/mail/virtual:
+ .in +4
+ .nf
+ \fIvirtual.domain       anything\fR (right-hand content does not matter)
+@@ -86,7 +86,7 @@
+ 
+ Support for a Sendmail-style virtual domain looks like:
+ .sp
+-/etc/postfix/main.cf:
++/etc/mail/main.cf:
+ .in +4
+ .nf
+ mydestination = $myhostname localhost.$mydomain $mydomain
+@@ -95,7 +95,7 @@
+ .fi
+ .in -4
+ .sp
+-/etc/postfix/virtual:
++/etc/mail/virtual:
+ .in +4
+ .nf
+ \fIuser1@virtual.domain address1\fR
+diff -Nur postfix-1.1.13.orig/man/man8/cleanup.8 postfix-1.1.13/man/man8/cleanup.8
+--- postfix-1.1.13.orig/man/man8/cleanup.8	Wed Nov 21 17:13:36 2001
++++ postfix-1.1.13/man/man8/cleanup.8	Mon Dec  1 14:11:59 2003
+@@ -141,8 +141,8 @@
+ .SH FILES
+ .na
+ .nf
+-/etc/postfix/canonical*, canonical mapping table
+-/etc/postfix/virtual*, virtual mapping table
++/etc/mail/canonical*, canonical mapping table
++/etc/mail/virtual*, virtual mapping table
+ .SH LICENSE
+ .na
+ .nf
+diff -Nur postfix-1.1.13.orig/man/man8/master.8 postfix-1.1.13/man/man8/master.8
+--- postfix-1.1.13.orig/man/man8/master.8	Fri Feb  1 15:17:23 2002
++++ postfix-1.1.13/man/man8/master.8	Mon Dec  1 14:12:14 2003
+@@ -126,8 +126,8 @@
+ .SH FILES
+ .na
+ .nf
+-/etc/postfix/main.cf: global configuration file.
+-/etc/postfix/master.cf: master process configuration file.
++/etc/mail/main.cf: global configuration file.
++/etc/mail/master.cf: master process configuration file.
+ /var/spool/postfix/pid/master.pid: master lock file.
+ .SH SEE ALSO
+ .na
