@@ -903,6 +903,44 @@ diff -Nur postfix-1.1.2.orig/src/smtp/smtp_addr.c postfix-1.1.2/src/smtp/smtp_ad
      }
  
      /*
+@@ -400,12 +400,36 @@
+      */
+     self = proxy_inet_addr_list();
+     for (addr = addr_list; addr; addr = addr->next) {
+-	for (i = 0; i < self->used; i++)
++	for (i = 0; i < self->used; i++) {
++#ifdef INET6
++	    sa = (struct sockaddr *)&self->addrs[i];
++	    switch(addr->type) {
++	    case T_AAAA:
++		/* XXX scope */
++		if (sa->sa_family != AF_INET6)
++		    break;
++		if (memcmp(&((struct sockaddr_in6 *)sa)->sin6_addr,
++			addr->data, sizeof(struct in6_addr)) == 0) {
++		    return(addr);
++		}
++		break;
++	    case T_A:
++		if (sa->sa_family != AF_INET)
++		    break;
++		if (memcmp(&((struct sockaddr_in *)sa)->sin_addr,
++			addr->data, sizeof(struct in_addr)) == 0) {
++		    return(addr);
++		}
++		break;
++	    }
++#else
+ 	    if (INADDRP(addr->data)->s_addr == self->addrs[i].s_addr) {
+ 		if (msg_verbose)
+ 		    msg_info("%s: found at pref %d", myname, addr->pref);
+ 		return (addr);
+ 	    }
++#endif
++	}
+     }
+ 
+     /*
 diff -Nur postfix-1.1.2.orig/src/smtp/smtp_connect.c postfix-1.1.2/src/smtp/smtp_connect.c
 --- postfix-1.1.2.orig/src/smtp/smtp_connect.c	Mon Jan 28 12:38:34 2002
 +++ postfix-1.1.2/src/smtp/smtp_connect.c	Mon Jan 28 12:40:04 2002
@@ -1167,6 +1205,39 @@ diff -Nur postfix-1.1.2.orig/src/smtp/smtp_connect.c postfix-1.1.2/src/smtp/smtp
  	smtp_errno = SMTP_RETRY;
  	close(sock);
  	return (0);
+@@ -369,7 +369,7 @@
+     stream = vstream_fdopen(sock, O_RDWR);
+     if ((ch = VSTREAM_GETC(stream)) == VSTREAM_EOF) {
+ 	vstring_sprintf(why, "connect to %s[%s]: server dropped connection without sending the initial greeting",
+-			addr->name, inet_ntoa(sin.sin_addr));
++			addr->name, hbuf);
+ 	smtp_errno = SMTP_RETRY;
+ 	vstream_fclose(stream);
+ 	return (0);
+@@ -381,7 +381,7 @@
+      */
+     if (ch == '4' && var_smtp_skip_4xx_greeting) {
+ 	vstring_sprintf(why, "connect to %s[%s]: server refused mail service",
+-			addr->name, inet_ntoa(sin.sin_addr));
++			addr->name, hbuf);
+ 	smtp_errno = SMTP_RETRY;
+ 	vstream_fclose(stream);
+ 	return (0);
+@@ -392,12 +392,12 @@
+      */
+     if (ch == '5' && var_smtp_skip_5xx_greeting) {
+ 	vstring_sprintf(why, "connect to %s[%s]: server refused mail service",
+-			addr->name, inet_ntoa(sin.sin_addr));
++			addr->name, hbuf);
+ 	smtp_errno = SMTP_RETRY;
+ 	vstream_fclose(stream);
+ 	return (0);
+     }
+-    return (smtp_session_alloc(dest, stream, addr->name, inet_ntoa(sin.sin_addr)));
++    return (smtp_session_alloc(dest, stream, addr->name, hbuf));
+ }
+ 
+ /* smtp_connect_host - direct connection to host */
 diff -Nur postfix-1.1.2.orig/src/smtp/smtp_unalias.c postfix-1.1.2/src/smtp/smtp_unalias.c
 --- postfix-1.1.2.orig/src/smtp/smtp_unalias.c	Thu Sep 28 19:06:09 2000
 +++ postfix-1.1.2/src/smtp/smtp_unalias.c	Mon Jan 28 12:40:04 2002
