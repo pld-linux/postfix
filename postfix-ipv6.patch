@@ -1,6 +1,6 @@
-diff -urN snapshot-20011127/makedefs snapshot-20011127.dzikus/makedefs
---- snapshot-20011127/makedefs	Wed Nov 21 22:40:39 2001
-+++ snapshot-20011127.dzikus/makedefs	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/makedefs snapshot-20011127/makedefs
+--- snapshot-20011127.orig/makedefs	Wed Nov 21 22:40:39 2001
++++ snapshot-20011127/makedefs	Mon Dec  3 14:16:38 2001
 @@ -52,6 +52,21 @@
  SYSTEM=`(uname -s) 2>/dev/null`
  RELEASE=`(uname -r) 2>/dev/null`
@@ -23,10 +23,11 @@ diff -urN snapshot-20011127/makedefs snapshot-20011127.dzikus/makedefs
  
  case "$VERSION" in
   dcosx*) SYSTEM=$VERSION;;
-@@ -290,6 +305,26 @@
+@@ -289,6 +304,26 @@
+ esac
  
  : ${CC='gcc $(WARN)'} ${OPT='-O'} ${DEBUG='-g'} ${AWK=awk}
- 
++
 +case "$INET6" in
 +kame)
 +	CCARGS="$CCARGS -DINET6 -D__ss_family=ss_family -D__ss_len=ss_len"
@@ -46,13 +47,12 @@ diff -urN snapshot-20011127/makedefs snapshot-20011127.dzikus/makedefs
 +	fi
 +	;;
 +esac
-+
+ 
  export SYSTYPE AR ARFL RANLIB SYSLIBS CC OPT DEBUG AWK OPTS
  
- sed 's/  / /g' <<EOF
-diff -urN snapshot-20011127/src/dns/dns_lookup.c snapshot-20011127.dzikus/src/dns/dns_lookup.c
---- snapshot-20011127/src/dns/dns_lookup.c	Sun Feb  4 19:16:20 2001
-+++ snapshot-20011127.dzikus/src/dns/dns_lookup.c	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/dns/dns_lookup.c snapshot-20011127/src/dns/dns_lookup.c
+--- snapshot-20011127.orig/src/dns/dns_lookup.c	Sun Feb  4 19:16:20 2001
++++ snapshot-20011127/src/dns/dns_lookup.c	Mon Dec  3 14:16:39 2001
 @@ -132,6 +132,9 @@
  } DNS_REPLY;
  
@@ -83,9 +83,9 @@ diff -urN snapshot-20011127/src/dns/dns_lookup.c snapshot-20011127.dzikus/src/dn
      case T_TXT:
  	data_len = MIN2(pos[0] + 1, MIN2(fixed->length + 1, sizeof(temp)));
  	for (src = pos + 1, dst = (unsigned char *) (temp);
-diff -urN snapshot-20011127/src/global/Makefile.in snapshot-20011127.dzikus/src/global/Makefile.in
---- snapshot-20011127/src/global/Makefile.in	Thu Nov 29 12:53:47 2001
-+++ snapshot-20011127.dzikus/src/global/Makefile.in	Thu Nov 29 12:43:24 2001
+diff -Nur snapshot-20011127.orig/src/global/Makefile.in snapshot-20011127/src/global/Makefile.in
+--- snapshot-20011127.orig/src/global/Makefile.in	Mon Dec  3 14:15:12 2001
++++ snapshot-20011127/src/global/Makefile.in	Mon Dec  3 14:16:39 2001
 @@ -19,7 +19,7 @@
  	timed_ipc.c tok822_find.c tok822_node.c tok822_parse.c \
  	tok822_resolve.c tok822_rewrite.c tok822_tree.c xtext.c bounce_log.c \
@@ -113,9 +113,9 @@ diff -urN snapshot-20011127/src/global/Makefile.in snapshot-20011127.dzikus/src/
  TESTSRC	= rec2stream.c stream2rec.c recdump.c
  WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
  	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
-diff -urN snapshot-20011127/src/global/mynetworks.c snapshot-20011127.dzikus/src/global/mynetworks.c
---- snapshot-20011127/src/global/mynetworks.c	Sun Feb 25 02:46:07 2001
-+++ snapshot-20011127.dzikus/src/global/mynetworks.c	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/global/mynetworks.c snapshot-20011127/src/global/mynetworks.c
+--- snapshot-20011127.orig/src/global/mynetworks.c	Sun Feb 25 02:46:07 2001
++++ snapshot-20011127/src/global/mynetworks.c	Mon Dec  3 14:16:39 2001
 @@ -50,6 +50,11 @@
  #include <vstring.h>
  #include <inet_addr_list.h>
@@ -183,9 +183,9 @@ diff -urN snapshot-20011127/src/global/mynetworks.c snapshot-20011127.dzikus/src
  		}
  		break;
  
-diff -urN snapshot-20011127/src/global/own_inet_addr.c snapshot-20011127.dzikus/src/global/own_inet_addr.c
---- snapshot-20011127/src/global/own_inet_addr.c	Tue Jul 31 20:38:29 2001
-+++ snapshot-20011127.dzikus/src/global/own_inet_addr.c	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/global/own_inet_addr.c snapshot-20011127/src/global/own_inet_addr.c
+--- snapshot-20011127.orig/src/global/own_inet_addr.c	Tue Jul 31 20:38:29 2001
++++ snapshot-20011127/src/global/own_inet_addr.c	Mon Dec  3 14:16:39 2001
 @@ -39,6 +39,10 @@
  #include <netinet/in.h>
  #include <arpa/inet.h>
@@ -304,9 +304,9 @@ diff -urN snapshot-20011127/src/global/own_inet_addr.c snapshot-20011127.dzikus/
  
  /* own_inet_addr_list - return list of addresses */
  
-diff -urN snapshot-20011127/src/global/own_inet_addr.h snapshot-20011127.dzikus/src/global/own_inet_addr.h
---- snapshot-20011127/src/global/own_inet_addr.h	Sat Feb 24 02:25:32 2001
-+++ snapshot-20011127.dzikus/src/global/own_inet_addr.h	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/global/own_inet_addr.h snapshot-20011127/src/global/own_inet_addr.h
+--- snapshot-20011127.orig/src/global/own_inet_addr.h	Sat Feb 24 02:25:32 2001
++++ snapshot-20011127/src/global/own_inet_addr.h	Mon Dec  3 14:16:39 2001
 @@ -15,11 +15,18 @@
    * System library.
    */
@@ -326,9 +326,9 @@ diff -urN snapshot-20011127/src/global/own_inet_addr.h snapshot-20011127.dzikus/
  extern struct INET_ADDR_LIST *own_inet_addr_list(void);
  extern struct INET_ADDR_LIST *own_inet_mask_list(void);
  
-diff -urN snapshot-20011127/src/global/peer_name.c snapshot-20011127.dzikus/src/global/peer_name.c
---- snapshot-20011127/src/global/peer_name.c	Sun Jan 28 16:23:02 2001
-+++ snapshot-20011127.dzikus/src/global/peer_name.c	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/global/peer_name.c snapshot-20011127/src/global/peer_name.c
+--- snapshot-20011127.orig/src/global/peer_name.c	Sun Jan 28 16:23:02 2001
++++ snapshot-20011127/src/global/peer_name.c	Mon Dec  3 14:16:39 2001
 @@ -69,12 +69,32 @@
  PEER_NAME *peer_name(int sock)
  {
@@ -391,9 +391,9 @@ diff -urN snapshot-20011127/src/global/peer_name.c snapshot-20011127.dzikus/src/
  	case AF_UNSPEC:
  	case AF_UNIX:
  	    peer.type = PEER_TYPE_LOCAL;
-diff -urN snapshot-20011127/src/global/peer_name.h snapshot-20011127.dzikus/src/global/peer_name.h
---- snapshot-20011127/src/global/peer_name.h	Fri Dec 11 19:55:32 1998
-+++ snapshot-20011127.dzikus/src/global/peer_name.h	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/global/peer_name.h snapshot-20011127/src/global/peer_name.h
+--- snapshot-20011127.orig/src/global/peer_name.h	Fri Dec 11 19:55:32 1998
++++ snapshot-20011127/src/global/peer_name.h	Mon Dec  3 14:16:39 2001
 @@ -22,6 +22,9 @@
  #define PEER_TYPE_UNKNOWN	0
  #define PEER_TYPE_INET		1
@@ -404,9 +404,9 @@ diff -urN snapshot-20011127/src/global/peer_name.h snapshot-20011127.dzikus/src/
  
  extern PEER_NAME *peer_name(int);
  
-diff -urN snapshot-20011127/src/global/resolve_local.c snapshot-20011127.dzikus/src/global/resolve_local.c
---- snapshot-20011127/src/global/resolve_local.c	Tue Nov 20 22:41:26 2001
-+++ snapshot-20011127.dzikus/src/global/resolve_local.c	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/global/resolve_local.c snapshot-20011127/src/global/resolve_local.c
+--- snapshot-20011127.orig/src/global/resolve_local.c	Tue Nov 20 22:41:26 2001
++++ snapshot-20011127/src/global/resolve_local.c	Mon Dec  3 14:16:39 2001
 @@ -42,6 +42,7 @@
  #include <netinet/in.h>
  #include <arpa/inet.h>
@@ -454,9 +454,9 @@ diff -urN snapshot-20011127/src/global/resolve_local.c snapshot-20011127.dzikus/
      }
  
      /*
-diff -urN snapshot-20011127/src/global/wildcard_inet_addr.c snapshot-20011127.dzikus/src/global/wildcard_inet_addr.c
---- snapshot-20011127/src/global/wildcard_inet_addr.c	Thu Jan  1 01:00:00 1970
-+++ snapshot-20011127.dzikus/src/global/wildcard_inet_addr.c	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/global/wildcard_inet_addr.c snapshot-20011127/src/global/wildcard_inet_addr.c
+--- snapshot-20011127.orig/src/global/wildcard_inet_addr.c	Thu Jan  1 01:00:00 1970
++++ snapshot-20011127/src/global/wildcard_inet_addr.c	Mon Dec  3 14:16:39 2001
 @@ -0,0 +1,82 @@
 +/* System library. */
 +
@@ -540,9 +540,9 @@ diff -urN snapshot-20011127/src/global/wildcard_inet_addr.c snapshot-20011127.dz
 +
 +    return (&addr_list);
 +}
-diff -urN snapshot-20011127/src/global/wildcard_inet_addr.h snapshot-20011127.dzikus/src/global/wildcard_inet_addr.h
---- snapshot-20011127/src/global/wildcard_inet_addr.h	Thu Jan  1 01:00:00 1970
-+++ snapshot-20011127.dzikus/src/global/wildcard_inet_addr.h	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/global/wildcard_inet_addr.h snapshot-20011127/src/global/wildcard_inet_addr.h
+--- snapshot-20011127.orig/src/global/wildcard_inet_addr.h	Thu Jan  1 01:00:00 1970
++++ snapshot-20011127/src/global/wildcard_inet_addr.h	Mon Dec  3 14:16:39 2001
 @@ -0,0 +1,36 @@
 +#ifndef _WILDCARD_INET_ADDR_H_INCLUDED_
 +#define _WILDCARD_INET_ADDR_H_INCLUDED_
@@ -580,9 +580,9 @@ diff -urN snapshot-20011127/src/global/wildcard_inet_addr.h snapshot-20011127.dz
 +/*--*/
 +
 +#endif
-diff -urN snapshot-20011127/src/master/master_ent.c snapshot-20011127.dzikus/src/master/master_ent.c
---- snapshot-20011127/src/master/master_ent.c	Tue May  1 00:45:54 2001
-+++ snapshot-20011127.dzikus/src/master/master_ent.c	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/master/master_ent.c snapshot-20011127/src/master/master_ent.c
+--- snapshot-20011127.orig/src/master/master_ent.c	Tue May  1 00:45:54 2001
++++ snapshot-20011127/src/master/master_ent.c	Mon Dec  3 14:16:39 2001
 @@ -284,8 +284,13 @@
  	    inet_addr_host(MASTER_INET_ADDRLIST(serv), host);
  	    serv->listen_fd_count = MASTER_INET_ADDRLIST(serv)->used;
@@ -597,9 +597,9 @@ diff -urN snapshot-20011127/src/master/master_ent.c snapshot-20011127.dzikus/src
  	} else {
  	    MASTER_INET_ADDRLIST(serv) = own_inet_addr_list();	/* virtual */
  	    serv->listen_fd_count = MASTER_INET_ADDRLIST(serv)->used;
-diff -urN snapshot-20011127/src/master/master_listen.c snapshot-20011127.dzikus/src/master/master_listen.c
---- snapshot-20011127/src/master/master_listen.c	Tue May  1 00:47:57 2001
-+++ snapshot-20011127.dzikus/src/master/master_listen.c	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/master/master_listen.c snapshot-20011127/src/master/master_listen.c
+--- snapshot-20011127.orig/src/master/master_listen.c	Tue May  1 00:47:57 2001
++++ snapshot-20011127/src/master/master_listen.c	Mon Dec  3 14:16:39 2001
 @@ -64,13 +64,22 @@
  
  #include "master.h"
@@ -661,9 +661,9 @@ diff -urN snapshot-20011127/src/master/master_listen.c snapshot-20011127.dzikus/
  	}
  	break;
      default:
-diff -urN snapshot-20011127/src/qmgr/qmgr_message.c snapshot-20011127.dzikus/src/qmgr/qmgr_message.c
---- snapshot-20011127/src/qmgr/qmgr_message.c	Sat Jul 14 15:08:57 2001
-+++ snapshot-20011127.dzikus/src/qmgr/qmgr_message.c	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/qmgr/qmgr_message.c snapshot-20011127/src/qmgr/qmgr_message.c
+--- snapshot-20011127.orig/src/qmgr/qmgr_message.c	Sat Jul 14 15:08:57 2001
++++ snapshot-20011127/src/qmgr/qmgr_message.c	Mon Dec  3 14:16:39 2001
 @@ -472,7 +472,11 @@
  	 * every front-ent program.
  	 */
@@ -676,9 +676,9 @@ diff -urN snapshot-20011127/src/qmgr/qmgr_message.c snapshot-20011127.dzikus/src
  	    && valid_hostname(at + 1, DONT_GRIPE) == 0) {
  	    qmgr_bounce_recipient(message, recipient,
  				  "bad host/domain syntax: \"%s\"", at + 1);
-diff -urN snapshot-20011127/src/smtp/Makefile.in snapshot-20011127.dzikus/src/smtp/Makefile.in
---- snapshot-20011127/src/smtp/Makefile.in	Thu Nov 29 12:53:47 2001
-+++ snapshot-20011127.dzikus/src/smtp/Makefile.in	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/smtp/Makefile.in snapshot-20011127/src/smtp/Makefile.in
+--- snapshot-20011127.orig/src/smtp/Makefile.in	Mon Dec  3 14:15:13 2001
++++ snapshot-20011127/src/smtp/Makefile.in	Mon Dec  3 14:16:39 2001
 @@ -140,6 +140,7 @@
  smtp_connect.o: ../../include/mail_params.h
  smtp_connect.o: ../../include/own_inet_addr.h
@@ -687,9 +687,9 @@ diff -urN snapshot-20011127/src/smtp/Makefile.in snapshot-20011127.dzikus/src/sm
  smtp_connect.o: smtp.h
  smtp_connect.o: ../../include/argv.h
  smtp_connect.o: ../../include/deliver_request.h
-diff -urN snapshot-20011127/src/smtp/smtp_addr.c snapshot-20011127.dzikus/src/smtp/smtp_addr.c
---- snapshot-20011127/src/smtp/smtp_addr.c	Sun Jul  8 17:05:26 2001
-+++ snapshot-20011127.dzikus/src/smtp/smtp_addr.c	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/smtp/smtp_addr.c snapshot-20011127/src/smtp/smtp_addr.c
+--- snapshot-20011127.orig/src/smtp/smtp_addr.c	Sun Jul  8 17:05:26 2001
++++ snapshot-20011127/src/smtp/smtp_addr.c	Mon Dec  3 14:16:39 2001
 @@ -134,18 +134,68 @@
  static void smtp_print_addr(char *what, DNS_RR *addr_list)
  {
@@ -889,9 +889,9 @@ diff -urN snapshot-20011127/src/smtp/smtp_addr.c snapshot-20011127.dzikus/src/sm
      }
  
      /*
-diff -urN snapshot-20011127/src/smtp/smtp_connect.c snapshot-20011127.dzikus/src/smtp/smtp_connect.c
---- snapshot-20011127/src/smtp/smtp_connect.c	Thu Nov 29 12:53:47 2001
-+++ snapshot-20011127.dzikus/src/smtp/smtp_connect.c	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/smtp/smtp_connect.c snapshot-20011127/src/smtp/smtp_connect.c
+--- snapshot-20011127.orig/src/smtp/smtp_connect.c	Mon Dec  3 14:15:13 2001
++++ snapshot-20011127/src/smtp/smtp_connect.c	Mon Dec  3 14:16:39 2001
 @@ -81,6 +81,7 @@
  /* System library. */
  
@@ -1205,9 +1205,9 @@ diff -urN snapshot-20011127/src/smtp/smtp_connect.c snapshot-20011127.dzikus/src
      return (buf);
  }
  
-diff -urN snapshot-20011127/src/smtp/smtp_unalias.c snapshot-20011127.dzikus/src/smtp/smtp_unalias.c
---- snapshot-20011127/src/smtp/smtp_unalias.c	Thu Sep 28 19:06:09 2000
-+++ snapshot-20011127.dzikus/src/smtp/smtp_unalias.c	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/smtp/smtp_unalias.c snapshot-20011127/src/smtp/smtp_unalias.c
+--- snapshot-20011127.orig/src/smtp/smtp_unalias.c	Thu Sep 28 19:06:09 2000
++++ snapshot-20011127/src/smtp/smtp_unalias.c	Mon Dec  3 14:16:39 2001
 @@ -86,7 +86,11 @@
      if ((result = htable_find(cache, name)) == 0) {
  	fqdn = vstring_alloc(10);
@@ -1221,9 +1221,9 @@ diff -urN snapshot-20011127/src/smtp/smtp_unalias.c snapshot-20011127.dzikus/src
  	    vstring_strcpy(fqdn, name);
  	htable_enter(cache, name, result = vstring_export(fqdn));
      }
-diff -urN snapshot-20011127/src/smtpd/smtpd_check.c snapshot-20011127.dzikus/src/smtpd/smtpd_check.c
---- snapshot-20011127/src/smtpd/smtpd_check.c	Thu Nov 29 12:53:48 2001
-+++ snapshot-20011127.dzikus/src/smtpd/smtpd_check.c	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/smtpd/smtpd_check.c snapshot-20011127/src/smtpd/smtpd_check.c
+--- snapshot-20011127.orig/src/smtpd/smtpd_check.c	Mon Dec  3 14:15:13 2001
++++ snapshot-20011127/src/smtpd/smtpd_check.c	Mon Dec  3 14:16:39 2001
 @@ -916,7 +916,11 @@
  	msg_info("%s: %s", myname, name);
  
@@ -1351,9 +1351,9 @@ diff -urN snapshot-20011127/src/smtpd/smtpd_check.c snapshot-20011127.dzikus/src
  #endif
  
      /*
-diff -urN snapshot-20011127/src/smtpd/smtpd_peer.c snapshot-20011127.dzikus/src/smtpd/smtpd_peer.c
---- snapshot-20011127/src/smtpd/smtpd_peer.c	Thu Jul  5 22:09:47 2001
-+++ snapshot-20011127.dzikus/src/smtpd/smtpd_peer.c	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/smtpd/smtpd_peer.c snapshot-20011127/src/smtpd/smtpd_peer.c
+--- snapshot-20011127.orig/src/smtpd/smtpd_peer.c	Thu Jul  5 22:09:47 2001
++++ snapshot-20011127/src/smtpd/smtpd_peer.c	Mon Dec  3 14:16:39 2001
 @@ -63,6 +63,15 @@
  #include <netdb.h>
  #include <string.h>
@@ -1528,9 +1528,9 @@ diff -urN snapshot-20011127/src/smtpd/smtpd_peer.c snapshot-20011127.dzikus/src/
  	}
      }
  
-diff -urN snapshot-20011127/src/smtpstone/smtp-sink.c snapshot-20011127.dzikus/src/smtpstone/smtp-sink.c
---- snapshot-20011127/src/smtpstone/smtp-sink.c	Thu Nov  8 21:15:32 2001
-+++ snapshot-20011127.dzikus/src/smtpstone/smtp-sink.c	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/smtpstone/smtp-sink.c snapshot-20011127/src/smtpstone/smtp-sink.c
+--- snapshot-20011127.orig/src/smtpstone/smtp-sink.c	Thu Nov  8 21:15:32 2001
++++ snapshot-20011127/src/smtpstone/smtp-sink.c	Mon Dec  3 14:16:39 2001
 @@ -518,7 +518,7 @@
      } else {
  	if (strncmp(argv[optind], "inet:", 5) == 0)
@@ -1540,9 +1540,9 @@ diff -urN snapshot-20011127/src/smtpstone/smtp-sink.c snapshot-20011127.dzikus/s
      }
  
      /*
-diff -urN snapshot-20011127/src/util/Makefile.in snapshot-20011127.dzikus/src/util/Makefile.in
---- snapshot-20011127/src/util/Makefile.in	Thu Nov 29 12:53:47 2001
-+++ snapshot-20011127.dzikus/src/util/Makefile.in	Thu Nov 29 12:45:18 2001
+diff -Nur snapshot-20011127.orig/src/util/Makefile.in snapshot-20011127/src/util/Makefile.in
+--- snapshot-20011127.orig/src/util/Makefile.in	Mon Dec  3 14:15:13 2001
++++ snapshot-20011127/src/util/Makefile.in	Mon Dec  3 14:16:39 2001
 @@ -5,6 +5,7 @@
  	dict_nisplus.c dict_open.c dir_forest.c doze.c environ.c \
  	events.c exec_command.c fifo_listen.c fifo_trigger.c file_limit.c \
@@ -1583,9 +1583,9 @@ diff -urN snapshot-20011127/src/util/Makefile.in snapshot-20011127.dzikus/src/ut
  match_list.o: match_ops.h
  match_list.o: match_list.h
  match_ops.o: match_ops.c
-diff -urN snapshot-20011127/src/util/get_port.c snapshot-20011127.dzikus/src/util/get_port.c
---- snapshot-20011127/src/util/get_port.c	Thu Jan  1 01:00:00 1970
-+++ snapshot-20011127.dzikus/src/util/get_port.c	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/util/get_port.c snapshot-20011127/src/util/get_port.c
+--- snapshot-20011127.orig/src/util/get_port.c	Thu Jan  1 01:00:00 1970
++++ snapshot-20011127/src/util/get_port.c	Mon Dec  3 14:16:39 2001
 @@ -0,0 +1,65 @@
 +/*++
 +/* NAME
@@ -1652,9 +1652,9 @@ diff -urN snapshot-20011127/src/util/get_port.c snapshot-20011127.dzikus/src/uti
 +	/* return empty string */
 +	return NULL;
 +}
-diff -urN snapshot-20011127/src/util/get_port.h snapshot-20011127.dzikus/src/util/get_port.h
---- snapshot-20011127/src/util/get_port.h	Thu Jan  1 01:00:00 1970
-+++ snapshot-20011127.dzikus/src/util/get_port.h	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/util/get_port.h snapshot-20011127/src/util/get_port.h
+--- snapshot-20011127.orig/src/util/get_port.h	Thu Jan  1 01:00:00 1970
++++ snapshot-20011127/src/util/get_port.h	Mon Dec  3 14:16:39 2001
 @@ -0,0 +1,28 @@
 +#ifndef _GET_PORT_H_INCLUDED_
 +#define _GET_PORT_H_INCLUDED_
@@ -1684,9 +1684,9 @@ diff -urN snapshot-20011127/src/util/get_port.h snapshot-20011127.dzikus/src/uti
 +/*--*/
 +
 +#endif
-diff -urN snapshot-20011127/src/util/inet_addr_host.c snapshot-20011127.dzikus/src/util/inet_addr_host.c
---- snapshot-20011127/src/util/inet_addr_host.c	Fri Dec 11 19:55:35 1998
-+++ snapshot-20011127.dzikus/src/util/inet_addr_host.c	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/util/inet_addr_host.c snapshot-20011127/src/util/inet_addr_host.c
+--- snapshot-20011127.orig/src/util/inet_addr_host.c	Fri Dec 11 19:55:35 1998
++++ snapshot-20011127/src/util/inet_addr_host.c	Mon Dec  3 14:16:39 2001
 @@ -38,7 +38,10 @@
  #include <sys_defs.h>
  #include <netinet/in.h>
@@ -1783,9 +1783,9 @@ diff -urN snapshot-20011127/src/util/inet_addr_host.c snapshot-20011127.dzikus/s
  	vstream_fflush(VSTREAM_OUT);
      }
      inet_addr_list_free(&addr_list);
-diff -urN snapshot-20011127/src/util/inet_addr_list.c snapshot-20011127.dzikus/src/util/inet_addr_list.c
---- snapshot-20011127/src/util/inet_addr_list.c	Tue Jul 31 20:13:41 2001
-+++ snapshot-20011127.dzikus/src/util/inet_addr_list.c	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/util/inet_addr_list.c snapshot-20011127/src/util/inet_addr_list.c
+--- snapshot-20011127.orig/src/util/inet_addr_list.c	Tue Jul 31 20:13:41 2001
++++ snapshot-20011127/src/util/inet_addr_list.c	Mon Dec  3 14:21:19 2001
 @@ -51,6 +51,13 @@
  #include <arpa/inet.h>
  #include <stdlib.h>
@@ -1840,7 +1840,7 @@ diff -urN snapshot-20011127/src/util/inet_addr_list.c snapshot-20011127.dzikus/s
  void    inet_addr_list_append(INET_ADDR_LIST *list, struct in_addr * addr)
  {
      char   *myname = "inet_addr_list_append";
-@@ -83,6 +117,7 @@
+@@ -83,15 +117,22 @@
  		  sizeof(*list->addrs) * list->size);
      list->addrs[list->used++] = *addr;
  }
@@ -1848,9 +1848,24 @@ diff -urN snapshot-20011127/src/util/inet_addr_list.c snapshot-20011127.dzikus/s
  
  /* inet_addr_list_comp - compare addresses */
  
-diff -urN snapshot-20011127/src/util/inet_addr_list.h snapshot-20011127.dzikus/src/util/inet_addr_list.h
---- snapshot-20011127/src/util/inet_addr_list.h	Tue Jul 31 19:56:47 2001
-+++ snapshot-20011127.dzikus/src/util/inet_addr_list.h	Thu Nov 29 12:40:58 2001
+ static int inet_addr_list_comp(const void *a, const void *b)
+ {
++#ifdef INET6
++    if(((struct sockaddr*)a)->sa_family != ((struct sockaddr*)b)->sa_family)
++	return 1;
++    return memcmp(a,b,SA_LEN((struct sockaddr*)a));
++#else
+     const struct in_addr *a_addr = (const struct in_addr *) a;
+     const struct in_addr *b_addr = (const struct in_addr *) b;
+ 
+     return (a_addr->s_addr - b_addr->s_addr);
++#endif
+ }
+ 
+ /* inet_addr_list_uniq - weed out duplicates */
+diff -Nur snapshot-20011127.orig/src/util/inet_addr_list.h snapshot-20011127/src/util/inet_addr_list.h
+--- snapshot-20011127.orig/src/util/inet_addr_list.h	Tue Jul 31 19:56:47 2001
++++ snapshot-20011127/src/util/inet_addr_list.h	Mon Dec  3 14:16:39 2001
 @@ -16,19 +16,38 @@
    */
  #include <netinet/in.h>
@@ -1890,9 +1905,9 @@ diff -urN snapshot-20011127/src/util/inet_addr_list.h snapshot-20011127.dzikus/s
  
  /* LICENSE
  /* .ad
-diff -urN snapshot-20011127/src/util/inet_addr_local.c snapshot-20011127.dzikus/src/util/inet_addr_local.c
---- snapshot-20011127/src/util/inet_addr_local.c	Sun Feb 25 19:20:19 2001
-+++ snapshot-20011127.dzikus/src/util/inet_addr_local.c	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/util/inet_addr_local.c snapshot-20011127/src/util/inet_addr_local.c
+--- snapshot-20011127.orig/src/util/inet_addr_local.c	Sun Feb 25 19:20:19 2001
++++ snapshot-20011127/src/util/inet_addr_local.c	Mon Dec  3 14:16:39 2001
 @@ -47,6 +47,13 @@
  #endif
  #include <errno.h>
@@ -2116,9 +2131,9 @@ diff -urN snapshot-20011127/src/util/inet_addr_local.c snapshot-20011127.dzikus/
      }
      vstream_fflush(VSTREAM_OUT);
      inet_addr_list_free(&addr_list);
-diff -urN snapshot-20011127/src/util/inet_connect.c snapshot-20011127.dzikus/src/util/inet_connect.c
---- snapshot-20011127/src/util/inet_connect.c	Mon Nov 20 19:06:31 2000
-+++ snapshot-20011127.dzikus/src/util/inet_connect.c	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/util/inet_connect.c snapshot-20011127/src/util/inet_connect.c
+--- snapshot-20011127.orig/src/util/inet_connect.c	Mon Nov 20 19:06:31 2000
++++ snapshot-20011127/src/util/inet_connect.c	Mon Dec  3 14:16:39 2001
 @@ -55,6 +55,9 @@
  #include <string.h>
  #include <unistd.h>
@@ -2207,9 +2222,9 @@ diff -urN snapshot-20011127/src/util/inet_connect.c snapshot-20011127.dzikus/src
      }
 +#endif
  }
-diff -urN snapshot-20011127/src/util/inet_listen.c snapshot-20011127.dzikus/src/util/inet_listen.c
---- snapshot-20011127/src/util/inet_listen.c	Mon Nov 20 19:06:32 2000
-+++ snapshot-20011127.dzikus/src/util/inet_listen.c	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/util/inet_listen.c snapshot-20011127/src/util/inet_listen.c
+--- snapshot-20011127.orig/src/util/inet_listen.c	Mon Nov 20 19:06:32 2000
++++ snapshot-20011127/src/util/inet_listen.c	Mon Dec  3 14:16:39 2001
 @@ -6,7 +6,7 @@
  /* SYNOPSIS
  /*	#include <listen.h>
@@ -2367,9 +2382,9 @@ diff -urN snapshot-20011127/src/util/inet_listen.c snapshot-20011127.dzikus/src/
      non_blocking(sock, block_mode);
      if (listen(sock, backlog) < 0)
  	msg_fatal("listen: %m");
-diff -urN snapshot-20011127/src/util/listen.h snapshot-20011127.dzikus/src/util/listen.h
---- snapshot-20011127/src/util/listen.h	Mon Mar 22 02:57:11 1999
-+++ snapshot-20011127.dzikus/src/util/listen.h	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/util/listen.h snapshot-20011127/src/util/listen.h
+--- snapshot-20011127.orig/src/util/listen.h	Mon Mar 22 02:57:11 1999
++++ snapshot-20011127/src/util/listen.h	Mon Dec  3 14:16:39 2001
 @@ -20,7 +20,7 @@
    * Listener external interface.
    */
@@ -2379,9 +2394,9 @@ diff -urN snapshot-20011127/src/util/listen.h snapshot-20011127.dzikus/src/util/
  extern int fifo_listen(const char *, int, int);
  extern int stream_listen(const char *, int, int);
  
-diff -urN snapshot-20011127/src/util/match_list.c snapshot-20011127.dzikus/src/util/match_list.c
---- snapshot-20011127/src/util/match_list.c	Tue Nov 20 21:07:15 2001
-+++ snapshot-20011127.dzikus/src/util/match_list.c	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/util/match_list.c snapshot-20011127/src/util/match_list.c
+--- snapshot-20011127.orig/src/util/match_list.c	Tue Nov 20 21:07:15 2001
++++ snapshot-20011127/src/util/match_list.c	Mon Dec  3 14:16:39 2001
 @@ -118,7 +118,7 @@
  		    list = match_list_parse(list, vstring_str(buf));
  	    if (vstream_fclose(fp))
@@ -2391,9 +2406,9 @@ diff -urN snapshot-20011127/src/util/match_list.c snapshot-20011127.dzikus/src/u
  	    for (cp = pattern; *cp == '!'; cp++)
  		 /* void */ ;
  	    if (dict_handle(pattern) == 0)
-diff -urN snapshot-20011127/src/util/match_ops.c snapshot-20011127.dzikus/src/util/match_ops.c
---- snapshot-20011127/src/util/match_ops.c	Tue Nov 20 21:16:10 2001
-+++ snapshot-20011127.dzikus/src/util/match_ops.c	Thu Nov 29 12:51:24 2001
+diff -Nur snapshot-20011127.orig/src/util/match_ops.c snapshot-20011127/src/util/match_ops.c
+--- snapshot-20011127.orig/src/util/match_ops.c	Tue Nov 20 21:16:10 2001
++++ snapshot-20011127/src/util/match_ops.c	Mon Dec  3 14:16:39 2001
 @@ -81,6 +81,307 @@
  #include <match_ops.h>
  #include <stringops.h>
@@ -2808,9 +2823,9 @@ diff -urN snapshot-20011127/src/util/match_ops.c snapshot-20011127.dzikus/src/ut
 +#endif
      return (0);
  }
-diff -urN snapshot-20011127/src/util/sys_defs.h snapshot-20011127.dzikus/src/util/sys_defs.h
---- snapshot-20011127/src/util/sys_defs.h	Thu Nov 29 12:53:47 2001
-+++ snapshot-20011127.dzikus/src/util/sys_defs.h	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/util/sys_defs.h snapshot-20011127/src/util/sys_defs.h
+--- snapshot-20011127.orig/src/util/sys_defs.h	Mon Dec  3 14:15:12 2001
++++ snapshot-20011127/src/util/sys_defs.h	Mon Dec  3 14:16:39 2001
 @@ -68,6 +68,10 @@
  #define DEF_MAILBOX_LOCK "flock, dotlock"
  #endif
@@ -2822,9 +2837,9 @@ diff -urN snapshot-20011127/src/util/sys_defs.h snapshot-20011127.dzikus/src/uti
   /*
    * UNIX on MAC.
    */
-diff -urN snapshot-20011127/src/util/valid_hostname.c snapshot-20011127.dzikus/src/util/valid_hostname.c
---- snapshot-20011127/src/util/valid_hostname.c	Sun Jan 28 15:10:18 2001
-+++ snapshot-20011127.dzikus/src/util/valid_hostname.c	Thu Nov 29 12:40:58 2001
+diff -Nur snapshot-20011127.orig/src/util/valid_hostname.c snapshot-20011127/src/util/valid_hostname.c
+--- snapshot-20011127.orig/src/util/valid_hostname.c	Sun Jan 28 15:10:18 2001
++++ snapshot-20011127/src/util/valid_hostname.c	Mon Dec  3 14:16:39 2001
 @@ -47,6 +47,13 @@
  #include <string.h>
  #include <ctype.h>
@@ -2874,10 +2889,11 @@ diff -urN snapshot-20011127/src/util/valid_hostname.c snapshot-20011127.dzikus/s
  
  #define BYTES_NEEDED	4
  
-@@ -147,6 +173,17 @@
+@@ -146,6 +172,17 @@
+ 	    msg_warn("%s: empty address", myname);
  	return (0);
      }
- 
++
 +#ifdef INET6
 +    memset(&hints, 0, sizeof(hints));
 +    hints.ai_family = AF_INET6;
@@ -2888,7 +2904,6 @@ diff -urN snapshot-20011127/src/util/valid_hostname.c snapshot-20011127.dzikus/s
 +	return 1;
 +    }
 +#endif
-+
+ 
      /*
       * Scary code to avoid sscanf() overflow nasties.
-      */
