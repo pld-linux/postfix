@@ -9,7 +9,7 @@ Source1:	postfix.aliases
 Source2:	postfix.cron
 Source3:	postfix.init
 Patch0:		postfix-config.patch
-Patch1:		http://www.xaa.iae.nl/~xaa/postfix6/patch.19990714.txt
+Patch1:		http://www.xaa.iae.nl/~xaa/postfix6/patch.19990727.txt
 Copyright:	Distributable
 Group:		Networking/Daemons
 Group(pl):	Sieciowe/Serwery
