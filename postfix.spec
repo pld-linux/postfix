@@ -8,8 +8,8 @@
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
 Name:		postfix
-Version:	20001217
-Release:	2
+Version:	20010204
+Release:	1
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
 Group(pl):	Sieciowe/Serwery
@@ -20,7 +20,7 @@ Source2:	%{name}.cron
 Source3:	%{name}.init
 Source5:	%{name}.sysconfig
 Patch0:		%{name}-config.patch
-Patch1:		http://www.misiek.eu.org/ipv6/%{name}-ver20001030-ipv6-20001030.patch.gz
+Patch1:		http://www.misiek.eu.org/ipv6/%{name}-ver20010128-ipv6-20010129.patch.gz
 Patch2:		%{name}-pl.patch
 URL:		http://www.postfix.org/
 Provides:	smtpdaemon
@@ -66,7 +66,7 @@ IPv6%{!?bcond_off_ldap: oraz LDAP} %{?bcond_off_ldap: i nie zawiera wsparcia LDA
 %prep
 %setup -q -n snapshot-%{version}
 %patch0 -p1
-%patch1 -p1 
+%patch1 -p1
 %patch2 -p1
 
 %build
@@ -112,7 +112,8 @@ touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 
 gzip -9nf LDAP_README HISTORY MYSQL_README UUCP_README 0README BEWARE \
 	COMPATIBILITY DEBUG_README LICENSE LMTP_README PCRE_README \
-	RELEASE_NOTES RESTRICTION_CLASS SASL_README TODO FILTER_README
+	RELEASE_NOTES RESTRICTION_CLASS SASL_README TODO FILTER_README \
+	IPV6_README
 
 touch $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
@@ -179,7 +180,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
-%doc html {LDAP_README,HISTORY,MYSQL_README,UUCP_README}.gz 
+%doc html {LDAP_README,HISTORY,MYSQL_README,UUCP_README,IPV6_README}.gz 
 %doc {0README,BEWARE,COMPATIBILITY,DEBUG_README,LICENSE,LMTP_README,PCRE_README}.gz
 %doc {RELEASE_NOTES,RESTRICTION_CLASS,SASL_README,TODO,FILTER_README}.gz
 %doc sample-conf
