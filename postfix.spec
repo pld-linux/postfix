@@ -34,7 +34,7 @@ Prereq:		%{_sbindir}/useradd
 Prereq:		%{_sbindir}/groupadd
 Prereq:		%{_sbindir}/userdel
 Prereq:		%{_sbindir}/groupdel
-BuildRoot:	/tmp/%{name}-%{version}-root
+BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		_sysconfdir	/etc
 
@@ -141,7 +141,6 @@ else
 		/usr/bin/update-db 1>&2
 	fi
 fi
-
 
 %post
 if ! grep -q "^postmaster:" /etc/mail/aliases; then
