@@ -1,24 +1,22 @@
-%define		ver	19991231
-%define		patchl	05
-%define		pfixtls	0.6.1-19991231-pl05-0.9.5
+%define		ver	20000507
+%define		patchl	06
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
 Name:		postfix
-Version:	%{ver}_pl%{patchl}
-Release:	1
+Version:	%{ver}
+Release:	1.16
 Group:		Networking/Daemons
 Group(pl):	Sieciowe/Serwery
 Copyright:	Distributable
-Source0:	ftp://postfix.cloud9.net/official/%{name}-%{ver}-pl%{patchl}.tar.gz
+Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-%{ver}.tar.gz
 Source1:	postfix.aliases
 Source2:	postfix.cron
 Source3:	postfix.init
-Source4:	ftp://ftp.aet.tu-cottbus.de/pub/pfixtls/pfixtls-%{pfixtls}.tar.gz
 Source5:	postfix.sysconfig
 Patch0:		postfix-config.patch
-#Patch1:		http://www.xaa.iae.nl/~xaa/postfix6/patch.19990727.txt
 Patch2:		postfix-IPv6.patch
 Patch3:		postfix-glibc.patch
+Patch5:		postfix-pl.patch
 URL:		http://www.postfix.org/
 Provides:	smtpdaemon
 Requires:	rc-scripts
@@ -51,20 +49,16 @@ administrowaniu, bezpieczny oraz ma byæ na tyle kompatybilny z sendmailem by
 nie denerwowaæ Twoich u¿ytkowników. Ta wersja wspiera IPv6 oraz LDAP.
 
 %prep
-%setup -q -n postfix-%{ver}-pl%{patchl} -a 4
-patch -p1 -s <pfixtls-%{pfixtls}/pfixtls.diff
+%setup -q -n snapshot-%{ver}
 %patch0 -p1 -b .wiget
-# patch1 or patch2 (with or without tls patch applied)
-#%patch1 -p1 
-#%patch2 -p1
-#%patch3 -p1
+%patch5 -p1
 
 %build
 make -f Makefile.init makefiles
 make tidy
-make DEBUG="" OPT="$RPM_OPT_FLAGS" \
-     CCARGS="-DHAS_LDAP -DHAS_SSL -DHAS_PCRE" \
-     AUXLIBS="-llber -lldap -lssl -lcrypto -lnsl -ldb -lresolv -lpcre"
+make DEBUG="" OPT="-g $RPM_OPT_FLAGS" \
+     CCARGS="-DHAS_LDAP -DHAS_PCRE -DUSE_SASL_AUTH" \
+     AUXLIBS="-llber -lldap -lnsl -ldb -lresolv -lpcre -lsasl"
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -76,10 +70,12 @@ install -d $RPM_BUILD_ROOT%{_sysconfdir}/{mail,cron.daily,rc.d/init.d,sysconfig}
 	   pfixtls
 
 install -d sample-conf; mv -f conf/sample* sample-conf/ || :
-mv -f pfixtls-%{pfixtls}/{doc,README,TODO,CHANGES} pfixtls
+#mv -f pfixtls-%{pfixtls}/{doc,README,TODO,CHANGES} pfixtls
 
-install -s bin/* $RPM_BUILD_ROOT%{_sbindir}
-install -s libexec/* $RPM_BUILD_ROOT%{_libdir}/postfix
+#install -s bin/* $RPM_BUILD_ROOT%{_sbindir}
+#install -s libexec/* $RPM_BUILD_ROOT%{_libdir}/postfix
+install bin/* $RPM_BUILD_ROOT%{_sbindir}
+install libexec/* $RPM_BUILD_ROOT%{_libdir}/postfix
 install conf/* $RPM_BUILD_ROOT%{_sysconfdir}/mail
 
 (cd man; tar cf - .) | (cd $RPM_BUILD_ROOT%{_mandir}; tar xf -)
@@ -102,8 +98,8 @@ touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 {aliases,access,canonical,relocated,transport,virtual}{,.db}
 
 gzip -9nf $RPM_BUILD_ROOT%{_mandir}/man*/* \
-	LDAP_README HISTORY MYSQL_README UUCP_README \
-	pfixtls/{README,TODO,CHANGES}
+	LDAP_README HISTORY MYSQL_README UUCP_README 
+#	pfixtls/{README,TODO,CHANGES}
 		
 touch $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
@@ -147,8 +143,8 @@ if ! grep -q "^postmaster:" /etc/mail/aliases; then
         echo "Adding Entry for postmaster in /etc/mail/aliases" >&2
         echo "postmaster:       root" >>/etc/mail/aliases
 fi
-if ! grep -E "^hostname" /etc/mail/main.cf; then
-	postconf -e hostname=`hostname -f`
+if ! grep -q "^myhostname" /etc/mail/main.cf; then
+	postconf -e myhostname=`hostname -f`
 fi
 
 newaliases
@@ -182,7 +178,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
-%doc html {LDAP_README,HISTORY,MYSQL_README,UUCP_README}.gz pfixtls
+%doc html {LDAP_README,HISTORY,MYSQL_README,UUCP_README}.gz 
+#pfixtls
 %doc sample-conf
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/access
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/aliases
