@@ -1,5 +1,6 @@
---- snapshot-20001121/src/bounce/bounce_notify_util.c.wiget	Mon Nov 20 19:05:04 2000
-+++ snapshot-20001121/src/bounce/bounce_notify_util.c	Thu Nov 30 14:52:37 2000
+diff -urN snapshot-20011114/src/bounce/bounce_notify_util.c snapshot-20011114.my/src/bounce/bounce_notify_util.c
+--- snapshot-20011114/src/bounce/bounce_notify_util.c	Thu Aug 23 01:49:42 2001
++++ snapshot-20011114.my/src/bounce/bounce_notify_util.c	Thu Nov 15 10:50:21 2001
 @@ -273,7 +273,7 @@
  	post_mail_fputs(bounce, dest == var_bounce_rcpt
  		     || dest == var_2bounce_rcpt || dest == var_delay_rcpt ?
@@ -109,8 +110,8 @@
  		      var_mail_name, var_myhostname);
      post_mail_fputs(bounce, "");
 @@ -345,7 +403,7 @@
- 			  "It will be retried until it is %d days old.",
- 			  var_max_queue_time);
+ 			  "It will be retried until it is %.1f days old.",
+ 			  var_max_queue_time / 86400.0);
      }
 -
 +#if 0 
@@ -151,9 +152,10 @@
  	return (vstream_ferror(bounce));
      }
  
---- snapshot-20001121/src/global/pipe_command.c.wiget	Tue Nov 21 19:08:58 2000
-+++ snapshot-20001121/src/global/pipe_command.c	Thu Nov 30 14:56:00 2000
-@@ -470,9 +470,9 @@
+diff -urN snapshot-20011114/src/global/pipe_command.c snapshot-20011114.my/src/global/pipe_command.c
+--- snapshot-20011114/src/global/pipe_command.c	Wed Oct 17 21:57:39 2001
++++ snapshot-20011114.my/src/global/pipe_command.c	Thu Nov 15 10:50:21 2001
+@@ -479,9 +479,9 @@
  	if (pipe_command_wait_or_kill(pid, &wait_status, SIGKILL) < 0)
  	    msg_fatal("wait: %m");
  	if (pipe_command_timeout) {
@@ -165,7 +167,7 @@
  	    return (PIPE_STAT_BOUNCE);
  	}
  
-@@ -482,26 +482,26 @@
+@@ -491,26 +491,26 @@
  	 */
  	if (!NORMAL_EXIT_STATUS(wait_status)) {
  	    if (WIFSIGNALED(wait_status)) {
@@ -198,8 +200,9 @@
  	    return (PIPE_STAT_DEFER);
  	} else {
  	    return (PIPE_STAT_OK);
---- snapshot-20001121/src/global/sys_exits.c.wiget	Fri Dec 11 19:55:25 1998
-+++ snapshot-20001121/src/global/sys_exits.c	Thu Nov 30 14:52:37 2000
+diff -urN snapshot-20011114/src/global/sys_exits.c snapshot-20011114.my/src/global/sys_exits.c
+--- snapshot-20011114/src/global/sys_exits.c	Fri Dec 11 19:55:25 1998
++++ snapshot-20011114.my/src/global/sys_exits.c	Thu Nov 15 10:50:21 2001
 @@ -60,21 +60,21 @@
  } SYS_EXITS_TABLE;
  
@@ -230,37 +233,38 @@
  };
  
  /* sys_exits_strerror - map exit status to error string */
---- snapshot-20001121/src/smtpd/smtpd_check.c.wiget	Thu Nov 30 14:52:37 2000
-+++ snapshot-20001121/src/smtpd/smtpd_check.c	Thu Nov 30 14:58:39 2000
-@@ -638,7 +638,7 @@
+diff -urN snapshot-20011114/src/smtpd/smtpd_check.c snapshot-20011114.my/src/smtpd/smtpd_check.c
+--- snapshot-20011114/src/smtpd/smtpd_check.c	Wed Oct 17 20:00:39 2001
++++ snapshot-20011114.my/src/smtpd/smtpd_check.c	Thu Nov 15 10:56:32 2001
+@@ -765,7 +765,7 @@
       */
-     if (!valid_hostaddr(test_addr))
+     if (!valid_hostaddr(test_addr, DONT_GRIPE))
  	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
 -				  "%d <%s>: %s rejected: invalid ip address",
 +				  "%d <%s>: %s odrzucony/rejected: niepoprawny adres IP/invalid IP address",
  				var_bad_name_code, reply_name, reply_class);
      else
  	stat = SMTPD_CHECK_DUNNO;
-@@ -674,7 +674,7 @@
+@@ -801,7 +801,7 @@
       */
-     if (!valid_hostname(test_name))
+     if (!valid_hostname(test_name, DONT_GRIPE))
  	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
 -				  "%d <%s>: %s rejected: Invalid name",
 +				  "%d <%s>: %s odrzucony/rejected: Niepoprawna nazwa / Invalid name",
  				var_bad_name_code, reply_name, reply_class);
      else
  	stat = SMTPD_CHECK_DUNNO;
-@@ -710,7 +710,7 @@
+@@ -837,7 +837,7 @@
       */
-     if (!valid_hostname(test_name) || !strchr(test_name, '.'))
+     if (!valid_hostname(test_name, DONT_GRIPE) || !strchr(test_name, '.'))
  	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
 -		      "%d <%s>: %s rejected: need fully-qualified hostname",
 +		      "%d <%s>: %s odrzucowny/rejected: need fully-qualified hostname",
  				var_non_fqdn_code, reply_name, reply_class);
      else
  	stat = SMTPD_CHECK_DUNNO;
-@@ -743,7 +743,7 @@
- 				  0);
+@@ -866,7 +866,7 @@
+ 				  (VSTRING *) 0, T_A, T_MX, 0);
      if (dns_status != DNS_OK)
  	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 -				   "%d <%s>: %s rejected: Host not found",
@@ -268,8 +272,8 @@
  				   dns_status == DNS_NOTFOUND ?
  				   var_unk_name_code : 450,
  				   reply_name, reply_class));
-@@ -769,7 +769,7 @@
- 				  0);
+@@ -888,7 +888,7 @@
+ 				  (VSTRING *) 0, T_A, T_MX, 0);
      if (dns_status != DNS_OK)
  	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 -				   "%d <%s>: %s rejected: Domain not found",
@@ -277,7 +281,7 @@
  				   dns_status == DNS_NOTFOUND ?
  				   var_unk_addr_code : 450,
  				   reply_name, reply_class));
-@@ -804,7 +804,7 @@
+@@ -923,7 +923,7 @@
       * Deny relaying between sites that both are not in relay_domains.
       */
      return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -286,16 +290,16 @@
  			       var_relay_code, reply_name, reply_class));
  }
  
-@@ -1078,7 +1078,7 @@
+@@ -1315,7 +1315,7 @@
       */
-     if (!*test_dom || !valid_hostname(test_dom) || !strchr(test_dom, '.'))
+     if (!*test_dom || !valid_hostname(test_dom, DONT_GRIPE) || !strchr(test_dom, '.'))
  	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
 -		       "%d <%s>: %s rejected: need fully-qualified address",
 +		       "%d <%s>: %s odrzucony/rejected: need fully-qualified address",
  				var_non_fqdn_code, reply_name, reply_class);
      else
  	stat = SMTPD_CHECK_DUNNO;
-@@ -1156,7 +1156,7 @@
+@@ -1397,7 +1397,7 @@
       */
      if (strcasecmp(value, "REJECT") == 0)
  	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -304,7 +308,7 @@
  			     var_access_map_code, reply_name, reply_class));
  
      /*
-@@ -1175,7 +1175,7 @@
+@@ -1416,7 +1416,7 @@
  	while (ISDIGIT(*value) || ISSPACE(*value))
  	    value++;
  	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -313,7 +317,7 @@
  				   code, reply_name, reply_class, value));
      }
  
-@@ -1488,7 +1488,7 @@
+@@ -1769,7 +1769,7 @@
  	    rbl_fodder = rbl_reason = "";
  	}
  	result = smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -322,7 +326,7 @@
  				 var_maps_rbl_code, state->addr, rbl_domain,
  				    rbl_fodder, rbl_reason);
  	if (txt_list)
-@@ -1566,7 +1566,7 @@
+@@ -1852,7 +1852,7 @@
  			 cpp[1], PERMIT_ALL);
  	} else if (strcasecmp(name, REJECT_ALL) == 0) {
  	    status = smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -331,25 +335,34 @@
  				  var_reject_code, reply_name, reply_class);
  	    if (cpp[1] != 0)
  		msg_warn("restriction `%s' after `%s' is ignored",
-@@ -1982,7 +1982,7 @@
- 	    && NOMATCH(relocated_maps, STR(reply.recipient))
- 	    && NOMATCH(virtual_maps, STR(reply.recipient))) {
+@@ -2286,7 +2286,7 @@
+ 	    && NOMATCH(virt_mailbox_maps, CONST_STR(reply->recipient))
+ 	    && NOMATCH(virtual_maps, CONST_STR(reply->recipient))) {
  	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
 -				   "%d <%s>: User unknown", 550, recipient);
 +				   "%d <%s>: Nieznany uzytkonik / User unknown", 550, recipient);
  	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
  	}
      }
-@@ -1999,7 +1999,7 @@
- 	    && NOMATCH(virtual_maps, STR(reply.recipient))
- 	    && NOMATCH(local_rcpt_maps, STR(reply.recipient))) {
+@@ -2302,7 +2302,7 @@
+ 	    && NOMATCH(virt_mailbox_maps, CONST_STR(reply->recipient))
+ 	    && NOMATCH(virtual_maps, CONST_STR(reply->recipient))) {
  	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
 -				   "%d <%s>: User unknown", 550, recipient);
-+				   "%d <%s>: Nieznany uzytkownik / User unknown", 550, recipient);
++				   "%d <%s>: Nieznany uzytkonik / User unknown", 550, recipient);
  	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
  	}
      }
-@@ -2026,7 +2026,7 @@
+@@ -2320,7 +2320,7 @@
+ 	    && NOMATCH(virtual_maps, CONST_STR(reply->recipient))
+ 	    && NOMATCH(local_rcpt_maps, CONST_STR(reply->recipient))) {
+ 	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
+-				   "%d <%s>: User unknown", 550, recipient);
++				   "%d <%s>: Nieznany uzytkonik / User unknown", 550, recipient);
+ 	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
+ 	}
+     }
+@@ -2354,7 +2354,7 @@
  
      if (var_message_limit > 0 && size > var_message_limit) {
  	(void) smtpd_check_reject(state, MAIL_ERROR_POLICY,

@@ -1,8 +1,36 @@
---- snapshot-20010525/src/global/mail_params.h.wiget	Tue May 29 16:39:02 2001
-+++ snapshot-20010525/src/global/mail_params.h	Tue May 29 16:39:02 2001
-@@ -1434,6 +1434,13 @@
- #define DEF_SYSLOG_NAME			"postfix"
- extern char *var_syslog_name;
+diff -urN snapshot-20011114/src/global/mail_params.c snapshot-20011114.my/src/global/mail_params.c
+--- snapshot-20011114/src/global/mail_params.c	Thu Nov 15 11:15:54 2001
++++ snapshot-20011114.my/src/global/mail_params.c	Thu Nov 15 11:19:19 2001
+@@ -70,6 +70,7 @@
+ /*	char	*var_debug_peer_list;
+ /*	int	var_debug_peer_level;
+ /*	int	var_in_flow_delay;
++/*	char	*var_reject_reply_msg_access_denied;
+ /*
+ /*	void	mail_params_init()
+ /* DESCRIPTION
+@@ -217,6 +218,7 @@
+ char   *var_export_environ;
+ char   *var_debug_peer_list;
+ int     var_debug_peer_level;
++char   *var_reject_reply_msg_access_denied;
+ 
+ /* check_myhostname - lookup hostname and validate */
+ 
+@@ -357,6 +359,7 @@
+ 	VAR_SMTP_TLS_CLIST, DEF_SMTP_TLS_CLIST, &var_smtp_tls_cipherlist, 0, 0,
+ 	VAR_SMTP_TLS_SCACHE_DB, DEF_SMTP_TLS_SCACHE_DB, &var_smtp_tls_scache_db, 0, 0,
+ 	VAR_TLS_DAEMON_RAND_SOURCE, DEF_TLS_DAEMON_RAND_SOURCE, &var_tls_daemon_rand_source, 0, 0,
++	VAR_REJECT_REPLY_MSG_ACCESS_DENIED, DEF_REJECT_REPLY_MSG_ACCESS_DENIED, &var_reject_reply_msg_access_denied, 1, 0, 
+ 	0,
+     };
+     static CONFIG_STR_FN_TABLE function_str_defaults_2[] = {
+diff -urN snapshot-20011114/src/global/mail_params.h snapshot-20011114.my/src/global/mail_params.h
+--- snapshot-20011114/src/global/mail_params.h	Thu Nov 15 11:15:54 2001
++++ snapshot-20011114.my/src/global/mail_params.h	Thu Nov 15 11:16:27 2001
+@@ -1505,6 +1505,13 @@
+ #define DEF_IN_FLOW_DELAY			"1s"
+ extern int var_in_flow_delay;
  
 + /*
 +  * SMTPD messages
@@ -14,35 +42,21 @@
  /* LICENSE
  /* .ad
  /* .fi
---- snapshot-20010525/src/global/mail_params.c.wiget	Tue May 29 16:39:02 2001
-+++ snapshot-20010525/src/global/mail_params.c	Tue May 29 16:41:04 2001
-@@ -67,6 +67,7 @@
- /*	char	*var_export_environ;
- /*	char	*var_debug_peer_list;
- /*	int	var_debug_peer_level;
-+/*  char 	*var_reject_reply_msg_access_denied;
- /*
- /*	void	mail_params_init()
- /* DESCRIPTION
-@@ -210,6 +211,7 @@
- char   *var_export_environ;
- char   *var_debug_peer_list;
- int     var_debug_peer_level;
-+char   *var_reject_reply_msg_access_denied;
- 
- /* check_myhostname - lookup hostname and validate */
- 
-@@ -348,6 +350,7 @@
- 	VAR_SMTP_TLS_CLIST, DEF_SMTP_TLS_CLIST, &var_smtp_tls_cipherlist, 0, 0,
- 	VAR_SMTP_TLS_SCACHE_DB, DEF_SMTP_TLS_SCACHE_DB, &var_smtp_tls_scache_db, 0, 0,
- 	VAR_TLS_DAEMON_RAND_SOURCE, DEF_TLS_DAEMON_RAND_SOURCE, &var_tls_daemon_rand_source, 0, 0,
+diff -urN snapshot-20011114/src/smtpd/smtpd.c snapshot-20011114.my/src/smtpd/smtpd.c
+--- snapshot-20011114/src/smtpd/smtpd.c	Thu Nov 15 11:15:54 2001
++++ snapshot-20011114.my/src/smtpd/smtpd.c	Thu Nov 15 11:16:27 2001
+@@ -1873,6 +1873,7 @@
+ 	VAR_FILTER_XPORT, DEF_FILTER_XPORT, &var_filter_xport, 0, 0,
+ 	VAR_PERM_MX_NETWORKS, DEF_PERM_MX_NETWORKS, &var_perm_mx_networks, 0, 0,
+ 	VAR_RELAY_CCERTS, DEF_RELAY_CCERTS, &var_relay_ccerts, 0, 0,
 +	VAR_REJECT_REPLY_MSG_ACCESS_DENIED, DEF_REJECT_REPLY_MSG_ACCESS_DENIED, &var_reject_reply_msg_access_denied, 1, 0, 
  	0,
      };
-     static CONFIG_STR_FN_TABLE function_str_defaults_2[] = {
---- snapshot-20010525/src/smtpd/smtpd_check.c.wiget	Tue May 29 16:39:02 2001
-+++ snapshot-20010525/src/smtpd/smtpd_check.c	Tue May 29 16:39:02 2001
-@@ -890,6 +890,7 @@
+ 
+diff -urN snapshot-20011114/src/smtpd/smtpd_check.c snapshot-20011114.my/src/smtpd/smtpd_check.c
+--- snapshot-20011114/src/smtpd/smtpd_check.c	Thu Nov 15 11:15:54 2001
++++ snapshot-20011114.my/src/smtpd/smtpd_check.c	Thu Nov 15 11:16:27 2001
+@@ -941,6 +941,7 @@
  			               char *reply_name, char *reply_class)
  {
      char   *myname = "check_relay_domains";
@@ -50,7 +64,7 @@
  
      if (msg_verbose)
  	msg_info("%s: %s", myname, recipient);
-@@ -909,9 +910,10 @@
+@@ -960,9 +961,10 @@
      /*
       * Deny relaying between sites that both are not in relay_domains.
       */
@@ -63,7 +77,7 @@
  }
  
  /* permit_auth_destination - OK for message relaying */
-@@ -970,6 +972,7 @@
+@@ -1023,6 +1025,7 @@
  static int reject_unauth_destination(SMTPD_STATE *state, char *recipient)
  {
      char   *myname = "reject_unauth_destination";
@@ -71,7 +85,7 @@
  
      if (msg_verbose)
  	msg_info("%s: %s", myname, recipient);
-@@ -983,9 +986,10 @@
+@@ -1036,9 +1039,10 @@
      /*
       * Reject relaying to sites that are not listed in relay_domains.
       */
@@ -84,13 +98,3 @@
  }
  
  /* reject_unauth_pipelining - reject improper use of SMTP command pipelining */
---- snapshot-20010525/src/smtpd/smtpd.c.wiget	Tue May 29 16:39:02 2001
-+++ snapshot-20010525/src/smtpd/smtpd.c	Tue May 29 16:39:02 2001
-@@ -1804,6 +1804,7 @@
- 	VAR_SMTPD_SASL_REALM, DEF_SMTPD_SASL_REALM, &var_smtpd_sasl_realm, 1, 0,
- 	VAR_FILTER_XPORT, DEF_FILTER_XPORT, &var_filter_xport, 0, 0,
- 	VAR_RELAY_CCERTS, DEF_RELAY_CCERTS, &var_relay_ccerts, 0, 0,
-+	VAR_REJECT_REPLY_MSG_ACCESS_DENIED, DEF_REJECT_REPLY_MSG_ACCESS_DENIED, &var_reject_reply_msg_access_denied, 1, 0, 
- 	0,
-     };
- 
