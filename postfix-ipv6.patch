@@ -1510,7 +1510,7 @@ diff -Nur postfix-2.0.9.orig/src/smtpd/smtpd_peer.c postfix-2.0.9/src/smtpd/smtp
       * Avoid suprious complaints from Purify on Solaris.
       */
 -    memset((char *) &sin, 0, len);
-+    memset((char *) &sa, 0, len);
++    memset((char *) sa, 0, len);
  
      /*
       * Look up the peer address information.
