@@ -11,7 +11,7 @@
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Serwer SMTP Postfix
 Name:		postfix
-Version:	20011114
+Version:	20011115
 Release:	0.1
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
@@ -28,8 +28,7 @@ Patch0:		%{name}-config.patch
 Patch1:		%{name}-pl.patch
 Patch2:		%{name}-conf_msg.patch
 Patch3:		%{name}-ipv6.patch
-# ftp://ftp.aet.tu-cottbus.de/pub/pfixtls
-#Patch4:		%{name}-ssl.patch
+Patch4:		%{name}-authinfo.patch
 URL:		http://www.postfix.org/
 Provides:	smtpdaemon
 Prereq:		rc-scripts
@@ -84,6 +83,7 @@ IPv6%{!?_without_ldap: oraz LDAP}.
 patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff 
 %patch2 -p1 
 %{!?_without_ipv6:%patch3 -p1 }
+%patch4 -p1
 
 %build
 %{__make} -f Makefile.init makefiles
