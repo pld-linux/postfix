@@ -8,7 +8,7 @@
 %bcond_without	cdb	# with cdb map support
 %bcond_with	polish	# with double English+Polish messages
 #
-%define		_tls_ipv6_ver	1.20-pf-2.0.16
+%define		_tls_ipv6_ver	1.21-pf-2.0.18
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
 Summary(es):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -17,13 +17,13 @@ Summary(pl):	Serwer SMTP Postfix
 Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
-Version:	2.0.18
-Release:	2
+Version:	2.0.19
+Release:	1
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	3e5baf2cc497a5fb1aaa6ba11aa6491e
+# Source0-md5:	3515ba531b0fadd0e54ef688797d393e
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
@@ -32,7 +32,7 @@ Source6:	%{name}.sasl
 Source7:	ftp://ftp.corpit.ru/pub/postfix/%{name}-dict_cdb-1.1.11-20021104.tar.gz
 # Source7-md5:	5731b5081725f4688dc6fae119d617e4
 Source8:	http://www.ipnet6.org/postfix/download/tls+ipv6-%{_tls_ipv6_ver}.patch.gz
-# Source8-md5:	9e26a2bb0cf36d6a9739c501ec26246a
+# Source8-md5:	8d273f922352a0ff32c57c29bec26b46
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
