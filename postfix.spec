@@ -1,23 +1,30 @@
+%define		ver	19990906
+%define		patchl	05
+%define		pfixtls	0.4.2-19990906-pl05-0.9.4
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
 Name:		postfix
-Version:	19990627
+Version:	%{ver}_pl%{patchl}
 Release:	1
 URL:		http://www.postfix.org/
-Source0:	ftp://postfix.cloud9.net/snapshot-%{version}.tar.gz
+Source0:	ftp://postfix.cloud9.net/postfix-%{ver}-pl%{patchl}.tar.gz
 Source1:	postfix.aliases
 Source2:	postfix.cron
 Source3:	postfix.init
+Source4:	ftp://ftp.aet.tu-cottbus.de/pub/pfixtls/pfixtls-%{pfixtls}.tar.gz
 Patch0:		postfix-config.patch
 Patch1:		http://www.xaa.iae.nl/~xaa/postfix6/patch.19990727.txt
+Patch2:		postfix-tls.patch
+Patch3:		postfix-glibc.patch
 Copyright:	Distributable
 Group:		Networking/Daemons
 Group(pl):	Sieciowe/Serwery
 Provides:	smtpdaemon
 Requires:	rc-scripts
-BuildPrereq:	openldap-devel
-BuildPrereq:	grep
-Conflicts:	smtpdaemon
+BuildRequires:	openldap-devel
+BuildRequires:	openssl-devel
+BuildRequires:	grep
+Obsoletes:	smtpdaemon
 Prereq:		/sbin/chkconfig
 Prereq:		%{_sbindir}/useradd
 Prereq:		%{_sbindir}/groupadd
@@ -40,15 +47,18 @@ z sendmailem by nie denerwowaæ Twoich u¿ytkowników. Ta wersja
 wspiera IPv6 oraz LDAP.
 
 %prep
-%setup -q -n snapshot-%{version}
-%patch0 -p1
+%setup -q -n postfix-%{ver}-pl%{patchl} -a 4
+%patch0 -p1 -b .wiget
 %patch1 -p1
+%patch2 -p1
+%patch3 -p1
+#patch -p1 <pfixtls-%{pfixtls}/pfixtls.diff
 
 %build
 make -f Makefile.init makefiles
 make tidy
-make DEBUG="" OPT="$RPM_OPT_FLAGS" CCARGS="-DHAS_LDAP" \
-     AUXLIBS="-llber -lldap"
+make DEBUG="" OPT="$RPM_OPT_FLAGS" CCARGS="-DHAS_LDAP -DHAS_SSL" \
+     AUXLIBS="-llber -lldap -lssl -lsslcrypto"
 
 %install
 %define _sysconfdir	/etc
@@ -57,9 +67,11 @@ rm -f {html,man}/Makefile.in conf/{LICENSE,main.cf.default}
 
 install -d $RPM_BUILD_ROOT%{_sysconfdir}/{mail,cron.daily,rc.d/init.d} \
 	   $RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,%{_mandir}/man{1,5,8}} \
-	   $RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public}
+	   $RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public} \
+	   pfixtls
 
 install -d sample-conf; mv -f conf/sample* sample-conf/ || :
+mv -f pfixtls-%{pfixtls}/{doc,README,TODO,CHANGES} pfixtls
 install bin/*							$RPM_BUILD_ROOT%{_sbindir}
 install libexec/*						$RPM_BUILD_ROOT%{_libdir}/postfix
 install conf/*							$RPM_BUILD_ROOT%{_sysconfdir}/mail
@@ -83,7 +95,9 @@ touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 
 strip		$RPM_BUILD_ROOT{%{_bindir}/*,%{_libdir}/*} || :
 gzip -9nf	$RPM_BUILD_ROOT%{_mandir}/man*/* \
-		LDAP_README HISTORY MYSQL_README UUCP_README
+		LDAP_README HISTORY MYSQL_README UUCP_README \
+		pfixtls/{README,TODO,CHANGES}
+		
 touch		$RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
 %pre
@@ -121,7 +135,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
-%doc html {LDAP_README,HISTORY,MYSQL_README,UUCP_README}.gz
+%doc html {LDAP_README,HISTORY,MYSQL_README,UUCP_README}.gz pfixtls
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/access
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/aliases
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/canonical
