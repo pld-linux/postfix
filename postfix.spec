@@ -2,7 +2,7 @@ Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
 Name:		postfix
 Version:	20000531
-Release:	1
+Release:	2
 Group:		Networking/Daemons
 Group(pl):	Sieciowe/Serwery
 Copyright:	Distributable
@@ -51,7 +51,7 @@ IPv6 oraz LDAP.
 %prep
 %setup -q -n snapshot-%{version}
 %patch0 -p1
-#%patch1 -p1
+%patch1 -p1
 %patch2 -p1
 
 %build
