@@ -16,7 +16,7 @@ Release:	0.1
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
 Group(pl):	Sieciowe/Serwery
-Copyright:	Distributable
+License:	Distributable
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/snapshot-%{version}.tar.gz
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
@@ -28,7 +28,7 @@ Patch0:		%{name}-config.patch
 Patch1:		%{name}-pl.patch
 # ftp://ftp.aet.tu-cottbus.de/pub/pfixtls
 #Patch2:		%{name}-ssl.patch
-Patch3:		%{name}-ipv6.patch.gz
+Patch3:		%{name}-ipv6.patch
 Patch5:		%{name}-conf_msg.patch
 URL:		http://www.postfix.org/
 Provides:	smtpdaemon

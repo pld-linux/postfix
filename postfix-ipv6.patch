@@ -1,0 +1,2834 @@
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/IPV6_README snapshot-20010525/IPV6_README
+--- snapshot-20010525.noipv6/IPV6_README	Thu Jan  1 01:00:00 1970
++++ snapshot-20010525/IPV6_README	Tue May 29 18:23:16 2001
+@@ -0,0 +1,33 @@
++$Id$
++
++		    ALPHA IPv6 patch for Postfix.
++
++	You can use IPv6 addresses in configuration file but
++you must enclose them with [] for example: [3ffe:902:12::10].
++
++Probably not all things work properly, yet.
++
++ INFO:
++  - all previous versions of this patch (dated before 15 January
++  2000) was against postfix-19991231-pl02 with pfixtls patch
++  applied (see ftp://ftp.aet.tu-cottbus.de/pub/pfixtls/ for more).
++  All newer patches are created against clean postfix version.
++
++ BUGS && PROBLEMS:
++ - getaddrinfo call in smtp_addr_one() function doesn't always
++   return proper ai_addr structure (fixed).
++ - lmtp code isn't IPv6 ready (not fixed).
++
++Please send all comments and patches to:
++	    Arkadiusz Mi턪iewicz <misiek@pld.org.pl>, PLD GNU/Linux
++	    Artur Frysiak <wiget@pld.org.pl>, PLD GNU/Linux
++
++Newest version of this patch can be found at:
++	    http://www.misiek.eu.org/ipv6/
++
++Thanks to:
++- Mark Huizer <xaa@timewasters.nl>
++	author of first IPv6 patch for postfix
++- KAME Team <core@kame.net>
++	fixes to Mark's patch
++diff -ruN --exclude *.orig --exclude *~ snapshot-20010329.noipv6/makedefs snapshot-20010329/makedefs
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/makedefs snapshot-20010525/makedefs
+--- snapshot-20010525.noipv6/makedefs	Tue May  1 01:16:07 2001
++++ snapshot-20010525/makedefs	Tue May 29 18:23:16 2001
+@@ -52,6 +52,21 @@
+ SYSTEM=`(uname -s) 2>/dev/null`
+ RELEASE=`(uname -r) 2>/dev/null`
+ VERSION=`(uname -v) 2>/dev/null`
++if test -f /usr/include/netinet6/in6.h; then
++	grep __KAME__ /usr/include/netinet6/in6.h 2>&1 >/dev/null
++	if [ $?  = 1 ]; then
++		INET6=
++	else
++		if [ -f /usr/local/v6/lib/libinet6.a ]; then
++			INET6=kame
++		else
++			INET6=kame-merged
++		fi
++	fi
++fi
++if [ -z "$INET6" -a -f /usr/include/netinet/ip6.h -a -f /usr/include/linux/icmpv6.h ]; then
++	INET6=linux
++fi
+ 
+ case "$VERSION" in
+  dcosx*) SYSTEM=$VERSION;;
+@@ -275,6 +290,26 @@
+ esac
+ 
+ : ${CC='gcc $(WARN)'} ${OPT='-O'} ${DEBUG='-g'} ${AWK=awk}
++
++case "$INET6" in
++kame)
++	CCARGS="$CCARGS -DINET6 -D__ss_family=ss_family -D__ss_len=ss_len"
++	if test -f /usr/local/v6/lib/libinet6.a; then
++		SYSLIBS="$SYSLIBS -L/usr/local/v6/lib -linet6"
++	fi
++	;;
++kame-merged)
++	CCARGS="$CCARGS -DINET6 -D__ss_family=ss_family -D__ss_len=ss_len"
++	;;
++linux)
++	CCARGS="$CCARGS -DINET6 -D__ss_family=ss_family"
++	if test -f /usr/include/libinet6/netinet/ip6.h -a \
++		-f /usr/lib/libinet6.a; then 
++		CCARGS="$CCARGS -I/usr/include/libinet6 -DUSAGI_LIBINET6"
++		SYSLIBS="$SYSLIBS -linet6"
++	fi
++	;;
++esac
+ 
+ export SYSTYPE AR ARFL RANLIB SYSLIBS CC OPT DEBUG AWK OPTS
+ 
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/dns/dns_lookup.c snapshot-20010525/src/dns/dns_lookup.c
+--- snapshot-20010525.noipv6/src/dns/dns_lookup.c	Sun Feb  4 19:16:20 2001
++++ snapshot-20010525/src/dns/dns_lookup.c	Tue May 29 18:23:16 2001
+@@ -132,6 +132,9 @@
+ } DNS_REPLY;
+ 
+ #define INET_ADDR_LEN	4		/* XXX */
++#ifdef INET6
++#define INET6_ADDR_LEN	16
++#endif
+ 
+ /* dns_query - query name server and pre-parse the reply */
+ 
+@@ -337,6 +340,19 @@
+ 	memcpy(temp, pos, fixed->length);
+ 	data_len = fixed->length;
+ 	break;
++#ifdef INET6
++    case T_AAAA:
++	if (fixed->length != INET6_ADDR_LEN) {
++	    msg_warn("extract_answer: bad IPv6 address length: %d", fixed->length);
++	    return (0);
++	}
++	if (fixed->length > sizeof(temp))
++	    msg_panic("dns_get_rr: length %d > DNS_NAME_LEN",
++		      fixed->length);
++	memcpy(temp, pos, fixed->length);
++	data_len = fixed->length;
++	break;
++#endif
+     case T_TXT:
+ 	data_len = MIN2(pos[0] + 1, MIN2(fixed->length + 1, sizeof(temp)));
+ 	for (src = pos + 1, dst = (unsigned char *) (temp);
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/global/Makefile.in snapshot-20010525/src/global/Makefile.in
+--- snapshot-20010525.noipv6/src/global/Makefile.in	Tue May 29 16:03:38 2001
++++ snapshot-20010525/src/global/Makefile.in	Tue May 29 18:23:16 2001
+@@ -19,7 +19,7 @@
+ 	timed_ipc.c tok822_find.c tok822_node.c tok822_parse.c \
+ 	tok822_resolve.c tok822_rewrite.c tok822_tree.c xtext.c bounce_log.c \
+ 	flush_clnt.c mail_conf_time.c mbox_conf.c mbox_open.c abounce.c \
+-	pfixtls.c
++	pfixtls.c wildcard_inet_addr.c
+ OBJS	= been_here.o bounce.o canon_addr.o cleanup_strerror.o clnt_stream.o \
+ 	debug_peer.o debug_process.o defer.o deliver_completed.o \
+ 	deliver_flock.o deliver_pass.o deliver_request.o domain_list.o \
+@@ -40,7 +40,7 @@
+ 	timed_ipc.o tok822_find.o tok822_node.o tok822_parse.o \
+ 	tok822_resolve.o tok822_rewrite.o tok822_tree.o xtext.o bounce_log.o \
+ 	flush_clnt.o mail_conf_time.o mbox_conf.o mbox_open.o abounce.o \
+-	pfixtls.o
++	pfixtls.o wildcard_inet_addr.o
+ HDRS	= been_here.h bounce.h canon_addr.h cleanup_user.h clnt_stream.h \
+ 	config.h debug_peer.h debug_process.h defer.h deliver_completed.h \
+ 	deliver_flock.h deliver_pass.h deliver_request.h domain_list.h \
+@@ -56,7 +56,7 @@
+ 	recipient_list.h record.h resolve_clnt.h resolve_local.h \
+ 	rewrite_clnt.h sent.h smtp_stream.h split_addr.h string_list.h \
+ 	sys_exits.h timed_ipc.h tok822.h xtext.h bounce_log.h flush_clnt.h \
+-	mbox_conf.h mbox_open.h abounce.h pfixtls.h
++	mbox_conf.h mbox_open.h abounce.h pfixtls.h wildcard_inet_addr.h
+ TESTSRC	= rec2stream.c stream2rec.c recdump.c
+ WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
+ 	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/global/mynetworks.c snapshot-20010525/src/global/mynetworks.c
+--- snapshot-20010525.noipv6/src/global/mynetworks.c	Sun Feb 25 02:46:07 2001
++++ snapshot-20010525/src/global/mynetworks.c	Tue May 29 18:23:16 2001
+@@ -50,6 +50,11 @@
+ #include <vstring.h>
+ #include <inet_addr_list.h>
+ #include <name_mask.h>
++#ifdef INET6
++#include <sys/socket.h>
++#include <netinet/in.h>
++#include <netdb.h>
++#endif
+ 
+ /* Global library. */
+ 
+@@ -75,6 +80,9 @@
+ const char *mynetworks(void)
+ {
+     static VSTRING *result;
++#ifdef INET6
++    char hbuf[NI_MAXHOST];
++#endif
+ 
+     if (result == 0) {
+ 	char   *myname = "mynetworks";
+@@ -87,6 +95,9 @@
+ 	int     junk;
+ 	int     i;
+ 	int     mask_style;
++#ifdef INET6
++	struct sockaddr *sa;
++#endif
+ 
+ 	mask_style = name_mask("mynetworks mask style", mask_styles,
+ 			       var_mynetworks_style);
+@@ -96,8 +107,18 @@
+ 	my_mask_list = own_inet_mask_list();
+ 
+ 	for (i = 0; i < my_addr_list->used; i++) {
++#ifdef INET6
++	    sa = (struct sockaddr *)&my_addr_list->addrs[i];
++	    if (sa->sa_family != AF_INET) {
++	        vstring_sprintf_append(result, "XAATODOmynetworks ");
++		continue;
++	    }
++	    addr = ntohl(((struct sockaddr_in *)sa)->sin_addr.s_addr);
++	    mask = ntohl(((struct sockaddr_in *)&my_mask_list->addrs[i])->sin_addr.s_addr);
++#else
+ 	    addr = ntohl(my_addr_list->addrs[i].s_addr);
+ 	    mask = ntohl(my_mask_list->addrs[i].s_addr);
++#endif
+ 
+ 	    switch (mask_style) {
+ 
+@@ -119,8 +140,15 @@
+ 		    mask = IN_CLASSD_NET;
+ 		    shift = IN_CLASSD_NSHIFT;
+ 		} else {
++#ifdef INET6
++		    if (getnameinfo(sa, SA_LEN(sa), hbuf, sizeof(hbuf), NULL, 0,
++			    NI_NUMERICHOST))
++			strncpy(hbuf, "???", sizeof(hbuf));
++		    msg_fatal("%s: bad address class: %s", myname, hbuf);
++#else
+ 		    msg_fatal("%s: bad address class: %s",
+ 			      myname, inet_ntoa(my_addr_list->addrs[i]));
++#endif
+ 		}
+ 		break;
+ 
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/global/own_inet_addr.c snapshot-20010525/src/global/own_inet_addr.c
+--- snapshot-20010525.noipv6/src/global/own_inet_addr.c	Sun Feb 25 02:51:39 2001
++++ snapshot-20010525/src/global/own_inet_addr.c	Tue May 29 18:23:16 2001
+@@ -39,6 +39,10 @@
+ #include <netinet/in.h>
+ #include <arpa/inet.h>
+ #include <string.h>
++#ifdef INET6
++#include <sys/socket.h>
++#include <netdb.h>
++#endif
+ 
+ #ifdef STRCASECMP_IN_STRINGS_H
+ #include <strings.h>
+@@ -101,10 +105,11 @@
+      */
+     else {
+ 	bufp = hosts = mystrdup(var_inet_interfaces);
+-	while ((host = mystrtok(&bufp, sep)) != 0)
++	while ((host = mystrtok(&bufp, sep)) != 0) {
+ 	    if (inet_addr_host(addr_list, host) == 0)
+ 		msg_fatal("config variable %s: host not found: %s",
+ 			  VAR_INET_INTERFACES, host);
++	}
+ 	myfree(hosts);
+ 
+ 	inet_addr_list_init(&local_addrs);
+@@ -113,15 +118,39 @@
+ 	    msg_fatal("could not find any active network interfaces");
+ 	for (nvirtual = 0; nvirtual < addr_list->used; nvirtual++) {
+ 	    for (nlocal = 0; /* see below */ ; nlocal++) {
+-		if (nlocal >= local_addrs.used)
++		if (nlocal >= local_addrs.used) {
++#ifdef INET6
++		    char hbuf[NI_MAXHOST];
++		    if (getnameinfo((struct sockaddr *)&addr_list->addrs[nvirtual],
++		        SS_LEN(addr_list->addrs[nvirtual]), hbuf,
++		        sizeof(hbuf), NULL, 0, NI_NUMERICHOST) != 0)
++			strncpy(hbuf, "???", sizeof(hbuf));
++		    msg_fatal("parameter %s: no local interface found for %s",
++			      VAR_INET_INTERFACES, hbuf);
++#else
+ 		    msg_fatal("parameter %s: no local interface found for %s",
+ 			      VAR_INET_INTERFACES,
+ 			      inet_ntoa(addr_list->addrs[nvirtual]));
++#endif
++		}
++#ifdef INET6
++		if (addr_list->addrs[nvirtual].ss_family == 
++		    local_addrs.addrs[nlocal].ss_family &&
++		    SS_LEN(addr_list->addrs[nvirtual]) == 
++		    SS_LEN(local_addrs.addrs[nlocal]) &&
++		    memcmp(&addr_list->addrs[nvirtual],
++		    &local_addrs.addrs[nlocal],
++		    SS_LEN(local_addrs.addrs[nlocal])) == 0) {
++		    inet_addr_list_append(mask_list, (struct sockaddr *)&local_masks.addrs[nlocal]);
++		    break;
++		}
++#else
+ 		if (addr_list->addrs[nvirtual].s_addr
+ 		    == local_addrs.addrs[nlocal].s_addr) {
+ 		    inet_addr_list_append(mask_list, &local_masks.addrs[nlocal]);
+ 		    break;
+ 		}
++#endif
+ 	    }
+ 	}
+ 	inet_addr_list_free(&local_addrs);
+@@ -131,6 +160,42 @@
+ 
+ /* own_inet_addr - is this my own internet address */
+ 
++#ifdef INET6
++int     own_inet_addr(struct sockaddr * addr)
++{
++    int     i;
++    char *p, *q;
++    int l;
++    struct sockaddr *sa;
++
++    if (addr_list.used == 0)
++	own_inet_addr_init(&addr_list, &mask_list);
++
++    for (i = 0; i < addr_list.used; i++) {
++	sa = (struct sockaddr *)&addr_list.addrs[i];
++	if (addr->sa_family != sa->sa_family)
++	    continue;
++	switch (addr->sa_family) {
++	case AF_INET:
++	    p = (char *)&((struct sockaddr_in *)addr)->sin_addr;
++	    q = (char *)&((struct sockaddr_in *)&addr_list.addrs[i])->sin_addr;
++	    l = sizeof(struct in_addr);
++	    break;
++	case AF_INET6:
++	    /* XXX scope */
++	    p = (char *)&((struct sockaddr_in6 *)addr)->sin6_addr;
++	    q = (char *)&((struct sockaddr_in6 *)&addr_list.addrs[i])->sin6_addr;
++	    l = sizeof(struct in6_addr);
++	    break;
++	default:
++	    continue;
++	}
++	if (memcmp(p, q, l) == 0)
++	    return (1);
++    }
++    return (0);
++}
++#else
+ int     own_inet_addr(struct in_addr * addr)
+ {
+     int     i;
+@@ -141,8 +206,8 @@
+     for (i = 0; i < addr_list.used; i++)
+ 	if (addr->s_addr == addr_list.addrs[i].s_addr)
+ 	    return (1);
+-    return (0);
+ }
++#endif
+ 
+ /* own_inet_addr_list - return list of addresses */
+ 
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/global/own_inet_addr.h snapshot-20010525/src/global/own_inet_addr.h
+--- snapshot-20010525.noipv6/src/global/own_inet_addr.h	Sat Feb 24 02:25:32 2001
++++ snapshot-20010525/src/global/own_inet_addr.h	Tue May 29 18:23:16 2001
+@@ -15,11 +15,18 @@
+   * System library.
+   */
+ #include <netinet/in.h>
++#ifdef INET6
++#include <sys/socket.h>
++#endif
+ 
+  /*
+   * External interface.
+   */
++#ifdef INET6
++extern int own_inet_addr(struct sockaddr *);
++#else
+ extern int own_inet_addr(struct in_addr *);
++#endif
+ extern struct INET_ADDR_LIST *own_inet_addr_list(void);
+ extern struct INET_ADDR_LIST *own_inet_mask_list(void);
+ 
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/global/peer_name.c snapshot-20010525/src/global/peer_name.c
+--- snapshot-20010525.noipv6/src/global/peer_name.c	Sun Jan 28 16:23:02 2001
++++ snapshot-20010525/src/global/peer_name.c	Tue May 29 18:23:16 2001
+@@ -69,12 +69,32 @@
+ PEER_NAME *peer_name(int sock)
+ {
+     static PEER_NAME peer;
+-    struct sockaddr_in sin;
+-    SOCKADDR_SIZE len = sizeof(sin);
++    union sockunion {
++	struct {
++	    u_char si_len;
++	    u_char si_family;
++	    u_short si_port;
++	} su_si;
++	struct sockaddr peer_un;
++	struct sockaddr_in peer_un4;
++#ifdef INET6
++	struct sockaddr_in6 peer_un6;
++#endif
++    } p_un;
++#define sun p_un.peer_un
++#define sin p_un.peer_un4
++#ifdef INET6
++#define sin6 p_un.peer_un6
++    static char hbuf[NI_MAXHOST];
++    static char abuf[NI_MAXHOST];
++#else
+     struct hostent *hp;
++#endif
++    SOCKADDR_SIZE len = sizeof(p_un);
+ 
+-    if (getpeername(sock, (struct sockaddr *) & sin, &len) == 0) {
+-	switch (sin.sin_family) {
++    if (getpeername(sock, (struct sockaddr *)&p_un, &len) == 0) {
++	switch (p_un.peer_un.sa_family) {
++#ifndef INET6
+ 	case AF_INET:
+ 	    peer.type = PEER_TYPE_INET;
+ 	    hp = gethostbyaddr((char *) &(sin.sin_addr),
+@@ -83,6 +103,24 @@
+ 			 hp->h_name : "unknown");
+ 	    peer.addr = inet_ntoa(sin.sin_addr);
+ 	    return (&peer);
++#else
++	case AF_INET:
++	    peer.type = PEER_TYPE_INET;
++	    if (getnameinfo(&sun, len, hbuf, sizeof(hbuf), NULL, 0, NI_NAMEREQD) != 0)
++		peer.name = "unknown";
++	    else
++		peer.name = hbuf;
++	    peer.addr = abuf;
++	    return (&peer);
++	case AF_INET6:
++	    peer.type = PEER_TYPE_INET6;
++	    if (getnameinfo(&sun, len, hbuf, sizeof(hbuf), NULL, 0, NI_NAMEREQD) != 0)
++		peer.name = "unknown";
++	    else
++		peer.name = hbuf;
++	    peer.addr = abuf;
++	    return (&peer);
++#endif
+ 	case AF_UNSPEC:
+ 	case AF_UNIX:
+ 	    peer.type = PEER_TYPE_LOCAL;
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/global/peer_name.h snapshot-20010525/src/global/peer_name.h
+--- snapshot-20010525.noipv6/src/global/peer_name.h	Fri Dec 11 19:55:32 1998
++++ snapshot-20010525/src/global/peer_name.h	Tue May 29 18:23:16 2001
+@@ -22,6 +22,9 @@
+ #define PEER_TYPE_UNKNOWN	0
+ #define PEER_TYPE_INET		1
+ #define PEER_TYPE_LOCAL		2
++#ifdef INET6
++#define PEER_TYPE_INET6		3
++#endif
+ 
+ extern PEER_NAME *peer_name(int);
+ 
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/global/resolve_local.c snapshot-20010525/src/global/resolve_local.c
+--- snapshot-20010525.noipv6/src/global/resolve_local.c	Mon Apr 26 00:05:42 1999
++++ snapshot-20010525/src/global/resolve_local.c	Tue May 29 18:23:16 2001
+@@ -42,6 +42,7 @@
+ #include <netinet/in.h>
+ #include <arpa/inet.h>
+ #include <string.h>
++#include <netdb.h>
+ 
+ #ifndef INADDR_NONE
+ #define INADDR_NONE 0xffffffff
+@@ -78,7 +79,12 @@
+ {
+     char   *saved_addr = mystrdup(addr);
+     char   *dest;
++#ifdef INET6
++    struct addrinfo hints, *res, *res0;
++    int error;
++#else
+     struct in_addr ipaddr;
++#endif
+     int     len;
+ 
+ #define RETURN(x) { myfree(saved_addr); return(x); }
+@@ -108,9 +114,25 @@
+     if (*dest == '[' && dest[len - 1] == ']') {
+ 	dest++;
+ 	dest[len -= 2] = 0;
++#ifdef INET6
++	memset(&hints, 0, sizeof(hints));
++	hints.ai_family = PF_UNSPEC;
++	hints.ai_socktype = SOCK_DGRAM;
++	error = getaddrinfo(dest, NULL, &hints, &res0);
++	if (!error) {
++	    for (res = res0; res; res = res->ai_next) {
++		if (own_inet_addr(res->ai_addr)) {
++		    freeaddrinfo(res0);
++		    RETURN(1);
++		}
++	    }
++	    freeaddrinfo(res0);
++	}
++#else
+ 	if ((ipaddr.s_addr = inet_addr(dest)) != INADDR_NONE
+ 	    && own_inet_addr(&ipaddr))
+ 	    RETURN(1);
++#endif
+     }
+ 
+     /*
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/global/wildcard_inet_addr.c snapshot-20010525/src/global/wildcard_inet_addr.c
+--- snapshot-20010525.noipv6/src/global/wildcard_inet_addr.c	Thu Jan  1 01:00:00 1970
++++ snapshot-20010525/src/global/wildcard_inet_addr.c	Tue May 29 18:23:16 2001
+@@ -0,0 +1,82 @@
++/* System library. */
++
++#include <sys_defs.h>
++#include <netinet/in.h>
++#include <arpa/inet.h>
++#include <string.h>
++#ifdef INET6
++#include <sys/socket.h>
++#endif
++#include <netdb.h>
++
++#ifdef STRCASECMP_IN_STRINGS_H
++#include <strings.h>
++#endif
++
++/* Utility library. */
++
++#include <msg.h>
++#include <mymalloc.h>
++#include <inet_addr_list.h>
++#include <inet_addr_local.h>
++#include <inet_addr_host.h>
++#include <stringops.h>
++
++/* Global library. */
++
++#include <mail_params.h>
++#include <wildcard_inet_addr.h>
++
++/* Application-specific. */
++static INET_ADDR_LIST addr_list;
++
++/* wildcard_inet_addr_init - initialize my own address list */
++
++static void wildcard_inet_addr_init(INET_ADDR_LIST *addr_list)
++{
++#ifdef INET6
++    struct addrinfo hints, *res, *res0;
++    char hbuf[NI_MAXHOST];
++    int error;
++#ifdef NI_WITHSCOPEID
++    const int niflags = NI_NUMERICHOST | NI_WITHSCOPEID;
++#else
++    const int niflags = NI_NUMERICHOST;
++#endif
++
++    inet_addr_list_init(addr_list);
++
++    memset(&hints, 0, sizeof(hints));
++    hints.ai_family = PF_UNSPEC;
++    hints.ai_socktype = SOCK_STREAM;
++    hints.ai_flags = AI_PASSIVE;
++    error = getaddrinfo(NULL, "0", &hints, &res0);
++    if (error)
++	msg_fatal("could not get list of wildcard addresses");
++    for (res = res0; res; res = res->ai_next) {
++	if (res->ai_family != AF_INET && res->ai_family != AF_INET6)
++	    continue;
++	if (getnameinfo(res->ai_addr, res->ai_addrlen, hbuf, sizeof(hbuf),
++	    NULL, 0, niflags) != 0)
++	    continue;
++	if (inet_addr_host(addr_list, hbuf) == 0)
++	    continue; /* msg_fatal("config variable %s: host not found: %s",
++		      VAR_INET_INTERFACES, hbuf); */
++    }
++    freeaddrinfo(res0);
++#else
++    if (inet_addr_host(addr_list, "0.0.0.0") == 0)
++	msg_fatal("config variable %s: host not found: %s",
++		  VAR_INET_INTERFACES, "0.0.0.0");
++#endif
++}
++
++/* wildcard_inet_addr_list - return list of addresses */
++
++INET_ADDR_LIST *wildcard_inet_addr_list(void)
++{
++    if (addr_list.used == 0)
++	wildcard_inet_addr_init(&addr_list);
++
++    return (&addr_list);
++}
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/global/wildcard_inet_addr.h snapshot-20010525/src/global/wildcard_inet_addr.h
+--- snapshot-20010525.noipv6/src/global/wildcard_inet_addr.h	Thu Jan  1 01:00:00 1970
++++ snapshot-20010525/src/global/wildcard_inet_addr.h	Tue May 29 18:23:16 2001
+@@ -0,0 +1,36 @@
++#ifndef _WILDCARD_INET_ADDR_H_INCLUDED_
++#define _WILDCARD_INET_ADDR_H_INCLUDED_
++
++/*++
++/* NAME
++/*	wildcard_inet_addr_list 3h
++/* SUMMARY
++/*	grab the list of wildcard IP addresses.
++/* SYNOPSIS
++/*	#include <own_inet_addr.h>
++/* DESCRIPTION
++/* .nf
++/*--*/
++
++ /*
++  * System library.
++  */
++#include <netinet/in.h>
++#ifdef INET6
++#include <sys/socket.h>
++#endif
++
++ /*
++  * External interface.
++  */
++extern struct INET_ADDR_LIST *wildcard_inet_addr_list(void);
++
++/* LICENSE
++/* .ad
++/* .fi
++/*	foo
++/* AUTHOR(S)
++/*	Jun-ichiro itojun Hagino
++/*--*/
++
++#endif
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/master/master_ent.c snapshot-20010525/src/master/master_ent.c
+--- snapshot-20010525.noipv6/src/master/master_ent.c	Tue May  1 00:45:54 2001
++++ snapshot-20010525/src/master/master_ent.c	Tue May 29 18:30:51 2001
+@@ -284,8 +284,13 @@
+ 	    inet_addr_host(MASTER_INET_ADDRLIST(serv), host);
+ 	    serv->listen_fd_count = MASTER_INET_ADDRLIST(serv)->used;
+ 	} else if (strcasecmp(var_inet_interfaces, DEF_INET_INTERFACES) == 0) {
++#ifdef INET6
++		MASTER_INET_ADDRLIST(serv) = wildcard_inet_addr_list();
++		serv->listen_fd_count = MASTER_INET_ADDRLIST(serv)->used;
++#else
+ 	    MASTER_INET_ADDRLIST(serv) = 0;	/* wild-card */
+ 	    serv->listen_fd_count = 1;
++#endif
+ 	} else {
+ 	    MASTER_INET_ADDRLIST(serv) = own_inet_addr_list();	/* virtual */
+ 	    serv->listen_fd_count = MASTER_INET_ADDRLIST(serv)->used;
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/master/master_listen.c snapshot-20010525/src/master/master_listen.c
+--- snapshot-20010525.noipv6/src/master/master_listen.c	Tue May  1 00:47:57 2001
++++ snapshot-20010525/src/master/master_listen.c	Tue May 29 18:24:18 2001
+@@ -64,6 +64,11 @@
+ 
+ #include "master.h"
+ 
++#ifdef INET6
++#include <netdb.h>
++#include <stdio.h>
++#endif 
++
+ /* master_listen_init - enable connection requests */
+ 
+ void    master_listen_init(MASTER_SERV *serv)
+@@ -71,6 +76,10 @@
+     char   *myname = "master_listen_init";
+     char   *end_point;
+     int     n;
++#ifdef INET6
++    char hbuf[NI_MAXHOST];
++    SOCKADDR_SIZE salen;
++#endif
+ 
+     /*
+      * Find out what transport we should use, then create one or more
+@@ -115,8 +124,17 @@
+ 	    close_on_exec(serv->listen_fd[0], CLOSE_ON_EXEC);
+ 	} else {				/* virtual or host:port */
+ 	    for (n = 0; n < serv->listen_fd_count; n++) {
++#ifdef INET6
++		if (getnameinfo((struct sockaddr *)&MASTER_INET_ADDRLIST(serv)->addrs[n],
++			SA_LEN((struct sockaddr *)&MASTER_INET_ADDRLIST(serv)->addrs[n]), 
++			hbuf, sizeof(hbuf), NULL, 0, NI_NUMERICHOST)) {
++		    strncpy(hbuf, "?????", sizeof(hbuf));
++		}
++		end_point = concatenate(hbuf, ":", MASTER_INET_PORT(serv), (char *) 0);
++#else
+ 		end_point = concatenate(inet_ntoa(MASTER_INET_ADDRLIST(serv)->addrs[n]),
+ 				   ":", MASTER_INET_PORT(serv), (char *) 0);
++#endif
+ 		serv->listen_fd[n]
+ 		    = inet_listen(end_point, serv->max_proc > var_proc_limit ?
+ 			     serv->max_proc : var_proc_limit, NON_BLOCKING);
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/qmgr/qmgr_message.c snapshot-20010525/src/qmgr/qmgr_message.c
+--- snapshot-20010525.noipv6/src/qmgr/qmgr_message.c	Tue Feb 27 00:49:31 2001
++++ snapshot-20010525/src/qmgr/qmgr_message.c	Tue May 29 18:23:16 2001
+@@ -460,7 +460,11 @@
+ 	 * every front-ent program.
+ 	 */
+ 	if ((at = strrchr(recipient->address, '@')) != 0
++#ifdef INET6
++	    && (at + 1)[strspn(at + 1, "[]0123456789.:abcdef")] != 0
++#else
+ 	    && (at + 1)[strspn(at + 1, "[]0123456789.")] != 0
++#endif
+ 	    && valid_hostname(at + 1, DONT_GRIPE) == 0) {
+ 	    qmgr_bounce_recipient(message, recipient,
+ 				  "bad host/domain syntax: \"%s\"", at + 1);
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/smtp/Makefile.in snapshot-20010525/src/smtp/Makefile.in
+--- snapshot-20010525.noipv6/src/smtp/Makefile.in	Tue May 29 16:03:38 2001
++++ snapshot-20010525/src/smtp/Makefile.in	Tue May 29 18:23:16 2001
+@@ -139,6 +139,7 @@
+ smtp_connect.o: ../../include/mail_params.h
+ smtp_connect.o: ../../include/own_inet_addr.h
+ smtp_connect.o: ../../include/dns.h
++smtp_connect.o: ../../include/get_port.h
+ smtp_connect.o: smtp.h
+ smtp_connect.o: ../../include/argv.h
+ smtp_connect.o: ../../include/deliver_request.h
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/smtp/smtp_addr.c snapshot-20010525/src/smtp/smtp_addr.c
+--- snapshot-20010525.noipv6/src/smtp/smtp_addr.c	Sat May  5 14:55:36 2001
++++ snapshot-20010525/src/smtp/smtp_addr.c	Tue May 29 18:23:16 2001
+@@ -112,18 +112,68 @@
+ static void smtp_print_addr(char *what, DNS_RR *addr_list)
+ {
+     DNS_RR *addr;
+-    struct in_addr in_addr;
++#ifdef INET6
++    struct sockaddr_storage ss;
++#else
++    struct sockaddr ss;
++#endif
++    struct sockaddr_in *sin;
++#ifdef INET6
++    struct sockaddr_in6 *sin6;
++    char   hbuf[NI_MAXHOST];
++#else
++    char   hbuf[sizeof("255.255.255.255") + 1];
++#endif
+ 
+     msg_info("begin %s address list", what);
+     for (addr = addr_list; addr; addr = addr->next) {
+-	if (addr->data_len > sizeof(addr)) {
+-	    msg_warn("skipping address length %d", addr->data_len);
+-	} else {
+-	    memcpy((char *) &in_addr, addr->data, sizeof(in_addr));
+-	    msg_info("pref %4d host %s/%s",
+-		     addr->pref, addr->name,
+-		     inet_ntoa(in_addr));
++	if (addr->class != C_IN) {
++	    msg_warn("skipping unsupported address (class=%u)", addr->class);
++	    continue;
+ 	}
++	switch (addr->type) {
++	case T_A:
++	    if (addr->data_len != sizeof(sin->sin_addr)) {
++		msg_warn("skipping invalid address (AAAA, len=%u)",
++		    addr->data_len);
++		continue;
++	    }
++	    sin = (struct sockaddr_in *)&ss;
++	    memset(sin, 0, sizeof(*sin));
++	    sin->sin_family = AF_INET;
++#ifdef HAS_SA_LEN
++	    sin->sin_len = sizeof(*sin);
++#endif
++	    memcpy(&sin->sin_addr, addr->data, sizeof(sin->sin_addr));
++	    break;
++#ifdef INET6
++	case T_AAAA:
++	    if (addr->data_len != sizeof(sin6->sin6_addr)) {
++		msg_warn("skipping invalid address (AAAA, len=%u)",
++		    addr->data_len);
++		continue;
++	    }
++	    sin6 = (struct sockaddr_in6 *)&ss;
++	    memset(sin6, 0, sizeof(*sin6));
++	    sin6->sin6_family = AF_INET6;
++#ifdef HAS_SA_LEN
++	    sin6->sin6_len = sizeof(*sin6);
++#endif
++	    memcpy(&sin6->sin6_addr, addr->data, sizeof(sin6->sin6_addr));
++	    break;
++#endif
++	default:
++	    msg_warn("skipping unsupported address (type=%u)", addr->type);
++	    continue;
++	}
++
++#ifdef INET6
++	(void)getnameinfo((struct sockaddr *)&ss, SS_LEN(ss),
++	    hbuf, sizeof(hbuf), NULL, 0, NI_NUMERICHOST);
++#else
++	(void)inet_ntop(AF_INET, &sin->sin_addr, hbuf, sizeof(hbuf));
++#endif
++	msg_info("pref %4d host %s/%s", addr->pref, addr->name, hbuf);
+     }
+     msg_info("end %s address list", what);
+ }
+@@ -133,15 +183,23 @@
+ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, char *host, unsigned pref, VSTRING *why)
+ {
+     char   *myname = "smtp_addr_one";
++#ifndef INET6
+     struct in_addr inaddr;
+-    DNS_FIXED fixed;
+     DNS_RR *addr = 0;
+     DNS_RR *rr;
+     struct hostent *hp;
++#else
++    struct addrinfo hints, *res0, *res;
++    int error = -1;
++    char *addr;
++    size_t addrlen;
++#endif
++    DNS_FIXED fixed;
+ 
+     if (msg_verbose)
+ 	msg_info("%s: host %s", myname, host);
+ 
++#ifndef INET6
+     /*
+      * Interpret a numerical name as an address.
+      */
+@@ -194,6 +252,48 @@
+ 	smtp_errno = SMTP_FAIL;
+ 	break;
+     }
++#else
++    memset(&hints, 0, sizeof(hints));
++    hints.ai_family = PF_UNSPEC;
++    hints.ai_socktype = SOCK_STREAM;
++    error = getaddrinfo(host, NULL, &hints, &res0);
++    if (error) {
++	switch (error) {
++	case EAI_AGAIN:
++	    smtp_errno = SMTP_RETRY;
++	    break;
++	default:
++	    vstring_sprintf(why, "[%s]: %s",host,gai_strerror(error));
++	    smtp_errno = SMTP_FAIL;
++	    break;
++	}
++	return (addr_list);
++    }
++    for (res = res0; res; res = res->ai_next) {
++	memset((char *) &fixed, 0, sizeof(fixed));
++	switch(res->ai_family) {
++	case AF_INET6:
++	    /* XXX not scope friendly */
++	    fixed.type = T_AAAA;
++	    addr = (char *)&((struct sockaddr_in6 *)res->ai_addr)->sin6_addr;
++	    addrlen = sizeof(struct in6_addr);
++	    break;
++	case AF_INET:
++	    fixed.type = T_A;
++	    addr = (char *)&((struct sockaddr_in *)res->ai_addr)->sin_addr;
++	    addrlen = sizeof(struct in_addr);
++	    break;
++	default:
++	    msg_warn("%s: unknown address family %d for %s",
++	        myname, res->ai_family, host);
++	    continue;
++	}
++	addr_list = dns_rr_append(addr_list,
++	    dns_rr_create(host, &fixed, pref, addr, addrlen));
++    }
++    if (res0)
++	freeaddrinfo(res0);
++#endif
+     return (addr_list);
+ }
+ 
+@@ -229,6 +329,9 @@
+     INET_ADDR_LIST *self;
+     DNS_RR *addr;
+     int     i;
++#ifdef INET6
++    struct sockaddr *sa;
++#endif
+ 
+     /*
+      * Find the first address that lists any address that this mail system is
+@@ -238,12 +341,36 @@
+ 
+     self = own_inet_addr_list();
+     for (addr = addr_list; addr; addr = addr->next) {
+-	for (i = 0; i < self->used; i++)
++	for (i = 0; i < self->used; i++) {
++#ifdef INET6
++	    sa = (struct sockaddr *)&self->addrs[i];
++	    switch(addr->type) {
++	    case T_AAAA:
++		/* XXX scope */
++		if (sa->sa_family != AF_INET6)
++		    break;
++		if (memcmp(&((struct sockaddr_in6 *)sa)->sin6_addr,
++			addr->data, sizeof(struct in6_addr)) == 0) {
++		    return(addr);
++		}
++		break;
++	    case T_A:
++		if (sa->sa_family != AF_INET)
++		    break;
++		if (memcmp(&((struct sockaddr_in *)sa)->sin_addr,
++			addr->data, sizeof(struct in_addr)) == 0) {
++		    return(addr);
++		}
++		break;
++	    }
++#else
+ 	    if (INADDRP(addr->data)->s_addr == self->addrs[i].s_addr) {
+ 		if (msg_verbose)
+ 		    msg_info("%s: found at pref %d", myname, addr->pref);
+ 		return (addr);
+ 	    }
++#endif
++	}
+     }
+ 
+     /*
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/smtp/smtp_connect.c snapshot-20010525/src/smtp/smtp_connect.c
+--- snapshot-20010525.noipv6/src/smtp/smtp_connect.c	Tue May 29 16:03:38 2001
++++ snapshot-20010525/src/smtp/smtp_connect.c	Tue May 29 18:23:16 2001
+@@ -81,6 +81,7 @@
+ /* System library. */
+ 
+ #include <sys_defs.h>
++#include <stdlib.h>
+ #include <sys/socket.h>
+ #include <netinet/in.h>
+ #include <arpa/inet.h>
+@@ -110,6 +111,7 @@
+ #include <inet_addr_list.h>
+ #include <iostuff.h>
+ #include <timed_connect.h>
++#include <get_port.h>
+ #include <stringops.h>
+ 
+ /* Global library. */
+@@ -133,19 +135,45 @@
+ 				               VSTRING *why)
+ {
+     char   *myname = "smtp_connect_addr";
+-    struct sockaddr_in sin;
+-    int     sock;
++#ifdef INET6
++    struct sockaddr_storage ss;
++#else
++    struct sockaddr ss;
++#endif
++    struct sockaddr *sa;
++    struct sockaddr_in *sin;
++#ifdef INET6
++    struct sockaddr_in6 *sin6;
++#endif
++    SOCKADDR_SIZE salen;
++#ifdef INET6
++    char hbuf[NI_MAXHOST];
++#else
++    char hbuf[sizeof("255.255.255.255") + 1];
++#endif
++    int     sock = -1;
+     INET_ADDR_LIST *addr_list;
+     int     conn_stat;
+     int     saved_errno;
+     VSTREAM *stream;
+     int     ch;
+-    unsigned long inaddr;
++
++    sa = (struct sockaddr *)&ss;
++    sin = (struct sockaddr_in *)&ss;
++#ifdef INET6
++    sin6 = (struct sockaddr_in6 *)&ss;
++#endif
+ 
+     /*
+      * Sanity checks.
+      */
+-    if (addr->data_len > sizeof(sin.sin_addr)) {
++#ifdef INET6
++    if (((addr->type==T_A) && (addr->data_len > sizeof(sin->sin_addr))) ||
++	((addr->type==T_AAAA) && (addr->data_len > sizeof(sin6->sin6_addr))))
++#else
++    if (addr->data_len > sizeof(sin->sin_addr))
++#endif
++    {
+ 	msg_warn("%s: skip address with length %d", myname, addr->data_len);
+ 	smtp_errno = SMTP_RETRY;
+ 	return (0);
+@@ -154,17 +182,39 @@
+     /*
+      * Initialize.
+      */
+-    memset((char *) &sin, 0, sizeof(sin));
+-    sin.sin_family = AF_INET;
+-
+-    if ((sock = socket(sin.sin_family, SOCK_STREAM, 0)) < 0)
+-	msg_fatal("%s: socket: %m", myname);
+-
++    switch (addr->type) {
++#ifdef INET6
++    case T_AAAA:
++	memset(sin6, 0, sizeof(*sin6));
++	sin6->sin6_family = AF_INET6;
++	salen = sizeof(*sin6);
++	break;
++#endif
++    default: /* T_A: */
++	memset(sin, 0, sizeof(*sin));
++	sin->sin_family = AF_INET;
++	salen = sizeof(*sin);
++	break;
++    }
++#ifdef HAS_SA_LEN
++    sa->sa_len = salen;
++#endif
++    if ((sock = socket(sa->sa_family, SOCK_STREAM, 0)) < 0)
++	msg_warn("%s: socket: %m", myname);
++		    
+     /*
+      * Allow the sysadmin to specify the source address, for example, as "-o
+      * smtp_bind_address=x.x.x.x" in the master.cf file.
+      */
+     if (*var_smtp_bind_addr) {
++#ifndef INET6
++	struct sockaddr_in sin;
++
++	memset(&sin, 0, sizeof(sin));
++	sin.sin_family = AF_INET;
++#ifdef HAS_SA_LEN
++	sin.sin_len = sizeof(sin);
++#endif
+ 	sin.sin_addr.s_addr = inet_addr(var_smtp_bind_addr);
+ 	if (sin.sin_addr.s_addr == INADDR_NONE)
+ 	    msg_fatal("%s: bad %s parameter: %s",
+@@ -173,6 +223,25 @@
+ 	    msg_warn("%s: bind %s: %m", myname, inet_ntoa(sin.sin_addr));
+ 	if (msg_verbose)
+ 	    msg_info("%s: bind %s", myname, inet_ntoa(sin.sin_addr));
++#else
++	char hbufl[NI_MAXHOST];
++	struct addrinfo hints, *res;
++
++	memset(&hints, 0, sizeof(hints));
++	hints.ai_family = sa->sa_family;
++	hints.ai_socktype = SOCK_STREAM;
++	hints.ai_flags = AI_PASSIVE|AI_NUMERICHOST;
++	snprintf(hbufl, sizeof(hbufl)-1, "%s", var_smtp_bind_addr);
++	if (getaddrinfo(hbufl, NULL, &hints, &res) == 0) {
++	    (void)getnameinfo(res->ai_addr, res->ai_addrlen, hbufl,
++	        sizeof(hbufl), NULL, 0, NI_NUMERICHOST);
++	    if (bind(sock, res->ai_addr, res->ai_addrlen) < 0)
++		msg_warn("%s: bind %s: %m", myname, hbufl);
++	    freeaddrinfo(res);
++	    if (msg_verbose)
++		msg_info("%s: bind %s", myname, hbufl);
++	}
++#endif
+     }
+ 
+     /*
+@@ -180,8 +249,17 @@
+      * the mail appears to come from the "right" machine address.
+      */
+     else if ((addr_list = own_inet_addr_list())->used == 1) {
++#ifndef INET6
++	struct sockaddr_in sin;
++	unsigned long inaddr;	/*XXX BAD!*/
++
++	memset(&sin, 0, sizeof(sin));
++	sin.sin_family = AF_INET;
++#ifdef HAS_SA_LEN
++	sin.sin_len = sizeof(sin);
++#endif
+ 	memcpy((char *) &sin.sin_addr, addr_list->addrs, sizeof(sin.sin_addr));
+-	inaddr = ntohl(sin.sin_addr.s_addr);
++	inaddr = (unsigned long)ntohl(sin.sin_addr.s_addr);
+ 	if (!IN_CLASSA(inaddr)
+ 	    || !(((inaddr & IN_CLASSA_NET) >> IN_CLASSA_NSHIFT) == IN_LOOPBACKNET)) {
+ 	    if (bind(sock, (struct sockaddr *) & sin, sizeof(sin)) < 0)
+@@ -189,30 +267,85 @@
+ 	    if (msg_verbose)
+ 		msg_info("%s: bind %s", myname, inet_ntoa(sin.sin_addr));
+ 	}
++#else
++	char hbufl[NI_MAXHOST];
++	struct addrinfo hints, *res = NULL, *loopback = NULL;
++
++	memset(&hints, 0, sizeof(hints));
++	hints.ai_family = sa->sa_family;
++	hints.ai_socktype = SOCK_STREAM;
++	if (getaddrinfo(NULL, "0", &hints, &loopback) != 0)
++	    loopback = NULL;
++
++	/*
++	 * getnameinfo -> getaddrinfo loop is here so that we can
++	 * get rid of port.
++	 */
++	(void)getnameinfo((struct sockaddr *)addr_list->addrs, SA_LEN((struct sockaddr *)addr_list->addrs),
++	    hbufl, sizeof(hbufl), NULL, 0, NI_NUMERICHOST);
++	hbufl[sizeof(hbufl)-1] = 0;
++	memset(&hints, 0, sizeof(hints));
++	hints.ai_family = sa->sa_family;
++	hints.ai_socktype = SOCK_STREAM;
++	hints.ai_flags = AI_PASSIVE|AI_NUMERICHOST;
++	if (getaddrinfo(hbufl, NULL, &hints, &res) == 0 &&
++	    !(res->ai_addrlen == loopback->ai_addrlen &&
++	      memcmp(res->ai_addr, loopback->ai_addr, res->ai_addrlen) == 0)) {
++	    if (bind(sock, res->ai_addr, res->ai_addrlen) < 0)
++		msg_warn("%s: bind %s: %m", myname, hbufl);
++	    if (msg_verbose)
++		msg_info("%s: bind %s", myname, hbufl);
++	}
++	if (res)
++	    freeaddrinfo(res);
++	if (loopback)
++	    freeaddrinfo(loopback);
++#endif
+     }
+ 
+     /*
+      * Connect to the SMTP server.
+      */
+-    sin.sin_port = port;
+-    memcpy((char *) &sin.sin_addr, addr->data, sizeof(sin.sin_addr));
++    switch (addr->type) {
++#ifdef INET6
++    case T_AAAA:
++	/* XXX scope unfriendly */
++	memset(sin6, 0, sizeof(*sin6));
++	sin6->sin6_port = port;
++	sin6->sin6_family = AF_INET6;
++	salen = sizeof(*sin6);
++	memcpy(&sin6->sin6_addr, addr->data, sizeof(sin6->sin6_addr));
++	inet_ntop(AF_INET6, &sin6->sin6_addr, hbuf, sizeof(hbuf));
++	break;
++#endif
++    default: /* T_A */
++	memset(sin, 0, sizeof(*sin));
++	sin->sin_port = port;
++	sin->sin_family = AF_INET;
++	salen = sizeof(*sin);
++	memcpy(&sin->sin_addr, addr->data, sizeof(sin->sin_addr));
++	inet_ntop(AF_INET, &sin->sin_addr, hbuf, sizeof(hbuf));
++	break;
++    }
++#ifdef HAS_SA_LEN
++    sa->sa_len = salen;
++#endif
+ 
+     if (msg_verbose)
+ 	msg_info("%s: trying: %s[%s] port %d...",
+-		 myname, addr->name, inet_ntoa(sin.sin_addr), ntohs(port));
++		 myname, addr->name, hbuf, ntohs(port));
+     if (var_smtp_conn_tmout > 0) {
+ 	non_blocking(sock, NON_BLOCKING);
+-	conn_stat = timed_connect(sock, (struct sockaddr *) & sin,
+-				  sizeof(sin), var_smtp_conn_tmout);
++	conn_stat = timed_connect(sock, sa, salen, var_smtp_conn_tmout);
+ 	saved_errno = errno;
+ 	non_blocking(sock, BLOCKING);
+ 	errno = saved_errno;
+     } else {
+-	conn_stat = connect(sock, (struct sockaddr *) & sin, sizeof(sin));
++	conn_stat = connect(sock, sa, salen);
+     }
+     if (conn_stat < 0) {
+ 	vstring_sprintf(why, "connect to %s[%s]: %m",
+-			addr->name, inet_ntoa(sin.sin_addr));
++			addr->name, hbuf);
+ 	smtp_errno = SMTP_RETRY;
+ 	close(sock);
+ 	return (0);
+@@ -222,8 +355,8 @@
+      * Skip this host if it takes no action within some time limit.
+      */
+     if (read_wait(sock, var_smtp_helo_tmout) < 0) {
+-	vstring_sprintf(why, "connect to %s[%s]: read timeout",
+-			addr->name, inet_ntoa(sin.sin_addr));
++	vstring_sprintf(why, "connect to %s [%s]: read timeout",
++			addr->name, hbuf);
+ 	smtp_errno = SMTP_RETRY;
+ 	close(sock);
+ 	return (0);
+@@ -234,8 +367,8 @@
+      */
+     stream = vstream_fdopen(sock, O_RDWR);
+     if ((ch = VSTREAM_GETC(stream)) == VSTREAM_EOF) {
+-	vstring_sprintf(why, "connect to %s[%s]: server dropped connection",
+-			addr->name, inet_ntoa(sin.sin_addr));
++	vstring_sprintf(why, "connect to %s [%s]: server dropped connection",
++			addr->name, hbuf);
+ 	smtp_errno = SMTP_RETRY;
+ 	vstream_fclose(stream);
+ 	return (0);
+@@ -247,7 +380,7 @@
+      */
+     if (ch == '4' && var_smtp_skip_4xx_greeting) {
+ 	vstring_sprintf(why, "connect to %s[%s]: server refused mail service",
+-			addr->name, inet_ntoa(sin.sin_addr));
++			addr->name, hbuf);
+ 	smtp_errno = SMTP_RETRY;
+ 	vstream_fclose(stream);
+ 	return (0);
+@@ -258,12 +391,12 @@
+      */
+     if (ch == '5' && var_smtp_skip_5xx_greeting) {
+ 	vstring_sprintf(why, "connect to %s[%s]: server refused mail service",
+-			addr->name, inet_ntoa(sin.sin_addr));
++			addr->name, hbuf);
+ 	smtp_errno = SMTP_RETRY;
+ 	vstream_fclose(stream);
+ 	return (0);
+     }
+-    return (smtp_session_alloc(dest, stream, addr->name, inet_ntoa(sin.sin_addr)));
++    return (smtp_session_alloc(dest, stream, addr->name, hbuf));
+ }
+ 
+ /* smtp_connect_host - direct connection to host */
+@@ -273,7 +406,7 @@
+     SMTP_SESSION *session = 0;
+     DNS_RR *addr_list;
+     DNS_RR *addr;
+-
++    
+     /*
+      * Try each address in the specified order until we find one that works.
+      * The addresses belong to the same A record, so we have no information
+@@ -380,6 +513,7 @@
+ 	    msg_fatal("unknown service: %s/%s", service, protocol);
+ 	*portp = sp->s_port;
+     }
++
+     return (buf);
+ }
+ 
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/smtp/smtp_unalias.c snapshot-20010525/src/smtp/smtp_unalias.c
+--- snapshot-20010525.noipv6/src/smtp/smtp_unalias.c	Thu Sep 28 19:06:09 2000
++++ snapshot-20010525/src/smtp/smtp_unalias.c	Tue May 29 18:23:16 2001
+@@ -86,7 +86,11 @@
+     if ((result = htable_find(cache, name)) == 0) {
+ 	fqdn = vstring_alloc(10);
+ 	if (dns_lookup_types(name, smtp_unalias_flags, (DNS_RR **) 0,
+-			     fqdn, (VSTRING *) 0, T_MX, T_A, 0) != DNS_OK)
++			     fqdn, (VSTRING *) 0, T_MX, T_A,
++#ifdef INET6
++			     T_AAAA,
++#endif
++			     0) != DNS_OK)
+ 	    vstring_strcpy(fqdn, name);
+ 	htable_enter(cache, name, result = vstring_export(fqdn));
+     }
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/smtpd/smtpd_check.c snapshot-20010525/src/smtpd/smtpd_check.c
+--- snapshot-20010525.noipv6/src/smtpd/smtpd_check.c	Tue May 29 16:03:38 2001
++++ snapshot-20010525/src/smtpd/smtpd_check.c	Tue May 29 18:23:16 2001
+@@ -812,7 +812,11 @@
+ 	msg_info("%s: %s", myname, name);
+ 
+     dns_status = dns_lookup_types(name, 0, (DNS_RR **) 0, (VSTRING *) 0,
+-				  (VSTRING *) 0, T_A, T_MX, 0);
++				  (VSTRING *) 0, T_A, T_MX,
++#ifdef INET6
++				  T_AAAA,
++#endif
++				  0);
+     if (dns_status != DNS_OK)
+ 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
+ 				   "%d <%s>: %s odrzucony/rejected: Host not found",
+@@ -834,7 +838,11 @@
+ 	msg_info("%s: %s", myname, name);
+ 
+     dns_status = dns_lookup_types(name, 0, (DNS_RR **) 0, (VSTRING *) 0,
+-				  (VSTRING *) 0, T_A, T_MX, 0);
++				  (VSTRING *) 0, T_A, T_MX,
++#ifdef INET6
++				  T_AAAA,
++#endif
++				  0);
+     if (dns_status != DNS_OK)
+ 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
+ 				   "%d <%s>: %s odrzucony/rejected: Domain not found",
+@@ -1003,6 +1011,49 @@
+ 
+ static int has_my_addr(char *host)
+ {
++#ifdef INET6
++    char   *myname = "has_my_addr";
++    struct addrinfo hints, *res, *res0;
++    int error;
++    char hbuf[NI_MAXHOST];
++
++    if (msg_verbose)
++	msg_info("%s: host %s", myname, host);
++
++    /*
++     * If we can't lookup the host, play safe and assume it is OK.
++     */
++#define YUP	1
++#define NOPE	0
++
++    memset(&hints, 0, sizeof(hints));
++    hints.ai_family = PF_UNSPEC;
++    hints.ai_socktype = SOCK_DGRAM;
++    error = getaddrinfo(host, NULL, &hints, &res0);
++    if (error) {
++	if (msg_verbose)
++	    msg_info("%s: host %s: %s", myname, host, gai_strerror(error));
++	return (YUP);
++    }
++    for (res = res0; res; res = res->ai_next) {
++	if (msg_verbose) {
++	    if (getnameinfo(res->ai_addr, res->ai_addrlen, hbuf, sizeof(hbuf),
++		    NULL, 0, NI_NUMERICHOST)) {
++		strncpy(hbuf, "???", sizeof(hbuf));
++	    }
++	    msg_info("%s: addr %s", myname, hbuf);
++	}
++	if (own_inet_addr(res->ai_addr)) {
++	    freeaddrinfo(res0);
++	    return (YUP);
++	}
++    }
++    freeaddrinfo(res0);
++    if (msg_verbose)
++	msg_info("%s: host %s: no match", myname, host);
++
++    return (NOPE);
++#else
+     char   *myname = "has_my_addr";
+     struct in_addr addr;
+     char  **cpp;
+@@ -1038,6 +1089,7 @@
+ 	msg_info("%s: host %s: no match", myname, host);
+ 
+     return (NOPE);
++#endif
+ }
+ 
+ /* permit_mx_backup - permit use of me as MX backup for recipient domain */
+@@ -1544,9 +1596,14 @@
+     int     dns_status = DNS_FAIL;
+     int     i;
+     int     result;
++    struct in_addr a;
+ 
+     if (msg_verbose)
+ 	msg_info("%s: %s", myname, state->addr);
++
++    /* IPv4 only for now */
++    if (inet_pton(AF_INET, state->addr, &a) != 1)
++	return SMTPD_CHECK_DUNNO;
+ 
+     /*
+      * IPv4 only for now
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/smtpd/smtpd_peer.c snapshot-20010525/src/smtpd/smtpd_peer.c
+--- snapshot-20010525.noipv6/src/smtpd/smtpd_peer.c	Sun Jan 28 16:24:56 2001
++++ snapshot-20010525/src/smtpd/smtpd_peer.c	Tue May 29 18:40:28 2001
+@@ -63,6 +63,15 @@
+ #include <netdb.h>
+ #include <string.h>
+ 
++/* Utility library. */
++
++#include <msg.h>
++#include <mymalloc.h>
++#include <valid_hostname.h>
++#include <stringops.h>
++
++/* Global library. */
++
+  /*
+   * Older systems don't have h_errno. Even modern systems don't have
+   * hstrerror().
+@@ -84,16 +93,11 @@
+     )
+ #endif
+ 
+-/* Utility library. */
+-
+-#include <msg.h>
+-#include <mymalloc.h>
+-#include <valid_hostname.h>
+-#include <stringops.h>
+-
+-/* Global library. */
+-
+-
++#ifdef INET6
++#define GAI_STRERROR(error) \
++	((error = EAI_SYSTEM) ? gai_strerror(error) : strerror(errno))
++#endif
++	
+ /* Application-specific. */
+ 
+ #include "smtpd.h"
+@@ -102,16 +106,23 @@
+ 
+ void    smtpd_peer_init(SMTPD_STATE *state)
+ {
+-    struct sockaddr_in sin;
+-    SOCKADDR_SIZE len = sizeof(sin);
++#ifdef INET6
++    struct sockaddr_storage ss;
++#else
++    struct sockaddr ss;
++    struct in_addr *in;
+     struct hostent *hp;
+-    int     i;
++#endif
++    struct sockaddr *sa;
++    SOCKADDR_SIZE len;
++
++    sa = (struct sockaddr *)&ss;
++    len = sizeof(ss);
+ 
+     /*
+      * Look up the peer address information.
+      */
+-    if (getpeername(vstream_fileno(state->client),
+-		    (struct sockaddr *) & sin, &len) >= 0) {
++    if (getpeername(vstream_fileno(state->client), sa, &len) >= 0) {
+ 	errno = 0;
+     }
+ 
+@@ -128,18 +139,51 @@
+     /*
+      * Look up and "verify" the client hostname.
+      */
+-    else if (errno == 0 && sin.sin_family == AF_INET) {
+-	state->addr = mystrdup(inet_ntoa(sin.sin_addr));
+-	hp = gethostbyaddr((char *) &(sin.sin_addr),
+-			   sizeof(sin.sin_addr), AF_INET);
+-	if (hp == 0) {
++    else if (errno == 0 && (sa->sa_family == AF_INET
++#ifdef INET6
++			    || sa->sa_family == AF_INET6
++#endif
++		    )) {
++#ifdef INET6
++	char hbuf[NI_MAXHOST];
++	char abuf[NI_MAXHOST];
++	struct addrinfo hints, *rnull = NULL;
++#else
++	char abuf[sizeof("255.255.255.255") + 1];
++	char *hbuf;
++#endif
++	int error = -1;
++
++#ifdef INET6
++	(void)getnameinfo(sa, len, abuf, sizeof(hbuf), NULL, 0, NI_NUMERICHOST);
++#else
++	in = &((struct sockaddr_in *)sa)->sin_addr;
++	inet_ntop(AF_INET, in, abuf, sizeof(hbuf));
++#endif
++	state->addr = mystrdup(abuf);
++#ifdef INET6
++	error = getnameinfo(sa, len, hbuf, sizeof(hbuf), NULL, 0, NI_NAMEREQD);
++#else
++	hbuf = NULL;
++	hp = gethostbyaddr((char *)in, sizeof(*in), AF_INET);
++	if (hp) {
++	    error = 0;
++		hbuf = mystrdup(hp->h_name);
++	} else
++	    error = 1;
++#endif
++	if (error) {
+ 	    state->name = mystrdup("unknown");
++#ifdef INET6
++		state->peer_code = (error == EAI_AGAIN ? 4 : 5);
++#else
+ 	    state->peer_code = (h_errno == TRY_AGAIN ? 4 : 5);
+-	} else if (!valid_hostname(hp->h_name, DONT_GRIPE)) {
++#endif
++	} else if (!valid_hostname(hbuf, DONT_GRIPE)) {
+ 	    state->name = mystrdup("unknown");
+ 	    state->peer_code = 5;
+ 	} else {
+-	    state->name = mystrdup(hp->h_name);	/* hp->name is clobbered!! */
++	    state->name = mystrdup(hbuf);	/* hp->name is clobbered!! */
+ 	    state->peer_code = 2;
+ 
+ 	    /*
+@@ -151,16 +195,31 @@
+ 	state->peer_code = code; \
+     }
+ 
++#ifdef INET6
++	    memset(&hints, 0, sizeof(hints));
++	    hints.ai_family = AF_UNSPEC;
++	    hints.ai_socktype = SOCK_STREAM;
++	    error = getaddrinfo(state->name, NULL, &hints, &rnull);
++	    if (error) {
++		msg_warn("%s: hostname %s verification failed: %s",
++			 state->addr, state->name, GAI_STRERROR(error));
++		REJECT_PEER_NAME(state, (error == EAI_AGAIN ? 4 : 5));
++	    }
++	    /* memcmp() isn't needed if we use getaddrinfo */
++	    if (rnull)
++		freeaddrinfo(rnull);
++#else
+ 	    hp = gethostbyname(state->name);	/* clobbers hp->name!! */
+ 	    if (hp == 0) {
+ 		msg_warn("%s: hostname %s verification failed: %s",
+ 			 state->addr, state->name, HSTRERROR(h_errno));
+ 		REJECT_PEER_NAME(state, (h_errno == TRY_AGAIN ? 4 : 5));
+-	    } else if (hp->h_length != sizeof(sin.sin_addr)) {
++	    } else if (hp->h_length != sizeof(*in)) {
+ 		msg_warn("%s: hostname %s verification failed: bad address size %d",
+ 			 state->addr, state->name, hp->h_length);
+ 		REJECT_PEER_NAME(state, 5);
+ 	    } else {
++		int i;
+ 		for (i = 0; /* void */ ; i++) {
+ 		    if (hp->h_addr_list[i] == 0) {
+ 			msg_warn("%s: address not listed for hostname %s",
+@@ -168,13 +227,12 @@
+ 			REJECT_PEER_NAME(state, 5);
+ 			break;
+ 		    }
+-		    if (memcmp(hp->h_addr_list[i],
+-			       (char *) &sin.sin_addr,
+-			       sizeof(sin.sin_addr)) == 0)
++		    if (memcmp(hp->h_addr_list[i], (char *)in, sizeof(*in)) == 0)
+ 			break;			/* keep peer name */
+ 		}
+ 	    }
++#endif
+ 	}
+     }
+ 
+     /*
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/util/Makefile.in snapshot-20010525/src/util/Makefile.in
+--- snapshot-20010525.noipv6/src/util/Makefile.in	Tue May 29 16:03:38 2001
++++ snapshot-20010525/src/util/Makefile.in	Tue May 29 18:23:16 2001
+@@ -5,6 +5,7 @@
+ 	dict_nisplus.c dict_open.c dir_forest.c doze.c environ.c \
+ 	events.c exec_command.c fifo_listen.c fifo_trigger.c file_limit.c \
+ 	find_inet.c fsspace.c fullname.c get_domainname.c get_hostname.c \
++	get_port.c \
+ 	htable.c inet_addr_host.c inet_addr_list.c inet_addr_local.c \
+ 	inet_connect.c inet_listen.c inet_trigger.c inet_util.c \
+ 	line_wrap.c lowercase.c lstat_as.c mac_parse.c make_dirs.c \
+@@ -30,6 +31,7 @@
+ 	dict_nisplus.o dict_open.o dir_forest.o doze.o environ.o \
+ 	events.o exec_command.o fifo_listen.o fifo_trigger.o file_limit.o \
+ 	find_inet.o fsspace.o fullname.o get_domainname.o get_hostname.o \
++	get_port.o \
+ 	htable.o inet_addr_host.o inet_addr_list.o inet_addr_local.o \
+ 	inet_connect.o inet_listen.o inet_trigger.o inet_util.o \
+ 	line_wrap.o lowercase.o lstat_as.o mac_parse.o make_dirs.o \
+@@ -53,6 +55,7 @@
+ 	dict_dbm.h dict_env.h dict_ht.h dict_ldap.h dict_mysql.h \
+ 	dict_ni.h dict_nis.h dict_nisplus.h dir_forest.h events.h \
+ 	exec_command.h find_inet.h fsspace.h fullname.h get_domainname.h \
++	get_port.h \
+ 	get_hostname.h htable.h inet_addr_host.h inet_addr_list.h \
+ 	inet_addr_local.h inet_util.h iostuff.h line_wrap.h listen.h lstat_as.h \
+ 	mac_parse.h make_dirs.h match_list.h match_ops.h msg.h msg_output.h \
+@@ -590,6 +593,7 @@
+ get_domainname.o: mymalloc.h
+ get_domainname.o: get_hostname.h
+ get_domainname.o: get_domainname.h
++get_port.o: sys_defs.h
+ get_hostname.o: get_hostname.c
+ get_hostname.o: sys_defs.h
+ get_hostname.o: mymalloc.h
+@@ -701,6 +705,7 @@
+ match_list.o: stringops.h
+ match_list.o: argv.h
+ match_list.o: dict.h
++match_list.o: inet_util.h
+ match_list.o: match_list.h
+ match_ops.o: match_ops.c
+ match_ops.o: sys_defs.h
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/util/get_port.c snapshot-20010525/src/util/get_port.c
+--- snapshot-20010525.noipv6/src/util/get_port.c	Thu Jan  1 01:00:00 1970
++++ snapshot-20010525/src/util/get_port.c	Tue May 29 18:23:16 2001
+@@ -0,0 +1,65 @@
++/*++
++/* NAME
++/*	get_port 3
++/* SUMMARY
++/*	trivial host and port extracter
++/* SYNOPSIS
++/*	#include <get_port.h>
++/*
++/*	char	*get_port(data)
++/*	char	*data;
++/*
++/* DESCRIPTION
++/* 	get_port() extract host name or ip address from
++/* 	strings such as [3ffe:902:12::10]:25, [::1]
++/* 	or 192.168.0.1:25, and null-terminates the
++/* 	\fIdata\fR at the first occurrence of port separator.
++/* DIAGNOSTICS
++/* 	If port not found return null pointer.
++/* LICENSE
++/* .ad
++/* .fi
++/*	BSD Style (or BSD like) license.
++/* AUTHOR(S)
++/*	Arkadiusz Mi턪iewicz <misiek@pld.org.pl>
++/*	Wroclaw, POLAND
++/*--*/
++
++/* System libraries */
++
++#include <sys_defs.h>
++#include <string.h>
++
++/* Utility library. */
++
++#include "get_port.h"
++
++/* get_port - extract port number from string */
++
++char *get_port(char *data)
++{
++	const char *escl=strchr(data,'[');
++	const char *sepl=strchr(data,':');
++	char *escr=strrchr(data,']');
++	char *sepr=strrchr(data,':');
++
++	/* extract from "[address]:port" or "[address]"*/
++	if (escl && escr)
++	{
++		memmove(data, data + 1, strlen(data) - strlen(escr));
++		data[strlen(data) - strlen(escr) - 1] = 0;
++		*escr++ = 0;
++		if (*escr == ':')
++			escr++;
++		return (*escr ? escr : NULL);
++	}
++	/* extract from "address:port" or "address" */
++	if ((sepl == sepr) && sepr && sepl)
++	{
++		*sepr++ = 0;
++		return sepr;
++	}
++
++	/* return empty string */
++	return NULL;
++}
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/util/get_port.h snapshot-20010525/src/util/get_port.h
+--- snapshot-20010525.noipv6/src/util/get_port.h	Thu Jan  1 01:00:00 1970
++++ snapshot-20010525/src/util/get_port.h	Tue May 29 18:23:16 2001
+@@ -0,0 +1,28 @@
++#ifndef _GET_PORT_H_INCLUDED_
++#define _GET_PORT_H_INCLUDED_
++
++/*++
++/* NAME
++/*	get_port 3h
++/* SUMMARY
++/*	trivial host and port extracter
++/* SYNOPSIS
++/*	#include <get_port.h>
++/* DESCRIPTION
++/* .nf
++
++ /* External interface. */
++
++extern char *get_port(char *);
++
++
++/* LICENSE
++/* .ad
++/* .fi
++/*	BSD Style (or BSD like) license.
++/* AUTHOR(S)
++/*	Arkadiusz Mi턪iewicz <misiek@pld.org.pl>
++/*	Wroclaw, POLAND
++/*--*/
++
++#endif
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/util/inet_addr_host.c snapshot-20010525/src/util/inet_addr_host.c
+--- snapshot-20010525.noipv6/src/util/inet_addr_host.c	Fri Dec 11 19:55:35 1998
++++ snapshot-20010525/src/util/inet_addr_host.c	Tue May 29 18:23:16 2001
+@@ -38,7 +38,10 @@
+ #include <sys_defs.h>
+ #include <netinet/in.h>
+ #include <arpa/inet.h>
++#include <sys/socket.h>
+ #include <netdb.h>
++#include <stdlib.h>
++#include <string.h>
+ 
+ #ifndef INADDR_NONE
+ #define INADDR_NONE 0xffffffff
+@@ -48,15 +51,45 @@
+ 
+ #include <inet_addr_list.h>
+ #include <inet_addr_host.h>
++#ifdef TEST
++#include <msg.h>
++#endif
+ 
+ /* inet_addr_host - look up address list for host */
+ 
+ int     inet_addr_host(INET_ADDR_LIST *addr_list, const char *hostname)
+ {
++#ifdef INET6
++    int s;
++    struct addrinfo hints, *res0, *res;
++#ifdef TEST	
++	char buforhosta[1024];
++#endif	
++    int error;
++#else
+     struct hostent *hp;
+     struct in_addr addr;
++#endif
+     int     initial_count = addr_list->used;
+ 
++#ifdef INET6
++    memset(&hints, 0, sizeof(hints));
++    hints.ai_family = PF_UNSPEC;
++    hints.ai_socktype = SOCK_DGRAM;
++    error = getaddrinfo(hostname, NULL, &hints, &res0);
++    if (error == 0) {
++	for (res = res0; res; res = res->ai_next) {
++	    /* filter out address families that are not supported */
++	    s = socket(res->ai_family, SOCK_DGRAM, 0);
++	    if (s < 0)
++		continue;
++	    close(s);
++
++	    inet_addr_list_append(addr_list, res->ai_addr);
++	}
++	freeaddrinfo(res0);
++    }
++#else
+     if ((addr.s_addr = inet_addr(hostname)) != INADDR_NONE) {
+ 	inet_addr_list_append(addr_list, &addr);
+     } else {
+@@ -65,9 +98,12 @@
+ 		inet_addr_list_append(addr_list,
+ 				    (struct in_addr *) * hp->h_addr_list++);
+     }
++#endif
++
+     return (addr_list->used - initial_count);
+ }
+ 
++
+ #ifdef TEST
+ 
+ #include <msg.h>
+@@ -78,6 +114,8 @@
+ {
+     INET_ADDR_LIST addr_list;
+     int     i;
++    struct sockaddr *sa;
++    char hbuf[NI_MAXHOST];
+ 
+     msg_vstream_init(argv[0], VSTREAM_ERR);
+ 
+@@ -89,8 +127,12 @@
+ 	if (inet_addr_host(&addr_list, *argv) == 0)
+ 	    msg_fatal("not found: %s", *argv);
+ 
+-	for (i = 0; i < addr_list.used; i++)
+-	    vstream_printf("%s\n", inet_ntoa(addr_list.addrs[i]));
++	for (i = 0; i < addr_list.used; i++) {
++	    sa = (struct sockaddr *)&addr_list.addrs[i];
++	    getnameinfo(sa, SA_LEN(sa), hbuf, sizeof(hbuf), NULL, 0,
++		    NI_NUMERICHOST);
++	    vstream_printf("%s\n", hbuf);
++	}
+ 	vstream_fflush(VSTREAM_OUT);
+     }
+     inet_addr_list_free(&addr_list);
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/util/inet_addr_list.c snapshot-20010525/src/util/inet_addr_list.c
+--- snapshot-20010525.noipv6/src/util/inet_addr_list.c	Mon Nov 20 19:06:30 2000
++++ snapshot-20010525/src/util/inet_addr_list.c	Tue May 29 18:23:16 2001
+@@ -44,6 +44,13 @@
+ #include <netinet/in.h>
+ #include <arpa/inet.h>
+ 
++#include <netdb.h>
++
++#ifdef INET6
++#include <string.h>
++#include <sys/socket.h>
++#endif
++
+ /* Utility library. */
+ 
+ #include <msg.h>
+@@ -56,12 +63,39 @@
+ {
+     list->used = 0;
+     list->size = 2;
++#ifdef INET6
++    list->addrs = (struct sockaddr_storage *)
++#else
+     list->addrs = (struct in_addr *)
++#endif
+ 	mymalloc(sizeof(*list->addrs) * list->size);
+ }
+ 
+ /* inet_addr_list_append - append address to internet address list */
+ 
++#ifdef INET6
++void    inet_addr_list_append(INET_ADDR_LIST *list, 
++                              struct sockaddr * addr)
++{
++    char   *myname = "inet_addr_list_append";
++    char hbuf[NI_MAXHOST];
++
++    if (msg_verbose > 1) {
++	if (getnameinfo(addr, SA_LEN(addr), hbuf, sizeof(hbuf), NULL, 0,
++	    NI_NUMERICHOST)) {
++	    strncpy(hbuf, "??????", sizeof(hbuf));
++	}
++	msg_info("%s: %s", myname, hbuf);
++    }
++
++    if (list->used >= list->size)
++	list->size *= 2;
++    list->addrs = (struct sockaddr_storage *)
++	myrealloc((char *) list->addrs,
++		  sizeof(*list->addrs) * list->size);
++    memcpy(&list->addrs[list->used++], addr, SA_LEN(addr));
++}
++#else
+ void    inet_addr_list_append(INET_ADDR_LIST *list, struct in_addr * addr)
+ {
+     char   *myname = "inet_addr_list_append";
+@@ -76,6 +110,7 @@
+ 		  sizeof(*list->addrs) * list->size);
+     list->addrs[list->used++] = *addr;
+ }
++#endif
+ 
+ /* inet_addr_list_free - destroy internet address list */
+ 
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/util/inet_addr_list.h snapshot-20010525/src/util/inet_addr_list.h
+--- snapshot-20010525.noipv6/src/util/inet_addr_list.h	Fri Dec 11 19:55:35 1998
++++ snapshot-20010525/src/util/inet_addr_list.h	Tue May 29 18:23:16 2001
+@@ -16,18 +16,37 @@
+   */
+ #include <netinet/in.h>
+ 
++#ifndef SA_LEN
++#ifndef HAS_SA_LEN
++#define SA_LEN(x)       (((x)->sa_family == AF_INET6) ? sizeof(struct sockaddr_in6) : sizeof(struct sockaddr_in))
++#define SS_LEN(x)       (((x).ss_family == AF_INET6) ? sizeof(struct sockaddr_in6) : sizeof(struct sockaddr_in))
++#else
++#define SA_LEN(x)       ((x)->sa_len)
++#define SS_LEN(x)       ((x).ss_len)
++#endif
++#endif
++
+  /*
+   * External interface.
+   */
+ typedef struct INET_ADDR_LIST {
+     int     used;			/* nr of elements in use */
+     int     size;			/* actual list size */
++#ifdef INET6
++    struct sockaddr_storage *addrs;	/* payload */
++#else
+     struct in_addr *addrs;		/* payload */
++#endif
+ } INET_ADDR_LIST;
+ 
+ extern void inet_addr_list_init(INET_ADDR_LIST *);
+ extern void inet_addr_list_free(INET_ADDR_LIST *);
++#ifdef INET6
++struct sockaddr;
++extern void inet_addr_list_append(INET_ADDR_LIST *, struct sockaddr *);
++#else
+ extern void inet_addr_list_append(INET_ADDR_LIST *, struct in_addr *);
++#endif
+ 
+ /* LICENSE
+ /* .ad
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/util/inet_addr_local.c snapshot-20010525/src/util/inet_addr_local.c
+--- snapshot-20010525.noipv6/src/util/inet_addr_local.c	Sun Feb 25 19:20:19 2001
++++ snapshot-20010525/src/util/inet_addr_local.c	Tue May 29 18:47:06 2001
+@@ -47,6 +47,13 @@
+ #endif
+ #include <errno.h>
+ #include <string.h>
++#if defined(INET6) && (defined (LINUX) || defined (LINUX2))
++#include <netdb.h>
++#include <stdio.h>
++#endif
++#ifdef HAVE_GETIFADDRS
++#include <ifaddrs.h>
++#endif
+ 
+ /* Utility library. */
+ 
+@@ -78,18 +85,98 @@
+ 
+ int     inet_addr_local(INET_ADDR_LIST *addr_list, INET_ADDR_LIST *mask_list)
+ {
++#ifdef HAVE_GETIFADDRS
++    char *myname = "inet_addr_local";
++    struct ifaddrs *ifap, *ifa;
++    int initial_count = addr_list->used;
++    struct sockaddr *sa;
++#ifdef INET6
++#ifdef __KAME__
++    struct sockaddr_in6 addr6;
++#endif
++#else
++    void *addr;
++#endif
++
++    if (getifaddrs(&ifap) < 0)
++	msg_fatal("%s: getifaddrs: %m", myname);
++
++    for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
++		if (! (ifa->ifa_flags & IFF_RUNNING)) 
++			continue;
++	sa = ifa->ifa_addr;
++	switch (ifa->ifa_addr->sa_family) {
++	case AF_INET:
++#ifndef INET6
++	    addr = (void *)&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
++#endif
++	    break;
++#ifdef INET6
++	case AF_INET6:
++#ifdef __KAME__
++	    memcpy(&addr6, ifa->ifa_addr, ifa->ifa_addr->sa_len);
++	    /* decode scoped address notation */
++	    if ((IN6_IS_ADDR_LINKLOCAL(&addr6.sin6_addr) ||
++	         IN6_IS_ADDR_SITELOCAL(&addr6.sin6_addr)) &&
++		addr6.sin6_scope_id == 0) {
++		addr6.sin6_scope_id = ntohs(addr6.sin6_addr.s6_addr[3] |
++		    (unsigned int)addr6.sin6_addr.s6_addr[2] << 8);
++		addr6.sin6_addr.s6_addr[2] = addr6.sin6_addr.s6_addr[3] = 0;
++		sa = (struct sockaddr *)&addr6;
++	    }
++#endif
++	    break;
++#endif
++	default:
++	    continue;
++	}
++
++#ifdef INET6
++	inet_addr_list_append(addr_list, sa);
++#else
++	inet_addr_list_append(addr_list, (struct in_addr *)addr);
++#endif
++    }
++
++    freeifaddrs(ifap);
++    return (addr_list->used - initial_count);
++#else
+     char   *myname = "inet_addr_local";
+     struct ifconf ifc;
+     struct ifreq *ifr;
+     struct ifreq *the_end;
+     int     sock;
+-    VSTRING *buf = vstring_alloc(1024);
++    VSTRING *buf;
+     int     initial_count = addr_list->used;
+     struct in_addr addr;
+     struct ifreq *ifr_mask;
++    int af = AF_INET;
++#ifdef INET6
++#if defined (LINUX) || defined (LINUX2)
++#define _PATH_PROCNET_IFINET6   "/proc/net/if_inet6"
++    FILE *f;
++    char addr6p[8][5], addr6res[40], devname[20];
++    int plen, scope, dad_status, if_idx, gaierror;
++    struct addrinfo hints, *res, *res0;
++#endif
++    struct sockaddr_in6 addr6;
+ 
+-    if ((sock = socket(PF_INET, SOCK_DGRAM, 0)) < 0)
++other_socket_type:
++#endif
++    buf = vstring_alloc(1024);
++
++    if ((sock = socket(af, SOCK_DGRAM, 0)) < 0) {
++#ifdef INET6
++	if (af == AF_INET6)
++	{
++	    if (msg_verbose)
++		    msg_warn("%s: socket: %m", myname);
++	    goto end;
++	}
++	else
++#endif
+ 	msg_fatal("%s: socket: %m", myname);
++    }
+ 
+     /*
+      * Get the network interface list. XXX The socket API appears to have no
+@@ -126,10 +213,15 @@
+      */
+     the_end = (struct ifreq *) (ifc.ifc_buf + ifc.ifc_len);
+     for (ifr = ifc.ifc_req; ifr < the_end;) {
+-	if (ifr->ifr_addr.sa_family == AF_INET) {	/* IP interface */
++	if ((ifr->ifr_addr.sa_family == AF_INET) &&
++			(ifr->ifr_addr.sa_family == af)) { /* IP interface */
+ 	    addr = ((struct sockaddr_in *) & ifr->ifr_addr)->sin_addr;
+ 	    if (addr.s_addr != INADDR_ANY) {	/* has IP address */
++#ifdef INET6
++		inet_addr_list_append(addr_list, &ifr->ifr_addr);
++#else
+ 		inet_addr_list_append(addr_list, &addr);
++#endif
+ 		if (mask_list) {
+ 		    ifr_mask = (struct ifreq *) mymalloc(IFREQ_SIZE(ifr));
+ 		    memcpy((char *) ifr_mask, (char *) ifr, IFREQ_SIZE(ifr));
+@@ -141,11 +233,61 @@
+ 		}
+ 	    }
+ 	}
++#ifdef INET6
++	else if ((ifr->ifr_addr.sa_family == AF_INET6) &&
++			(ifr->ifr_addr.sa_family == af)) {  /* IPv6 interface */
++	    addr6 = *((struct sockaddr_in6 *) & ifr->ifr_addr);
++#ifdef __KAME__
++	    /* decode scoped address notation */
++	    if ((IN6_IS_ADDR_LINKLOCAL(&addr6.sin6_addr) ||
++	         IN6_IS_ADDR_SITELOCAL(&addr6.sin6_addr)) &&
++		addr6.sin6_scope_id == 0) {
++		addr6.sin6_scope_id = ntohs(addr6.sin6_addr.s6_addr[3] |
++		    (unsigned int)addr6.sin6_addr.s6_addr[2] << 8);
++		addr6.sin6_addr.s6_addr[2] = addr6.sin6_addr.s6_addr[3] = 0;
++	    }
++#endif
++	    if (!(IN6_IS_ADDR_UNSPECIFIED(&addr6.sin6_addr)))
++	        inet_addr_list_append(addr_list, (struct sockaddr *)&addr6);
++	}
++#endif
+ 	ifr = NEXT_INTERFACE(ifr);
+     }
+     vstring_free(buf);
+     (void) close(sock);
++#ifdef INET6
++end:
++    if (af != AF_INET6) {
++	    af = AF_INET6;
++	    goto other_socket_type;
++    }
++#if defined (LINUX) || defined (LINUX2)
++    if ((f = fopen(_PATH_PROCNET_IFINET6, "r")) != NULL) {
++         while (fscanf(f, "%4s%4s%4s%4s%4s%4s%4s%4s %02x %02x %02x %02x %20s\n",
++	       addr6p[0], addr6p[1], addr6p[2], addr6p[3], addr6p[4],
++	       addr6p[5], addr6p[6], addr6p[7],
++	       &if_idx, &plen, &scope, &dad_status, devname) != EOF) {
++		 sprintf(addr6res, "%s:%s:%s:%s:%s:%s:%s:%s",
++				 addr6p[0], addr6p[1], addr6p[2], addr6p[3],
++				 addr6p[4], addr6p[5], addr6p[6], addr6p[7]);
++		 addr6res[sizeof(addr6res) - 1] = 0;
++		 memset(&hints, 0, sizeof(hints));
++		 hints.ai_flags = AI_NUMERICHOST;
++		 hints.ai_family = AF_UNSPEC;
++		 hints.ai_socktype = SOCK_DGRAM;
++		 gaierror = getaddrinfo(addr6res, NULL, &hints, &res0);
++		 if (!gaierror) {
++			 for (res = res0; res; res = res->ai_next) {
++			       inet_addr_list_append(addr_list, res->ai_addr);
++			 }
++			 freeaddrinfo(res0);
++		 }
++	 }
++    }
++#endif /* linux */
++#endif
+     return (addr_list->used - initial_count);
++#endif
+ }
+ 
+ #ifdef TEST
+@@ -158,6 +300,8 @@
+     INET_ADDR_LIST addr_list;
+     INET_ADDR_LIST mask_list;
+     int     i;
++    char abuf[NI_MAXHOST], mbuf[NI_MAXHOST];
++    struct sockaddr *sa;
+ 
+     msg_vstream_init(argv[0], VSTREAM_ERR);
+ 
+@@ -172,8 +316,17 @@
+ 	msg_warn("found only one active network interface");
+ 
+     for (i = 0; i < addr_list.used; i++) {
+-	vstream_printf("%s/", inet_ntoa(addr_list.addrs[i]));
+-	vstream_printf("%s\n", inet_ntoa(mask_list.addrs[i]));
++	sa = (struct sockaddr *)&addr_list.addrs[i];
++	if (getnameinfo(sa, SA_LEN(sa), abuf, sizeof(abuf), NULL, 0,
++		NI_NUMERICHOST)) {
++	    strncpy(abuf, "???", sizeof(abuf));
++	}
++	sa = (struct sockaddr *)&mask_list.addrs[i];
++	if (getnameinfo(sa, SA_LEN(sa), mbuf, sizeof(mbuf), NULL, 0,
++		NI_NUMERICHOST)) {
++	    strncpy(mbuf, "???", sizeof(mbuf));
++	}
++	vstream_printf("%s/%s\n", abuf, mbuf);
+     }
+     vstream_fflush(VSTREAM_OUT);
+     inet_addr_list_free(&addr_list);
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/util/inet_connect.c snapshot-20010525/src/util/inet_connect.c
+--- snapshot-20010525.noipv6/src/util/inet_connect.c	Mon Nov 20 19:06:31 2000
++++ snapshot-20010525/src/util/inet_connect.c	Tue May 29 18:23:16 2001
+@@ -55,6 +55,9 @@
+ #include <string.h>
+ #include <unistd.h>
+ #include <errno.h>
++#ifdef INET6
++#include <netdb.h>
++#endif
+ 
+ /* Utility library. */
+ 
+@@ -73,7 +76,12 @@
+     char   *buf;
+     char   *host;
+     char   *port;
++#ifdef INET6
++    struct addrinfo hints, *res, *res0;
++    int    error;
++#else
+     struct sockaddr_in sin;
++#endif
+     int     sock;
+ 
+     /*
+@@ -81,14 +89,58 @@
+      * the local host.
+      */
+     buf = inet_parse(addr, &host, &port);
++#ifdef INET6
++    if (*host == 0)
++	host = NULL;
++    memset(&hints, 0, sizeof(hints));
++    hints.ai_family = PF_UNSPEC;
++    hints.ai_socktype = SOCK_STREAM;
++    hints.ai_flags = AI_NUMERICHOST;	/* find_inet_addr is numeric only */
++    if (getaddrinfo(host, port, &hints, &res0))
++	msg_fatal("host not found: %s", host);
++#else
+     if (*host == 0)
+ 	host = "localhost";
+     memset((char *) &sin, 0, sizeof(sin));
+     sin.sin_family = AF_INET;
+     sin.sin_addr.s_addr = find_inet_addr(host);
+     sin.sin_port = find_inet_port(port, "tcp");
++#endif
+     myfree(buf);
+ 
++#ifdef INET6
++    sock = -1;
++    for (res = res0; res; res = res->ai_next) {
++	if ((res->ai_family != AF_INET) && (res->ai_family != AF_INET6))
++	    continue;
++
++	sock = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
++	if (sock < 0)
++	    continue;
++	if (timeout > 0) {
++	    non_blocking(sock, NON_BLOCKING);
++	    if (timed_connect(sock, res->ai_addr, res->ai_addrlen, timeout) < 0) {
++		close(sock);
++		sock = -1;
++		continue;
++	    }
++	    if (block_mode != NON_BLOCKING)
++		non_blocking(sock, block_mode);
++	    break;
++	} else {
++	    non_blocking(sock, block_mode);
++	    if (connect(sock, res->ai_addr, res->ai_addrlen) < 0
++		&& errno != EINPROGRESS) {
++		close(sock);
++		sock = -1;
++		continue;
++	    }
++	    break;
++	}
++    }
++    freeaddrinfo(res0);
++    return sock;
++#else
+     /*
+      * Create a client socket.
+      */
+@@ -121,4 +173,5 @@
+ 	}
+ 	return (sock);
+     }
++#endif
+ }
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/util/inet_listen.c snapshot-20010525/src/util/inet_listen.c
+--- snapshot-20010525.noipv6/src/util/inet_listen.c	Mon Nov 20 19:06:32 2000
++++ snapshot-20010525/src/util/inet_listen.c	Tue May 29 18:23:16 2001
+@@ -51,6 +51,11 @@
+ #include <sys_defs.h>
+ #include <sys/socket.h>
+ #include <netinet/in.h>
++#ifdef INET6
++#if (! __GLIBC__ >= 2 && __GLIBC_MINOR__ >=1 )
++#include <netinet6/in6.h>
++#endif
++#endif
+ #include <arpa/inet.h>
+ #include <netdb.h>
+ #ifndef MAXHOSTNAMELEN
+@@ -79,33 +84,109 @@
+ 
+ int     inet_listen(const char *addr, int backlog, int block_mode)
+ {
++#ifdef INET6
++    struct addrinfo *res, *res0, hints;
++    int error;
++#else
++    struct ai {
++	int ai_family;
++	int ai_socktype;
++	int ai_protocol;
++	struct sockaddr *ai_addr;
++	SOCKADDR_SIZE ai_addrlen;
++	struct ai *ai_next;
++    } *res, *res0, resbody;
+     struct sockaddr_in sin;
++#endif
+     int     sock;
+     int     t = 1;
+     char   *buf;
+     char   *host;
+     char   *port;
++#ifdef INET6
++    char hbuf[NI_MAXHOST], pbuf[NI_MAXSERV];
++#else
++    char hbuf[sizeof("255.255.255.255") + 1];
++    char pbuf[sizeof("255.255.255.255") + 1];
++#endif
++    char *cause = "unknown";
+ 
+     /*
+      * Translate address information to internal form.
+      */
+     buf = inet_parse(addr, &host, &port);
+-    memset((char *) &sin, 0, sizeof(sin));
++#ifdef INET6
++    memset(&hints, 0, sizeof(hints));
++    hints.ai_flags = AI_PASSIVE;
++    hints.ai_family = AF_UNSPEC;
++    hints.ai_socktype = SOCK_STREAM;
++    error = getaddrinfo(*host ? host : NULL, *port ? port : "0", &hints, &res0);
++    if (error) {
++	msg_fatal("getaddrinfo: %s", gai_strerror(error));
++    }
++    myfree(buf);
++#else
++    memset(&sin, 0, sizeof(sin));
+     sin.sin_family = AF_INET;
++#ifdef HAS_SA_LEN
++    sin.sin_len = sizeof(sin);
++#endif
+     sin.sin_port = find_inet_port(port, "tcp");
+     sin.sin_addr.s_addr = (*host ? find_inet_addr(host) : INADDR_ANY);
+-    myfree(buf);
+ 
+-    /*
+-     * Create a listener socket.
+-     */
+-    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+-	msg_fatal("socket: %m");
+-    if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *) &t, sizeof(t)) < 0)
+-	msg_fatal("setsockopt: %m");
+-    if (bind(sock, (struct sockaddr *) & sin, sizeof(sin)) < 0)
+-	msg_fatal("bind %s port %d: %m", sin.sin_addr.s_addr == INADDR_ANY ?
+-	       "INADDR_ANY" : inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
++    memset(&resbody, 0, sizeof(resbody)); 
++    resbody.ai_socktype = SOCK_STREAM;
++    resbody.ai_family = AF_INET;
++    resbody.ai_addr = (struct sockaddr *)&sin;
++    resbody.ai_addrlen = sizeof(sin);
++
++    res0 = &resbody;
++#endif
++
++    sock = -1;
++    for (res = res0; res; res = res->ai_next) {
++	if ((res->ai_family != AF_INET) && (res->ai_family != AF_INET6))
++	    continue;
++
++	/*
++	 * Create a listener socket.
++	 */
++	if ((sock = socket(res->ai_family, res->ai_socktype, 0)) < 0) {
++	    cause = "socket";
++	    continue;
++	}
++#ifdef IPV6_V6ONLY
++	if (res->ai_family == AF_INET6 &&
++	    setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, (char *) &t, sizeof(t)) < 0) {
++		/* if kernel/libc don't support this simple ignore it
++	    cause = "setsockopt(IPV6_V6ONLY)";
++	    close(sock);
++	    sock = -1;
++	    continue;
++		*/
++		;
++	}
++#endif
++	if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *) &t, sizeof(t)) < 0) {
++	    cause = "setsockopt(SO_REUSEADDR)";
++	    close(sock);
++	    sock = -1;
++	    continue;
++	}
++
++	if (bind(sock, res->ai_addr, res->ai_addrlen) < 0) {
++	    cause = "bind";
++	    close(sock);
++	    sock = -1;
++	    continue;
++	}
++	break;
++    }
++    if (sock < 0)
++	msg_fatal("%s: %m", cause);
++#ifdef INET6
++    freeaddrinfo(res0);
++#endif
+     non_blocking(sock, block_mode);
+     if (listen(sock, backlog) < 0)
+ 	msg_fatal("listen: %m");
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/util/match_list.c snapshot-20010525/src/util/match_list.c
+--- snapshot-20010525.noipv6/src/util/match_list.c	Mon Nov 20 19:06:32 2000
++++ snapshot-20010525/src/util/match_list.c	Tue May 29 18:23:16 2001
+@@ -107,7 +107,7 @@
+ 		    list = match_list_parse(list, vstring_str(buf));
+ 	    if (vstream_fclose(fp))
+ 		msg_fatal("%s: read file %s: %m", myname, pattern);
+-	} else if (strchr(pattern, ':') != 0) {	/* type:table */
++	} else if ((strchr(pattern, ']') == 0) && (strchr(pattern, ':') != 0)) {	/* type:table */
+ 	    for (cp = pattern; *cp == '!'; cp++)
+ 		 /* void */ ;
+ 	    if (dict_handle(pattern) == 0)
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/util/match_ops.c snapshot-20010525/src/util/match_ops.c
+--- snapshot-20010525.noipv6/src/util/match_ops.c	Mon Sep  6 03:02:14 1999
++++ snapshot-20010525/src/util/match_ops.c	Tue May 29 18:23:16 2001
+@@ -70,6 +70,307 @@
+ #include <match_ops.h>
+ #include <stringops.h>
+ 
++#ifdef INET6
++/*
++ *		$Id$
++ *
++ *		This program is free software; you can redistribute it and/or
++ *		modify it under the terms of the GNU General Public License
++ *		as published by the Free Software Foundation; either version
++ *		2 of the License, or (at your option) any later version.
++ *
++ * Authors:	Alexey Kuznetsov, <kuznet@ms2.inr.ac.ru>
++ * 
++ * Modifications:
++ *		Artur Frysiak <wiget@pld.org.pl>
++ *		Arkadiusz Mi턪iewicz <misiek@pld.org.pl>
++ */
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <syslog.h>
++#include <fcntl.h>
++#include <sys/socket.h>
++#include <netinet/in.h>
++#include <string.h>
++#include <netdb.h>
++#include <arpa/inet.h>
++#include <resolv.h>
++
++#ifndef	AF_DECnet
++#define	AF_DECnet	12
++#endif
++
++#ifndef	PF_PACKET
++#define	PF_PACKET	17
++#endif
++
++typedef struct
++{
++	unsigned char family;
++	unsigned char bytelen;
++	signed short  bitlen;
++	unsigned int data[4];
++} inet_prefix;
++
++/* prototypes */
++int masked_match(char *, char *, char *);
++int get_integer(int *, char *, int);
++int get_addr_1(inet_prefix *, char *, int);
++int get_prefix_1(inet_prefix *, char *, int);
++int get_addr(inet_prefix *, char *, int);
++int get_prefix(inet_prefix *, char *, int);
++unsigned int get_addr32(char *);
++int matches(char *, char *);
++int inet_addr_match(inet_prefix *, inet_prefix *, int);
++int mask_match(char *, char *, char *);
++	
++int get_integer(int *val, char *arg, int base)
++{
++	long res;
++	char *ptr;
++
++	if (!arg || !*arg)
++		return -1;
++	res = strtol(arg, &ptr, base);
++	if (!ptr || ptr == arg || *ptr || res > INT_MAX || res < INT_MIN)
++		return -1;
++	*val = res;
++	return 0;
++}
++
++int get_addr_1(inet_prefix *addr, char *name, int family)
++{
++	char *cp;
++	unsigned char *ap = (unsigned char*)addr->data;
++	int i;
++
++	memset(addr, 0, sizeof(*addr));
++
++	if (strcmp(name, "default") == 0 || strcmp(name, "any") == 0) {
++		if (family == AF_DECnet)
++			return -1;
++		addr->family = family;
++		addr->bytelen = (family == AF_INET6 ? 16 : 4);
++		addr->bitlen = -1;
++		return 0;
++	}
++
++	if (strchr(name, ':')) {
++		addr->family = AF_INET6;
++		if (family != AF_UNSPEC && family != AF_INET6)
++			return -1;
++		if (inet_pton(AF_INET6, name, addr->data) <= 0)
++			return -1;
++		addr->bytelen = 16;
++		addr->bitlen = -1;
++		return 0;
++	}
++	addr->family = AF_INET;
++	if (family != AF_UNSPEC && family != AF_INET)
++		return -1;
++	addr->bytelen = 4;
++	addr->bitlen = -1;
++	for (cp = name, i = 0; *cp; cp++) {
++		if (*cp <= '9' && *cp >= '0') {
++			ap[i] = 10*ap[i] + (*cp-'0');
++			continue;
++		}
++		if (*cp == '.' && ++i <= 3)
++			continue;
++		return -1;
++	}
++	return 0;
++}
++
++int get_prefix_1(inet_prefix *dst, char *arg, int family)
++{
++	int err;
++	unsigned plen;
++	char *slash;
++
++	memset(dst, 0, sizeof(*dst));
++
++	if (strcmp(arg, "default") == 0 || strcmp(arg, "any") == 0) {
++		if (family == AF_DECnet)
++			return -1;
++		dst->family = family;
++		dst->bytelen = 0;
++		dst->bitlen = 0;
++		return 0;
++	}
++
++	slash = strchr(arg, '/');
++	if (slash)
++		*slash = 0;
++	err = get_addr_1(dst, arg, family);
++	if (err == 0) {
++		switch(dst->family) {
++			case AF_INET6:
++				dst->bitlen = 128;
++				break;
++			case AF_DECnet:
++				dst->bitlen = 16;
++				break;
++			default:
++			case AF_INET:
++				dst->bitlen = 32;
++		}
++		if (slash) {
++			if (get_integer(&plen, slash+1, 0) || plen > dst->bitlen) {
++				err = -1;
++				goto done;
++			}
++			dst->bitlen = plen;
++		}
++	}
++done:
++	if (slash)
++		*slash = '/';
++	return err;
++}
++
++int get_addr(inet_prefix *dst, char *arg, int family)
++{
++#ifdef AF_PACKET
++	if (family == AF_PACKET)
++		return -1;
++#endif
++	if (get_addr_1(dst, arg, family))
++		return -1;
++	return 0;
++}
++
++int get_prefix(inet_prefix *dst, char *arg, int family)
++{
++#ifdef AF_PACKET
++	if (family == AF_PACKET)
++		return -1;
++#endif
++	if (get_prefix_1(dst, arg, family))
++		return -1;
++	return 0;
++}
++
++unsigned int get_addr32(char *name)
++{
++	inet_prefix addr;
++	if (get_addr_1(&addr, name, AF_INET))
++		return -1;
++	return addr.data[0];
++}
++
++int matches(char *cmd, char *pattern)
++{
++	int len = strlen(cmd);
++	if (len > strlen(pattern))
++		return -1;
++	return memcmp(pattern, cmd, len);
++}
++
++int inet_addr_match(inet_prefix *a, inet_prefix *b, int bits)
++{
++	unsigned int *a1 = a->data;
++	unsigned int *a2 = b->data;
++	int words = bits >> 0x05;
++
++	bits &= 0x1f;
++
++	if (words)
++		if (memcmp(a1, a2, words << 2))
++			return -1;
++
++	if (bits) {
++		unsigned int w1, w2;
++		unsigned int mask;
++
++		w1 = a1[words];
++		w2 = a2[words];
++
++		mask = htonl((0xffffffff) << (0x20 - bits));
++
++		if ((w1 ^ w2) & mask)
++			return 1;
++	}
++
++	return 0;
++}
++
++/* zero if matches */
++int mask_match(char *network, char *cprefix, char *address)
++{
++ 	inet_prefix *inetwork;
++	inet_prefix *iaddress;
++	int ret, prefix;
++
++	if (!(network && address && cprefix))
++		return -1;
++	prefix = strtol(cprefix, (char **)NULL, 10);
++	if ((prefix < 0) || (prefix > 128))
++		return -1;
++	if ((strlen(network) == 0) || (strlen(address) == 0))
++		return -1;
++
++	inetwork = malloc(sizeof(inet_prefix));
++	iaddress = malloc(sizeof(inet_prefix));
++
++	if ((get_addr(iaddress, address, AF_UNSPEC) >= 0)
++			&& (get_addr(inetwork, network, AF_UNSPEC) >= 0))
++		ret = inet_addr_match(inetwork, iaddress, prefix);
++	else
++		ret = -1;
++	free(inetwork);
++	free(iaddress);
++
++	/* 1 if matches */
++	/* return (!ret); */
++	/* 0 if matches */
++	return ret;
++}
++
++/*
++ * masked_match() - universal for IPv4 and IPv6
++ */
++int masked_match(net_tok, mask_tok, string)
++char	*net_tok;
++char	*mask_tok;
++char	*string;
++{
++#ifdef INET6
++	struct in6_addr in6[2];
++	char v4addr[2][INET_ADDRSTRLEN];
++	char newmask[6];
++	int plen;
++#endif
++
++	/* Check for NULL */
++	if (!(net_tok && mask_tok && string))
++		return 1;
++
++	/* If IPv6 mapped convert to native-IPv4 */
++#ifdef INET6
++	if (inet_pton(AF_INET6, net_tok, &in6[0]) == 1 &&
++	    inet_pton(AF_INET6, string, &in6[1]) == 1 &&
++	    IN6_IS_ADDR_V4MAPPED(&in6[0]) && IN6_IS_ADDR_V4MAPPED(&in6[1])) {
++		plen = atoi(mask_tok);
++		if (32 < plen && plen < 129) {
++			sprintf(newmask, "%d", plen - 96);
++			mask_tok = newmask;
++		}
++
++		(void)inet_ntop(AF_INET, &in6[0].s6_addr[12], v4addr[0],
++		    sizeof(v4addr[0]));
++		net_tok = v4addr[0];
++		(void)inet_ntop(AF_INET, &in6[1].s6_addr[12], v4addr[1],
++		    sizeof(v4addr[1]));
++		string = v4addr[1];
++	}
++#endif
++	return (!mask_match(net_tok, mask_tok, string));
++}
++#endif
++
+ /* match_string - match a string literal */
+ 
+ int     match_string(const char *string, const char *pattern)
+@@ -158,6 +459,7 @@
+     return (0);
+ }
+ 
++#ifndef INET6
+ /* match_parse_mask - parse net/mask pattern */
+ 
+ static int match_parse_mask(const char *pattern, unsigned long *net_bits,
+@@ -178,28 +480,55 @@
+     myfree(saved_pattern);
+     return (mask != 0);
+ }
++#endif
+ 
+ /* match_hostaddr - match host by address */
+ 
+ int     match_hostaddr(const char *addr, const char *pattern)
+ {
+     char   *myname = "match_hostaddr";
++#ifdef INET6
++    char *network, *mask, *escl, *escr, *patternx;
++    struct in6_addr in6;
++    char v4addr[INET_ADDRSTRLEN];
++#else
+     int     mask_shift;
+     unsigned long mask_bits;
+     unsigned long net_bits;
+     unsigned long addr_bits;
++#endif
+ 
+     if (msg_verbose)
+ 	msg_info("%s: %s ~? %s", myname, addr, pattern);
+ 
++#ifdef INET6
++    if (addr[strspn(addr, "01234567890./:abcdef")] != 0)
++#else
+     if (addr[strspn(addr, "01234567890./:")] != 0)
++#endif
+ 	return (0);
+ 
++#ifdef INET6
++    patternx = mystrdup(pattern);
++    escl = strchr(patternx,'[');
++    escr = strrchr(patternx,']');
++    if (escl && escr) {
++	*escr = 0;
++	sprintf(patternx, "%s%s", escl + 1, escr + 1);
++	pattern = patternx;
++    }
++#endif
++    
+     /*
+      * Try dictionary lookup. This can be case insensitive. XXX Probably
+      * should also try again after stripping least significant octets.
+      */
+-    if (strchr(pattern, ':') != 0) {
++#ifdef INET6
++    if (!(escl && escr) && strchr(pattern, ':') != 0)
++#else
++    if (strchr(pattern, ':') != 0)
++#endif
++    {
+ 	if (dict_lookup(pattern, addr) != 0)
+ 	    return (1);
+ 	if (dict_errno != 0)
+@@ -210,6 +539,12 @@
+     /*
+      * Try an exact match with the host address.
+      */
++#ifdef INET6
++    if (inet_pton(AF_INET6, addr, &in6) == 1 && IN6_IS_ADDR_V4MAPPED(&in6)) {
++	(void)inet_ntop(AF_INET, &in6.s6_addr[12], v4addr, sizeof(v4addr));
++	addr = v4addr;
++    }
++#endif
+     if (strcasecmp(addr, pattern) == 0) {
+ 	return (1);
+     }
+@@ -218,6 +553,20 @@
+      * In a net/mask pattern, the mask is specified as the number of bits of
+      * the network part.
+      */
++#ifdef INET6
++    network = mystrdup(patternx);
++    mask = split_at(network, '/');
++
++    if (masked_match(network, mask, (char *)addr)) {
++	myfree(network);
++	myfree(patternx);
++	return (1);
++    } else {
++	myfree(network);
++	myfree(patternx);
++    }
++#else
++	    
+     if (match_parse_mask(pattern, &net_bits, &mask_shift)) {
+ 	addr_bits = inet_addr(addr);
+ 	if (addr_bits == INADDR_NONE)
+@@ -225,5 +574,6 @@
+ 	mask_bits = htonl((0xffffffff) << (BITS_PER_ADDR - mask_shift));
+ 	return ((addr_bits & mask_bits) == (net_bits & mask_bits));
+     }
++#endif
+     return (0);
+ }
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/util/sys_defs.h snapshot-20010525/src/util/sys_defs.h
+--- snapshot-20010525.noipv6/src/util/sys_defs.h	Tue May 29 16:03:38 2001
++++ snapshot-20010525/src/util/sys_defs.h	Tue May 29 18:23:16 2001
+@@ -67,6 +67,10 @@
+ #define DEF_MAILBOX_LOCK "flock, dotlock"
+ #endif
+ 
++#if ((defined(__NetBSD_Version__) && __NetBSD_Version__ >= 105000000) || defined(USAGI_LIBINET6))
++#define HAVE_GETIFADDRS
++#endif
++
+  /*
+   * UNIX on MAC.
+   */
+diff -ruN --exclude *.wiget --exclude *.rej snapshot-20010525.noipv6/src/util/valid_hostname.c snapshot-20010525/src/util/valid_hostname.c
+--- snapshot-20010525.noipv6/src/util/valid_hostname.c	Sun Jan 28 15:10:18 2001
++++ snapshot-20010525/src/util/valid_hostname.c	Tue May 29 18:23:16 2001
+@@ -47,6 +47,13 @@
+ #include <string.h>
+ #include <ctype.h>
+ 
++#ifdef INET6
++#include <netinet/in.h>
++#include <sys/socket.h>
++#include <arpa/inet.h>
++#include <netdb.h>
++#endif
++
+ /* Utility library. */
+ 
+ #include "msg.h"
+@@ -103,7 +110,23 @@
+ 		    msg_warn("%s: misplaced hyphen: %.100s", myname, name);
+ 		return (0);
+ 	    }
+-	} else {
++	}
++#ifdef INET6
++	else if (ch == ':') {
++	    struct addrinfo hints, *res;
++
++	    memset(&hints, 0, sizeof(hints));
++	    hints.ai_family = AF_INET6;
++	    hints.ai_socktype = SOCK_STREAM;	/*dummy*/
++	    hints.ai_flags = AI_NUMERICHOST;
++	    if (getaddrinfo(name, "0", &hints, &res) == 0) {
++		freeaddrinfo(res);
++		return 1;
++	    } else
++		return 0;
++	}
++#endif
++	else {
+ 	    if (gripe)
+ 		msg_warn("%s: invalid character %d(decimal): %.100s",
+ 			 myname, ch, name);
+@@ -135,6 +158,9 @@
+     int     byte_count = 0;
+     int     byte_val = 0;
+     int     ch;
++#ifdef INET6
++    struct addrinfo hints, *res;
++#endif
+ 
+ #define BYTES_NEEDED	4
+ 
+@@ -146,6 +172,17 @@
+ 	    msg_warn("%s: empty address", myname);
+ 	return (0);
+     }
++
++#ifdef INET6
++    memset(&hints, 0, sizeof(hints));
++    hints.ai_family = AF_INET6;
++    hints.ai_socktype = SOCK_STREAM;	/*dummy*/
++    hints.ai_flags = AI_NUMERICHOST;
++    if (getaddrinfo(addr, "0", &hints, &res) == 0) {
++	freeaddrinfo(res);
++	return 1;
++    }
++#endif
+ 
+     /*
+      * Scary code to avoid sscanf() overflow nasties.
