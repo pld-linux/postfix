@@ -598,18 +598,18 @@
 @@ -56,7 +56,7 @@
  	valid_hostname.o vbuf.o vbuf_print.o vstream.o vstream_popen.o \
  	vstring.o vstring_vstream.o watchdog.o writable.o write_buf.o \
- 	write_wait.o nvtable.o host_port.o sane_connect.o \
--	dict_sdbm.o sdbm.o $(STRCASE)
-+	dict_sdbm.o sdbm.o load_lib.o $(STRCASE)
+ 	write_wait.o nvtable.o host_port.o sane_connect.o $(STRCASE) \
+-	dict_sdbm.o sdbm.o
++	dict_sdbm.o sdbm.o load_lib.o
  HDRS	= argv.h attr.h base64_code.h binhash.h chroot_uid.h clean_env.h \
  	connect.h ctable.h dict.h dict_db.h dict_dbm.h dict_env.h \
  	dict_ht.h dict_ldap.h dict_mysql.h dict_ni.h dict_nis.h \
-@@ -74,7 +74,7 @@
- 	split_at.h stat_as.h stringops.h sys_defs.h timed_connect.h \
+@@ -75,7 +75,7 @@
  	timed_wait.h trigger.h username.h valid_hostname.h vbuf.h \
  	vbuf_print.h vstream.h vstring.h vstring_vstream.h watchdog.h \
--	nvtable.h host_port.h sane_connect.h dict_sdbm.h sdbm.h
-+	load_lib.h nvtable.h host_port.h sane_connect.h dict_sdbm.h sdbm.h
+ 	nvtable.h host_port.h sane_connect.h \
+-	dict_sdbm.h sdbm.h
++	dict_sdbm.h sdbm.h load_lib.h
  TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
  	stream_test.c dup2_pass_on_exec.c
  WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
