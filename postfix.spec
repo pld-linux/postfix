@@ -1,12 +1,17 @@
 #
+# TODO:
+#	- update pl.patch
+#	- 0.0.0.0/0 is still being added to mynetworks if any ipv6/ip
+#	  tunnels are present
+#
 # Conditional build:
-# --without sasl - build without SMTP AUTH support
-# --without ssl  - build without SSL/TLS support
-# --without ipv6 - build without IPv6 support
-# --with polish  - build with polish messages support
-# _without_psql  - no Postgres support
-# _without_mysql - no MySQL support
-# _without_ldap  - no LDAP support
+# _without_ipv6	- no IPv6 support
+# _without_ldap	- no LDAP support
+# _without_mysql- no MySQL support
+# _without_psql	- no Postgres support
+# _without_sasl	- no SMTP AUTH support
+# _without_ssl	- no SSL/TLS support
+# _with_polish	- polish messages support
 #
 %define	tls_ver 0.8.13-2.0.3-0.9.7
 Summary:	Postfix Mail Transport Agent
@@ -18,7 +23,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.0.3
-Release:	0.1
+Release:	0.9
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -331,6 +336,8 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/access
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/aliases
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/canonical
+%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/pcre_table
+%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/regexp_table
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/relocated
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/transport
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/virtual
