@@ -1,6 +1,6 @@
-diff -urN snapshot-20011127/src/bounce/bounce_notify_util.c snapshot-20011127.dzikus/src/bounce/bounce_notify_util.c
---- snapshot-20011127/src/bounce/bounce_notify_util.c	Mon Nov 26 22:47:05 2001
-+++ snapshot-20011127.dzikus/src/bounce/bounce_notify_util.c	Thu Nov 29 07:21:16 2001
+diff -Nur postfix-1.1.2.orig/src/bounce/bounce_notify_util.c postfix-1.1.2/src/bounce/bounce_notify_util.c
+--- postfix-1.1.2.orig/src/bounce/bounce_notify_util.c	Mon Nov 26 22:47:05 2001
++++ postfix-1.1.2/src/bounce/bounce_notify_util.c	Mon Jan 28 12:33:52 2002
 @@ -275,7 +275,7 @@
  	post_mail_fputs(bounce, dest == var_bounce_rcpt
  		     || dest == var_2bounce_rcpt || dest == var_delay_rcpt ?
@@ -152,9 +152,9 @@ diff -urN snapshot-20011127/src/bounce/bounce_notify_util.c snapshot-20011127.dz
  	return (vstream_ferror(bounce));
      }
  
-diff -urN snapshot-20011127/src/global/pipe_command.c snapshot-20011127.dzikus/src/global/pipe_command.c
---- snapshot-20011127/src/global/pipe_command.c	Tue Nov 27 02:02:17 2001
-+++ snapshot-20011127.dzikus/src/global/pipe_command.c	Thu Nov 29 07:31:06 2001
+diff -Nur postfix-1.1.2.orig/src/global/pipe_command.c postfix-1.1.2/src/global/pipe_command.c
+--- postfix-1.1.2.orig/src/global/pipe_command.c	Tue Nov 27 02:02:17 2001
++++ postfix-1.1.2/src/global/pipe_command.c	Mon Jan 28 12:33:52 2002
 @@ -482,9 +482,9 @@
  	if (pipe_command_wait_or_kill(pid, &wait_status, SIGKILL) < 0)
  	    msg_fatal("wait: %m");
@@ -202,9 +202,9 @@ diff -urN snapshot-20011127/src/global/pipe_command.c snapshot-20011127.dzikus/s
  	    return (PIPE_STAT_DEFER);
  	} else {
  	    return (PIPE_STAT_OK);
-diff -urN snapshot-20011127/src/global/sys_exits.c snapshot-20011127.dzikus/src/global/sys_exits.c
---- snapshot-20011127/src/global/sys_exits.c	Fri Dec 11 19:55:25 1998
-+++ snapshot-20011127.dzikus/src/global/sys_exits.c	Thu Nov 29 07:21:16 2001
+diff -Nur postfix-1.1.2.orig/src/global/sys_exits.c postfix-1.1.2/src/global/sys_exits.c
+--- postfix-1.1.2.orig/src/global/sys_exits.c	Fri Dec 11 19:55:25 1998
++++ postfix-1.1.2/src/global/sys_exits.c	Mon Jan 28 12:33:52 2002
 @@ -60,21 +60,21 @@
  } SYS_EXITS_TABLE;
  
@@ -235,10 +235,10 @@ diff -urN snapshot-20011127/src/global/sys_exits.c snapshot-20011127.dzikus/src/
  };
  
  /* sys_exits_strerror - map exit status to error string */
-diff -urN snapshot-20011127/src/smtpd/smtpd_check.c snapshot-20011127.dzikus/src/smtpd/smtpd_check.c
---- snapshot-20011127/src/smtpd/smtpd_check.c	Mon Nov 26 02:22:54 2001
-+++ snapshot-20011127.dzikus/src/smtpd/smtpd_check.c	Thu Nov 29 07:26:26 2001
-@@ -810,7 +810,7 @@
+diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_check.c postfix-1.1.2/src/smtpd/smtpd_check.c
+--- postfix-1.1.2.orig/src/smtpd/smtpd_check.c	Tue Jan 22 15:52:15 2002
++++ postfix-1.1.2/src/smtpd/smtpd_check.c	Mon Jan 28 12:35:46 2002
+@@ -834,7 +834,7 @@
       */
      if (!valid_hostaddr(test_addr, DONT_GRIPE))
  	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -247,7 +247,7 @@ diff -urN snapshot-20011127/src/smtpd/smtpd_check.c snapshot-20011127.dzikus/src
  				var_bad_name_code, reply_name, reply_class);
      else
  	stat = SMTPD_CHECK_DUNNO;
-@@ -846,7 +846,7 @@
+@@ -870,7 +870,7 @@
       */
      if (!valid_hostname(test_name, DONT_GRIPE))
  	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -256,7 +256,7 @@ diff -urN snapshot-20011127/src/smtpd/smtpd_check.c snapshot-20011127.dzikus/src
  				var_bad_name_code, reply_name, reply_class);
      else
  	stat = SMTPD_CHECK_DUNNO;
-@@ -882,7 +882,7 @@
+@@ -906,7 +906,7 @@
       */
      if (!valid_hostname(test_name, DONT_GRIPE) || !strchr(test_name, '.'))
  	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -265,7 +265,7 @@ diff -urN snapshot-20011127/src/smtpd/smtpd_check.c snapshot-20011127.dzikus/src
  				var_non_fqdn_code, reply_name, reply_class);
      else
  	stat = SMTPD_CHECK_DUNNO;
-@@ -911,7 +911,7 @@
+@@ -935,7 +935,7 @@
  				  (VSTRING *) 0, T_A, T_MX, 0);
      if (dns_status != DNS_OK)
  	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -274,7 +274,7 @@ diff -urN snapshot-20011127/src/smtpd/smtpd_check.c snapshot-20011127.dzikus/src
  				   dns_status == DNS_NOTFOUND ?
  				   var_unk_name_code : 450,
  				   reply_name, reply_class));
-@@ -933,7 +933,7 @@
+@@ -957,7 +957,7 @@
  				  (VSTRING *) 0, T_A, T_MX, 0);
      if (dns_status != DNS_OK)
  	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -283,7 +283,7 @@ diff -urN snapshot-20011127/src/smtpd/smtpd_check.c snapshot-20011127.dzikus/src
  				   dns_status == DNS_NOTFOUND ?
  				   var_unk_addr_code : 450,
  				   reply_name, reply_class));
-@@ -968,7 +968,7 @@
+@@ -992,7 +992,7 @@
       * Deny relaying between sites that both are not in relay_domains.
       */
      return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -292,7 +292,7 @@ diff -urN snapshot-20011127/src/smtpd/smtpd_check.c snapshot-20011127.dzikus/src
  			       var_relay_code, reply_name, reply_class));
  }
  
-@@ -1360,7 +1360,7 @@
+@@ -1376,7 +1376,7 @@
       */
      if (!*test_dom || !valid_hostname(test_dom, DONT_GRIPE) || !strchr(test_dom, '.'))
  	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -301,7 +301,7 @@ diff -urN snapshot-20011127/src/smtpd/smtpd_check.c snapshot-20011127.dzikus/src
  				var_non_fqdn_code, reply_name, reply_class);
      else
  	stat = SMTPD_CHECK_DUNNO;
-@@ -1442,7 +1442,7 @@
+@@ -1454,7 +1454,7 @@
       */
      if (strcasecmp(value, "REJECT") == 0)
  	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -310,7 +310,7 @@ diff -urN snapshot-20011127/src/smtpd/smtpd_check.c snapshot-20011127.dzikus/src
  			     var_access_map_code, reply_name, reply_class));
  
      /*
-@@ -1461,7 +1461,7 @@
+@@ -1473,7 +1473,7 @@
  	while (ISDIGIT(*value) || ISSPACE(*value))
  	    value++;
  	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -319,7 +319,7 @@ diff -urN snapshot-20011127/src/smtpd/smtpd_check.c snapshot-20011127.dzikus/src
  				   code, reply_name, reply_class, value));
      }
  
-@@ -1816,7 +1816,7 @@
+@@ -1903,7 +1903,7 @@
  	    rbl_fodder = rbl_reason = "";
  	}
  	result = smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -328,7 +328,7 @@ diff -urN snapshot-20011127/src/smtpd/smtpd_check.c snapshot-20011127.dzikus/src
  				 var_maps_rbl_code, state->addr, rbl_domain,
  				    rbl_fodder, rbl_reason);
  	if (txt_list)
-@@ -1943,7 +1943,7 @@
+@@ -2030,7 +2030,7 @@
  			 cpp[1], PERMIT_ALL);
  	} else if (strcasecmp(name, REJECT_ALL) == 0) {
  	    status = smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -337,7 +337,7 @@ diff -urN snapshot-20011127/src/smtpd/smtpd_check.c snapshot-20011127.dzikus/src
  				  var_reject_code, reply_name, reply_class);
  	    if (cpp[1] != 0 && state->warn_if_reject == 0)
  		msg_warn("restriction `%s' after `%s' is ignored",
-@@ -2385,7 +2385,7 @@
+@@ -2478,7 +2478,7 @@
  	    && NOMATCH(virt_mailbox_maps, CONST_STR(reply->recipient))
  	    && NOMATCH(virtual_maps, CONST_STR(reply->recipient))) {
  	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
@@ -346,7 +346,7 @@ diff -urN snapshot-20011127/src/smtpd/smtpd_check.c snapshot-20011127.dzikus/src
  	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
  	}
      }
-@@ -2401,7 +2401,7 @@
+@@ -2494,7 +2494,7 @@
  	    && NOMATCH(virt_mailbox_maps, CONST_STR(reply->recipient))
  	    && NOMATCH(virtual_maps, CONST_STR(reply->recipient))) {
  	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
@@ -355,7 +355,7 @@ diff -urN snapshot-20011127/src/smtpd/smtpd_check.c snapshot-20011127.dzikus/src
  	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
  	}
      }
-@@ -2419,7 +2419,7 @@
+@@ -2512,7 +2512,7 @@
  	    && NOMATCH(virtual_maps, CONST_STR(reply->recipient))
  	    && NOMATCH(local_rcpt_maps, CONST_STR(reply->recipient))) {
  	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
@@ -364,7 +364,7 @@ diff -urN snapshot-20011127/src/smtpd/smtpd_check.c snapshot-20011127.dzikus/src
  	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
  	}
      }
-@@ -2453,7 +2453,7 @@
+@@ -2546,7 +2546,7 @@
  
      if (var_message_limit > 0 && size > var_message_limit) {
  	(void) smtpd_check_reject(state, MAIL_ERROR_POLICY,

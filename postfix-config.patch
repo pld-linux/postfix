@@ -1,6 +1,6 @@
-diff -urN snapshot-20011127/conf/main.cf snapshot-20011127.dzikus/conf/main.cf
---- snapshot-20011127/conf/main.cf	Tue Nov 27 18:54:35 2001
-+++ snapshot-20011127.dzikus/conf/main.cf	Thu Nov 29 07:13:51 2001
+diff -Nur postfix-1.1.2.orig/conf/main.cf postfix-1.1.2/conf/main.cf
+--- postfix-1.1.2.orig/conf/main.cf	Tue Jan 15 15:27:55 2002
++++ postfix-1.1.2/conf/main.cf	Wed Jan 30 13:09:30 2002
 @@ -38,7 +38,7 @@
  # default value is $program_directory. This directory must be owned
  # by root.
@@ -66,15 +66,61 @@ diff -urN snapshot-20011127/conf/main.cf snapshot-20011127.dzikus/conf/main.cf
  
  # The mailbox_transport specifies the optional transport in master.cf
  # to use after processing aliases and .forward files. This parameter
-@@ -503,3 +503,4 @@
+@@ -502,39 +502,12 @@
+ 	 PATH=/usr/bin:/usr/X11R6/bin
  	 xxgdb $daemon_directory/$process_name $process_id & sleep 5
  
- # Other configurable parameters.
 +biff = no
-diff -urN snapshot-20011127/src/global/mail_params.h snapshot-20011127.dzikus/src/global/mail_params.h
---- snapshot-20011127/src/global/mail_params.h	Wed Nov 28 01:04:35 2001
-+++ snapshot-20011127.dzikus/src/global/mail_params.h	Thu Nov 29 07:11:39 2001
-@@ -198,7 +198,7 @@
+ # INSTALL-TIME CONFIGURATION INFORMATION
+ #
+ # The following parameters are used when installing a new Postfix version.
+-# 
+-# sendmail_path: The full pathname of the Postfix sendmail command.
+-# This is the Sendmail-compatible mail posting interface.
+-# 
+-sendmail_path =
+-
+-# newaliases_path: The full pathname of the Postfix newaliases command.
+-# This is the Sendmail-compatible command to build alias databases.
+-#
+-newaliases_path =
+-
+-# mailq_path: The full pathname of the Postfix mailq command.  This
+-# is the Sendmail-compatible mail queue listing command.
+-# 
+-mailq_path =
+-
+ # setgid_group: The group for mail submission and queue management
+ # commands.  This must be a group name with a numerical group ID that
+ # is not shared with other accounts, not even with the Postfix account.
+ #
+-setgid_group =
+-
+-# manpage_directory: The location of the Postfix on-line manual pages.
+-#
+-manpage_directory =
+-
+-# sample_directory: The location of the Postfix sample configuration files.
+-#
+-sample_directory =
+-
+-# readme_directory: The location of the Postfix README files.
+-#
+-readme_directory =
++setgid_group = maildrop
+diff -Nur postfix-1.1.2.orig/src/global/mail_params.h postfix-1.1.2/src/global/mail_params.h
+--- postfix-1.1.2.orig/src/global/mail_params.h	Tue Jan 15 16:24:34 2002
++++ postfix-1.1.2/src/global/mail_params.h	Wed Jan 30 13:08:29 2002
+@@ -50,7 +50,7 @@
+ extern gid_t var_owner_gid;
+ 
+ #define VAR_SGID_GROUP		"setgid_group"
+-#define DEF_SGID_GROUP		"postdrop"
++#define DEF_SGID_GROUP		"maildrop"
+ extern char *var_sgid_group;
+ extern gid_t var_sgid_gid;
+ 
+@@ -203,7 +203,7 @@
    */
  #define VAR_CONFIG_DIR		"config_directory"
  #ifndef DEF_CONFIG_DIR
@@ -83,10 +129,10 @@ diff -urN snapshot-20011127/src/global/mail_params.h snapshot-20011127.dzikus/sr
  #endif
  extern char *var_config_dir;
  
-diff -urN snapshot-20011127/src/util/sys_defs.h snapshot-20011127.dzikus/src/util/sys_defs.h
---- snapshot-20011127/src/util/sys_defs.h	Wed Nov 21 22:42:11 2001
-+++ snapshot-20011127.dzikus/src/util/sys_defs.h	Thu Nov 29 07:11:39 2001
-@@ -450,7 +450,7 @@
+diff -Nur postfix-1.1.2.orig/src/util/sys_defs.h postfix-1.1.2/src/util/sys_defs.h
+--- postfix-1.1.2.orig/src/util/sys_defs.h	Thu Jan  3 20:20:56 2002
++++ postfix-1.1.2/src/util/sys_defs.h	Wed Jan 30 13:08:29 2002
+@@ -484,7 +484,7 @@
  #define HAS_FSYNC
  #define HAS_DB
  #define DEF_DB_TYPE	"hash"
