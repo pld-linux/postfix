@@ -4,15 +4,15 @@
 # --without ssl  - build without SSL/TLS support
 # --without ipv6 - build without IPv6 support
 #
-%define	tls_ver 0.8.3-1.1.3-0.9.6c
+%define	tls_ver 0.8.5-1.1.5-0.9.6c
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
 Summary(fr):	Agent de transport de courrier Postfix
 Summary(pl):	Serwer SMTP Postfix
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
-Version:	1.1.3
-Release:	5
+Version:	1.1.5
+Release:	0.1
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -28,6 +28,7 @@ Patch1:		%{name}-pl.patch
 Patch2:		%{name}-conf_msg.patch
 Patch3:		%{name}-ipv6.patch
 Patch4:		%{name}-dynamicmaps.patch
+Patch5:		%{name}-pgsql.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{!?_without_sasl:BuildRequires:	cyrus-sasl-devel}
@@ -63,6 +64,7 @@ Obsoletes:	smail
 Obsoletes:	zmailer
 Requires:	procmail
 Requires:	diffutils
+Requires:	findutils
 
 %description
 Postfix is attempt to provide an alternative to the widely-used
@@ -147,7 +149,6 @@ This package provides support for MySQL maps in Postfix.
 %description dict-mysql -l pl
 Ten pakiet dodaje obs³ugê map MySQL do Postfiksa.
 
-
 %package dict-pcre
 Summary:	PCRE map support for Postfix
 Summary(pl):	Obs³uga map PCRE dla Postfiksa
@@ -160,6 +161,18 @@ This package provides support for PCRE maps in Postfix.
 %description dict-pcre -l pl
 Ten pakiet dodaje obs³ugê map PCRE do Postfiksa.
 
+%package dict-pgsql
+Summary:	PostgreSQL map support for Postfix
+Summary(pl):	Obs³uga map PostgreSQL dla Postfiksa
+Group:		Networking/Daemons
+Requires:	%{name} = %{version}
+
+%description dict-pgsql
+This package provides support for PostgreSQL maps in Postfix.
+
+%description dict-pgsql -l pl
+Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
+
 %prep
 %setup -q -a6
 %patch0 -p1
@@ -168,12 +181,13 @@ patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 %patch2 -p1
 %{!?_without_ipv6:%patch3 -p1 }
 %patch4 -p1
+%patch5 -p1
 
 %build
 %{__make} -f Makefile.init makefiles
 %{__make} tidy
 %{__make} DEBUG="" OPT="%{rpmcflags}" \
-	CCARGS="-DHAS_LDAP -DHAS_PCRE %{!?_without_sasl:-DUSE_SASL_AUTH} -DHAS_MYSQL -I%{_includedir}/mysql %{!?_without_ssl:-DHAS_SSL -I%{_includedir}/openssl} -DMAX_DYNAMIC_MAPS" \
+	CCARGS="-DHAS_LDAP -DHAS_PCRE %{!?_without_sasl:-DUSE_SASL_AUTH} -DHAS_MYSQL -DHAS_PGSQL -I/usr/include/mysql -I/usr/include/postgresql %{!?_without_ssl:-DHAS_SSL -I/usr/include/openssl} -DMAX_DYNAMIC_MAPS" \
 	AUXLIBS="-ldb -lresolv %{!?_without_sasl:-lsasl} %{!?_without_ssl:-lssl -lcrypto}"
 
 %install
@@ -357,3 +371,7 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %files dict-pcre
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_pcre.so
+
+%files dict-pgsql
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/postfix/dict_pgsql.so
