@@ -304,8 +304,11 @@ if ! grep -q "^postmaster:" /etc/mail/aliases; then
 	echo "Adding Entry for postmaster in /etc/mail/aliases" >&2
 	echo "postmaster:	root" >>/etc/mail/aliases
 fi
-if ! grep -q "^myhostname" /etc/mail/main.cf; then
-	postconf -e myhostname=`/bin/hostname -f`
+if [ "$1" = "1" ]; then
+# only on installation, not upgrade
+	if ! grep -q "^myhostname" /etc/mail/main.cf; then
+		postconf -e myhostname=`/bin/hostname -f`
+	fi
 fi
 
 newaliases
