@@ -29,13 +29,13 @@ Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	723c2b7f67016e0c19b0e1aa08dad246
+# Source0-md5:	ac13776442ba7708e683bc1bfbadab2f
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
 Source5:	%{name}.sysconfig
 Source6:	ftp://ftp.aet.tu-cottbus.de/pub/pfixtls/pfixtls-%{tls_ver}.tar.gz
-# Source6-md5:	6823c6645d64c80b63597db8b4a29d16
+# Source6-md5:	b39c08eabe807db4af5bcb1cafc9761e
 Source7:	%{name}.sasl
 Source8:	ftp://ftp.corpit.ru/pub/postfix/%{name}-dict_cdb-1.1.11-20021104.tar.gz
 # Source8-md5:	5731b5081725f4688dc6fae119d617e4
