@@ -57,7 +57,7 @@ BuildRequires:	grep
 %{!?_without_ipv6:BuildRequires:	libinet6 >= 0.20030228-1}
 %{!?_without_mysql:BuildRequires:	mysql-devel}
 %{!?_without_ldap:BuildRequires:	openldap-devel >= 2.0.0}
-%{!?_without_ssl:BuildRequires:		openssl-devel >= 0.9.7c}
+%{!?_without_ssl:BuildRequires:		openssl-devel >= 0.9.7cc}
 BuildRequires:	pcre-devel
 %{!?_without_pgsql:BuildRequires:	postgresql-devel}
 %{?_with_cdb:BuildRequires:		tinycdb-devel}
