@@ -7,11 +7,11 @@
 # --with mysql - build with MySQL support
 # --without ipv6  - build without IPv6 support
 #
-%define	tls_ver 0.8.1-1.1.1-0.9.6c
+%define	tls_ver 0.8.3-1.1.3-0.9.6c
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Serwer SMTP Postfix
 Name:		postfix
-Version:	1.1.2
+Version:	1.1.3
 Release:	0.2
 Epoch:		1
 Group:		Networking/Daemons
