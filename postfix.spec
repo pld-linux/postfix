@@ -28,7 +28,6 @@ Patch1:		%{name}-pl.patch
 # ftp://ftp.aet.tu-cottbus.de/pub/pfixtls
 #Patch2:		%{name}-ssl.patch
 Patch3:		%{name}-ipv6.patch.gz
-Patch4:		%{name}-script.patch
 Patch5:		%{name}-conf_msg.patch
 URL:		http://www.postfix.org/
 Provides:	smtpdaemon
@@ -77,9 +76,8 @@ IPv6%{!?_without_ldap: oraz LDAP}.
 %patch0 -p1
 %patch1 -p1
 patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff 
-%{!?_without_ipv6:%patch3 -p1 }
-%patch4 -p1
 %patch5 -p1 
+%{!?_without_ipv6:%patch3 -p1 }
 
 %build
 %{__make} -f Makefile.init makefiles
