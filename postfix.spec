@@ -12,7 +12,7 @@ Summary:	Postfix Mail Transport Agent
 Summary(pl):	Serwer SMTP Postfix
 Name:		postfix
 Version:	20011127
-Release:	2
+Release:	3
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
 Group(pl):	Sieciowe/Serwery
@@ -214,7 +214,9 @@ fi
 %{!?_without_sasl:%config(noreplace) %verify(not size mtime md5) /etc/sasl/smtpd.conf}
 %attr(755,root,root) %{_bindir}/*
 %attr(755,root,root) %{_sbindir}/s*
-%attr(755,root,root) %{_sbindir}/post*i*
+%attr(2755,root,mail) %{_sbindir}/postfix
+%attr(755,root,root) %{_sbindir}/postalias
+%attr(755,root,root) %{_sbindir}/postkick
 %attr(755,root,root) %{_sbindir}/postl*
 %attr(755,root,root) %{_sbindir}/postc*
 %attr(755,root,root) %{_sbindir}/postmap
