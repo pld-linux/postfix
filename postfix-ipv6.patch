@@ -1,6 +1,20 @@
-diff -Nur postfix-1.1.2.orig/makedefs postfix-1.1.2/makedefs
---- postfix-1.1.2.orig/makedefs	Fri Jan 25 15:17:18 2002
-+++ postfix-1.1.2/makedefs	Mon Jan 28 12:40:04 2002
+Note:
+	IPv6 support depends on v6-capable getifaddrs() function
+	(i.e. from USAGI libinet6, not glibc)
+
+	non-getifaddrs v6 support is not complete - network masks
+	are not read, which could cause postfix to act as open-relay
+	(when using mynetworks_style!=host and permit_mynetworks),
+	so I decided to add #errors if getifaddrs is not supported.
+
+	If you write (correctly working) missing code, please send
+	it to me and I'll add it to patch.
+
+				Jakub Bogusz <qboosh@pld.org.pl>
+
+diff -Nur postfix-2.0.9.orig/makedefs postfix-2.0.9/makedefs
+--- postfix-2.0.9.orig/makedefs	Thu Jan 23 14:45:02 2003
++++ postfix-2.0.9/makedefs	Fri Apr 18 20:55:35 2003
 @@ -52,6 +52,21 @@
  SYSTEM=`(uname -s) 2>/dev/null`
  RELEASE=`(uname -r) 2>/dev/null`
@@ -23,7 +37,7 @@ diff -Nur postfix-1.1.2.orig/makedefs postfix-1.1.2/makedefs
  
  case "$VERSION" in
   dcosx*) SYSTEM=$VERSION;;
-@@ -292,6 +307,26 @@
+@@ -318,6 +333,26 @@
  
  : ${CC='gcc $(WARN)'} ${OPT='-O'} ${DEBUG='-g'} ${AWK=awk}
  
@@ -50,10 +64,9 @@ diff -Nur postfix-1.1.2.orig/makedefs postfix-1.1.2/makedefs
  export SYSTYPE AR ARFL RANLIB SYSLIBS CC OPT DEBUG AWK OPTS
  
  sed 's/  / /g' <<EOF
-diff -Nur postfix-1.1.2.orig/src/global/Makefile.in postfix-1.1.2/src/global/Makefile.in
---- postfix-1.1.2.orig/src/global/Makefile.in	Mon Jan 28 12:38:34 2002
-+++ postfix-1.1.2/src/global/Makefile.in	Mon Jan 28 12:40:04 2002
-diff -Nur postfix-1.1.2.orig/src/global/mynetworks.c postfix-1.1.2/src/global/mynetworks.c
+diff -Nur postfix-2.0.9.orig/src/global/Makefile.in postfix-2.0.9/src/global/Makefile.in
+--- postfix-2.0.9.orig/src/global/Makefile.in	Fri Apr 18 20:55:10 2003
++++ postfix-2.0.9/src/global/Makefile.in	Fri Apr 18 20:55:35 2003
 @@ -19,7 +19,7 @@
  	timed_ipc.c tok822_find.c tok822_node.c tok822_parse.c \
  	tok822_resolve.c tok822_rewrite.c tok822_tree.c xtext.c bounce_log.c \
@@ -81,8 +94,9 @@ diff -Nur postfix-1.1.2.orig/src/global/mynetworks.c postfix-1.1.2/src/global/my
  	lex_822.h strip_addr.h virtual8_maps.h hold_message.h dict_proxy.h \
  	mail_dict.h pfixtls.h
  TESTSRC	= rec2stream.c stream2rec.c recdump.c
---- postfix-1.1.2.orig/src/global/mynetworks.c	Sun Feb 25 02:46:07 2001
-+++ postfix-1.1.2/src/global/mynetworks.c	Mon Jan 28 12:40:04 2002
+diff -Nur postfix-2.0.9.orig/src/global/mynetworks.c postfix-2.0.9/src/global/mynetworks.c
+--- postfix-2.0.9.orig/src/global/mynetworks.c	Sun Feb 25 02:46:07 2001
++++ postfix-2.0.9/src/global/mynetworks.c	Fri Apr 18 20:55:35 2003
 @@ -50,6 +50,11 @@
  #include <vstring.h>
  #include <inet_addr_list.h>
@@ -105,25 +119,55 @@ diff -Nur postfix-1.1.2.orig/src/global/mynetworks.c postfix-1.1.2/src/global/my
  
      if (result == 0) {
  	char   *myname = "mynetworks";
-@@ -87,6 +95,9 @@
+@@ -87,6 +95,13 @@
  	int     junk;
  	int     i;
  	int     mask_style;
 +#ifdef INET6
 +	struct sockaddr *sa;
++	struct sockaddr_in6 *addr6;
++	struct sockaddr_in6 *mask6;
++	struct in6_addr net6;
++	int j;
 +#endif
  
  	mask_style = name_mask("mynetworks mask style", mask_styles,
  			       var_mynetworks_style);
-@@ -96,8 +107,19 @@
+@@ -96,8 +111,45 @@
  	my_mask_list = own_inet_mask_list();
  
  	for (i = 0; i < my_addr_list->used; i++) {
 +#ifdef INET6
 +	    sa = (struct sockaddr *)&my_addr_list->addrs[i];
-+	    if (sa->sa_family != AF_INET) {
-+		if (sa->sa_family == AF_INET6)
-+		    vstring_sprintf_append(result, "XAATODOmynetworks ");
++	    if (sa->sa_family == AF_INET6) {
++		addr6 = (struct sockaddr_in6 *)sa;
++		mask6 = (struct sockaddr_in6 *)&my_mask_list->addrs[i];
++
++		switch (mask_style) {
++		case MASK_STYLE_CLASS:
++		    /* treat as subnet for IPv6 */
++		case MASK_STYLE_SUBNET:
++		    for (j=0; j<16; j++)
++			net6.s6_addr[j] = addr6->sin6_addr.s6_addr[j] & mask6->sin6_addr.s6_addr[j];
++		    for(shift=128; shift>0; shift--)
++			if ((mask6->sin6_addr.s6_addr[(shift-1) / 8]) & (0x80 >> ((shift-1) % 8)))
++			    break;
++		    break;
++		case MASK_STYLE_HOST:
++		    memcpy (&net6, &(addr6->sin6_addr), sizeof(net6));
++		    shift=128;
++		    break;
++	        default:
++		    msg_panic("unknown mynetworks mask style: %s",
++			      var_mynetworks_style);
++		}
++		inet_ntop(AF_INET6, &net6, hbuf, sizeof(hbuf));
++		if (!shift)
++		    msg_warn("%s: skipped network with zero mask: [%s/0]", myname, hbuf);
++		else
++		    vstring_sprintf_append(result, "[%s/%d] ", hbuf, shift);
++		continue;
++	    } else if (sa->sa_family != AF_INET) {
 +		continue;
 +	    }
 +	    addr = ntohl(((struct sockaddr_in *)sa)->sin_addr.s_addr);
@@ -135,7 +179,7 @@ diff -Nur postfix-1.1.2.orig/src/global/mynetworks.c postfix-1.1.2/src/global/my
  
  	    switch (mask_style) {
  
-@@ -119,8 +140,15 @@
+@@ -119,8 +171,15 @@
  		    mask = IN_CLASSD_NET;
  		    shift = IN_CLASSD_NSHIFT;
  		} else {
@@ -151,10 +195,29 @@ diff -Nur postfix-1.1.2.orig/src/global/mynetworks.c postfix-1.1.2/src/global/my
  		}
  		break;
  
-diff -Nur postfix-1.1.2.orig/src/global/own_inet_addr.c postfix-1.1.2/src/global/own_inet_addr.c
---- postfix-1.1.2.orig/src/global/own_inet_addr.c	Tue Jul 31 20:38:29 2001
-+++ postfix-1.1.2/src/global/own_inet_addr.c	Mon Jan 28 12:40:04 2002
-@@ -39,6 +39,10 @@
+@@ -146,6 +205,18 @@
+ 			  var_mynetworks_style);
+ 	    }
+ 	    net.s_addr = htonl(addr & mask);
++	    if (shift == BITS_PER_ADDR) {
++#ifdef INET6
++		if (getnameinfo(sa, SA_LEN(sa), hbuf, sizeof(hbuf), NULL, 0,
++			NI_NUMERICHOST))
++		    strncpy(hbuf, "???", sizeof(hbuf));
++		msg_warn("%s: skipped network with zero mask: %s/0", myname, hbuf);
++#else
++		msg_warn("%s: skipped network with zero mask: %s/0",
++			 myname, inet_ntoa(my_addr_list->addrs[i]));
++#endif
++		continue;
++	    }
+ 	    vstring_sprintf_append(result, "%s/%d ",
+ 				   inet_ntoa(net), BITS_PER_ADDR - shift);
+ 	}
+diff -Nur postfix-2.0.9.orig/src/global/own_inet_addr.c postfix-2.0.9/src/global/own_inet_addr.c
+--- postfix-2.0.9.orig/src/global/own_inet_addr.c	Fri Oct 25 01:19:19 2002
++++ postfix-2.0.9/src/global/own_inet_addr.c	Fri Apr 18 20:55:35 2003
+@@ -50,6 +50,10 @@
  #include <netinet/in.h>
  #include <arpa/inet.h>
  #include <string.h>
@@ -165,7 +228,7 @@ diff -Nur postfix-1.1.2.orig/src/global/own_inet_addr.c postfix-1.1.2/src/global
  
  #ifdef STRCASECMP_IN_STRINGS_H
  #include <strings.h>
-@@ -101,10 +105,11 @@
+@@ -113,10 +117,11 @@
       */
      else {
  	bufp = hosts = mystrdup(var_inet_interfaces);
@@ -178,7 +241,7 @@ diff -Nur postfix-1.1.2.orig/src/global/own_inet_addr.c postfix-1.1.2/src/global
  	myfree(hosts);
  
  	/*
-@@ -121,15 +126,39 @@
+@@ -133,15 +138,39 @@
  	    msg_fatal("could not find any active network interfaces");
  	for (nvirtual = 0; nvirtual < addr_list->used; nvirtual++) {
  	    for (nlocal = 0; /* see below */ ; nlocal++) {
@@ -219,7 +282,7 @@ diff -Nur postfix-1.1.2.orig/src/global/own_inet_addr.c postfix-1.1.2/src/global
  	    }
  	}
  	inet_addr_list_free(&local_addrs);
-@@ -139,6 +168,42 @@
+@@ -151,6 +180,42 @@
  
  /* own_inet_addr - is this my own internet address */
  
@@ -262,7 +325,7 @@ diff -Nur postfix-1.1.2.orig/src/global/own_inet_addr.c postfix-1.1.2/src/global
  int     own_inet_addr(struct in_addr * addr)
  {
      int     i;
-@@ -149,8 +214,8 @@
+@@ -161,8 +226,8 @@
      for (i = 0; i < addr_list.used; i++)
  	if (addr->s_addr == addr_list.addrs[i].s_addr)
  	    return (1);
@@ -326,9 +389,9 @@ diff -Nur postfix-1.1.2.orig/src/global/own_inet_addr.c postfix-1.1.2/src/global
  
  /* proxy_inet_addr_list - return list of addresses */
  
-diff -Nur postfix-1.1.2.orig/src/global/own_inet_addr.h postfix-1.1.2/src/global/own_inet_addr.h
---- postfix-1.1.2.orig/src/global/own_inet_addr.h	Sat Feb 24 02:25:32 2001
-+++ postfix-1.1.2/src/global/own_inet_addr.h	Mon Jan 28 12:40:04 2002
+diff -Nur postfix-2.0.9.orig/src/global/own_inet_addr.h postfix-2.0.9/src/global/own_inet_addr.h
+--- postfix-2.0.9.orig/src/global/own_inet_addr.h	Fri Oct 25 01:07:05 2002
++++ postfix-2.0.9/src/global/own_inet_addr.h	Fri Apr 18 20:55:35 2003
 @@ -15,14 +15,25 @@
    * System library.
    */
@@ -355,9 +418,9 @@ diff -Nur postfix-1.1.2.orig/src/global/own_inet_addr.h postfix-1.1.2/src/global
  extern struct INET_ADDR_LIST *proxy_inet_addr_list(void);
  
  /* LICENSE
-diff -Nur postfix-1.1.2.orig/src/global/peer_name.c postfix-1.1.2/src/global/peer_name.c
---- postfix-1.1.2.orig/src/global/peer_name.c	Sun Jan 28 16:23:02 2001
-+++ postfix-1.1.2/src/global/peer_name.c	Mon Jan 28 12:40:04 2002
+diff -Nur postfix-2.0.9.orig/src/global/peer_name.c postfix-2.0.9/src/global/peer_name.c
+--- postfix-2.0.9.orig/src/global/peer_name.c	Sun Jan 28 16:23:02 2001
++++ postfix-2.0.9/src/global/peer_name.c	Fri Apr 18 20:55:35 2003
 @@ -69,12 +69,32 @@
  PEER_NAME *peer_name(int sock)
  {
@@ -420,9 +483,9 @@ diff -Nur postfix-1.1.2.orig/src/global/peer_name.c postfix-1.1.2/src/global/pee
  	case AF_UNSPEC:
  	case AF_UNIX:
  	    peer.type = PEER_TYPE_LOCAL;
-diff -Nur postfix-1.1.2.orig/src/global/peer_name.h postfix-1.1.2/src/global/peer_name.h
---- postfix-1.1.2.orig/src/global/peer_name.h	Fri Dec 11 19:55:32 1998
-+++ postfix-1.1.2/src/global/peer_name.h	Mon Jan 28 12:40:04 2002
+diff -Nur postfix-2.0.9.orig/src/global/peer_name.h postfix-2.0.9/src/global/peer_name.h
+--- postfix-2.0.9.orig/src/global/peer_name.h	Fri Dec 11 19:55:32 1998
++++ postfix-2.0.9/src/global/peer_name.h	Fri Apr 18 20:55:35 2003
 @@ -22,6 +22,9 @@
  #define PEER_TYPE_UNKNOWN	0
  #define PEER_TYPE_INET		1
@@ -433,10 +496,10 @@ diff -Nur postfix-1.1.2.orig/src/global/peer_name.h postfix-1.1.2/src/global/pee
  
  extern PEER_NAME *peer_name(int);
  
-diff -Nur postfix-1.1.2.orig/src/global/resolve_local.c postfix-1.1.2/src/global/resolve_local.c
---- postfix-1.1.2.orig/src/global/resolve_local.c	Fri Jan 18 15:06:51 2002
-+++ postfix-1.1.2/src/global/resolve_local.c	Mon Jan 28 12:40:04 2002
-@@ -42,6 +42,7 @@
+diff -Nur postfix-2.0.9.orig/src/global/resolve_local.c postfix-2.0.9/src/global/resolve_local.c
+--- postfix-2.0.9.orig/src/global/resolve_local.c	Fri Oct 25 01:21:20 2002
++++ postfix-2.0.9/src/global/resolve_local.c	Fri Apr 18 20:55:35 2003
+@@ -43,6 +43,7 @@
  #include <netinet/in.h>
  #include <arpa/inet.h>
  #include <string.h>
@@ -444,7 +507,7 @@ diff -Nur postfix-1.1.2.orig/src/global/resolve_local.c postfix-1.1.2/src/global
  
  #ifndef INADDR_NONE
  #define INADDR_NONE 0xffffffff
-@@ -79,7 +80,12 @@
+@@ -80,7 +81,12 @@
  {
      char   *saved_addr = mystrdup(addr);
      char   *dest;
@@ -483,9 +546,9 @@ diff -Nur postfix-1.1.2.orig/src/global/resolve_local.c postfix-1.1.2/src/global
      }
  
      /*
-diff -Nur postfix-1.1.2.orig/src/global/wildcard_inet_addr.c postfix-1.1.2/src/global/wildcard_inet_addr.c
---- postfix-1.1.2.orig/src/global/wildcard_inet_addr.c	Thu Jan  1 01:00:00 1970
-+++ postfix-1.1.2/src/global/wildcard_inet_addr.c	Mon Jan 28 12:40:04 2002
+diff -Nur postfix-2.0.9.orig/src/global/wildcard_inet_addr.c postfix-2.0.9/src/global/wildcard_inet_addr.c
+--- postfix-2.0.9.orig/src/global/wildcard_inet_addr.c	Thu Jan  1 01:00:00 1970
++++ postfix-2.0.9/src/global/wildcard_inet_addr.c	Fri Apr 18 20:55:35 2003
 @@ -0,0 +1,82 @@
 +/* System library. */
 +
@@ -569,9 +632,9 @@ diff -Nur postfix-1.1.2.orig/src/global/wildcard_inet_addr.c postfix-1.1.2/src/g
 +
 +    return (&addr_list);
 +}
-diff -Nur postfix-1.1.2.orig/src/global/wildcard_inet_addr.h postfix-1.1.2/src/global/wildcard_inet_addr.h
---- postfix-1.1.2.orig/src/global/wildcard_inet_addr.h	Thu Jan  1 01:00:00 1970
-+++ postfix-1.1.2/src/global/wildcard_inet_addr.h	Mon Jan 28 12:40:04 2002
+diff -Nur postfix-2.0.9.orig/src/global/wildcard_inet_addr.h postfix-2.0.9/src/global/wildcard_inet_addr.h
+--- postfix-2.0.9.orig/src/global/wildcard_inet_addr.h	Thu Jan  1 01:00:00 1970
++++ postfix-2.0.9/src/global/wildcard_inet_addr.h	Fri Apr 18 20:55:35 2003
 @@ -0,0 +1,36 @@
 +#ifndef _WILDCARD_INET_ADDR_H_INCLUDED_
 +#define _WILDCARD_INET_ADDR_H_INCLUDED_
@@ -609,11 +672,11 @@ diff -Nur postfix-1.1.2.orig/src/global/wildcard_inet_addr.h postfix-1.1.2/src/g
 +/*--*/
 +
 +#endif
-diff -Nur postfix-1.1.2.orig/src/master/master_ent.c postfix-1.1.2/src/master/master_ent.c
---- postfix-1.1.2.orig/src/master/master_ent.c	Sun Dec 23 20:08:58 2001
-+++ postfix-1.1.2/src/master/master_ent.c	Mon Jan 28 12:40:04 2002
-@@ -284,8 +284,13 @@
- 	    inet_addr_host(MASTER_INET_ADDRLIST(serv), host);
+diff -Nur postfix-2.0.9.orig/src/master/master_ent.c postfix-2.0.9/src/master/master_ent.c
+--- postfix-2.0.9.orig/src/master/master_ent.c	Mon Jan 13 01:25:39 2003
++++ postfix-2.0.9/src/master/master_ent.c	Fri Apr 18 20:55:35 2003
+@@ -285,8 +285,13 @@
+ 	    inet_addr_list_uniq(MASTER_INET_ADDRLIST(serv));
  	    serv->listen_fd_count = MASTER_INET_ADDRLIST(serv)->used;
  	} else if (strcasecmp(var_inet_interfaces, DEF_INET_INTERFACES) == 0) {
 +#ifdef INET6
@@ -625,10 +688,10 @@ diff -Nur postfix-1.1.2.orig/src/master/master_ent.c postfix-1.1.2/src/master/ma
 +#endif
  	} else {
  	    MASTER_INET_ADDRLIST(serv) = own_inet_addr_list();	/* virtual */
- 	    serv->listen_fd_count = MASTER_INET_ADDRLIST(serv)->used;
-diff -Nur postfix-1.1.2.orig/src/master/master_listen.c postfix-1.1.2/src/master/master_listen.c
---- postfix-1.1.2.orig/src/master/master_listen.c	Tue May  1 00:47:57 2001
-+++ postfix-1.1.2/src/master/master_listen.c	Mon Jan 28 12:40:04 2002
+ 	    inet_addr_list_uniq(MASTER_INET_ADDRLIST(serv));
+diff -Nur postfix-2.0.9.orig/src/master/master_listen.c postfix-2.0.9/src/master/master_listen.c
+--- postfix-2.0.9.orig/src/master/master_listen.c	Tue May  1 00:47:57 2001
++++ postfix-2.0.9/src/master/master_listen.c	Fri Apr 18 20:55:35 2003
 @@ -64,13 +64,22 @@
  
  #include "master.h"
@@ -690,10 +753,10 @@ diff -Nur postfix-1.1.2.orig/src/master/master_listen.c postfix-1.1.2/src/master
  	}
  	break;
      default:
-diff -Nur postfix-1.1.2.orig/src/smtp/Makefile.in postfix-1.1.2/src/smtp/Makefile.in
---- postfix-1.1.2.orig/src/smtp/Makefile.in	Mon Jan 28 12:38:34 2002
-+++ postfix-1.1.2/src/smtp/Makefile.in	Mon Jan 28 12:40:04 2002
-@@ -140,6 +140,7 @@
+diff -Nur postfix-2.0.9.orig/src/smtp/Makefile.in postfix-2.0.9/src/smtp/Makefile.in
+--- postfix-2.0.9.orig/src/smtp/Makefile.in	Fri Apr 18 20:55:10 2003
++++ postfix-2.0.9/src/smtp/Makefile.in	Fri Apr 18 20:55:35 2003
+@@ -143,6 +143,7 @@
  smtp_connect.o: ../../include/mail_params.h
  smtp_connect.o: ../../include/own_inet_addr.h
  smtp_connect.o: ../../include/dns.h
@@ -701,9 +764,9 @@ diff -Nur postfix-1.1.2.orig/src/smtp/Makefile.in postfix-1.1.2/src/smtp/Makefil
  smtp_connect.o: smtp.h
  smtp_connect.o: ../../include/argv.h
  smtp_connect.o: ../../include/deliver_request.h
-diff -Nur postfix-1.1.2.orig/src/smtp/smtp_addr.c postfix-1.1.2/src/smtp/smtp_addr.c
---- postfix-1.1.2.orig/src/smtp/smtp_addr.c	Sun Jul  8 17:05:26 2001
-+++ postfix-1.1.2/src/smtp/smtp_addr.c	Mon Jan 28 12:40:04 2002
+diff -Nur postfix-2.0.9.orig/src/smtp/smtp_addr.c postfix-2.0.9/src/smtp/smtp_addr.c
+--- postfix-2.0.9.orig/src/smtp/smtp_addr.c	Fri Oct 25 01:03:11 2002
++++ postfix-2.0.9/src/smtp/smtp_addr.c	Fri Apr 18 20:55:35 2003
 @@ -134,18 +134,68 @@
  static void smtp_print_addr(char *what, DNS_RR *addr_list)
  {
@@ -903,7 +966,7 @@ diff -Nur postfix-1.1.2.orig/src/smtp/smtp_addr.c postfix-1.1.2/src/smtp/smtp_ad
      }
  
      /*
-@@ -400,12 +400,36 @@
+@@ -273,12 +400,36 @@
       */
      self = proxy_inet_addr_list();
      for (addr = addr_list; addr; addr = addr->next) {
@@ -941,9 +1004,9 @@ diff -Nur postfix-1.1.2.orig/src/smtp/smtp_addr.c postfix-1.1.2/src/smtp/smtp_ad
      }
  
      /*
-diff -Nur postfix-1.1.2.orig/src/smtp/smtp_connect.c postfix-1.1.2/src/smtp/smtp_connect.c
---- postfix-1.1.2.orig/src/smtp/smtp_connect.c	Mon Jan 28 12:38:34 2002
-+++ postfix-1.1.2/src/smtp/smtp_connect.c	Mon Jan 28 12:40:04 2002
+diff -Nur postfix-2.0.9.orig/src/smtp/smtp_connect.c postfix-2.0.9/src/smtp/smtp_connect.c
+--- postfix-2.0.9.orig/src/smtp/smtp_connect.c	Fri Apr 18 20:55:10 2003
++++ postfix-2.0.9/src/smtp/smtp_connect.c	Fri Apr 18 20:55:35 2003
 @@ -81,6 +81,7 @@
  /* System library. */
  
@@ -1205,7 +1268,7 @@ diff -Nur postfix-1.1.2.orig/src/smtp/smtp_connect.c postfix-1.1.2/src/smtp/smtp
  	smtp_errno = SMTP_RETRY;
  	close(sock);
  	return (0);
-@@ -369,7 +369,7 @@
+@@ -236,7 +369,7 @@
      stream = vstream_fdopen(sock, O_RDWR);
      if ((ch = VSTREAM_GETC(stream)) == VSTREAM_EOF) {
  	vstring_sprintf(why, "connect to %s[%s]: server dropped connection without sending the initial greeting",
@@ -1214,7 +1277,7 @@ diff -Nur postfix-1.1.2.orig/src/smtp/smtp_connect.c postfix-1.1.2/src/smtp/smtp
  	smtp_errno = SMTP_RETRY;
  	vstream_fclose(stream);
  	return (0);
-@@ -381,7 +381,7 @@
+@@ -248,7 +381,7 @@
       */
      if (ch == '4' && var_smtp_skip_4xx_greeting) {
  	vstring_sprintf(why, "connect to %s[%s]: server refused mail service",
@@ -1223,7 +1286,7 @@ diff -Nur postfix-1.1.2.orig/src/smtp/smtp_connect.c postfix-1.1.2/src/smtp/smtp
  	smtp_errno = SMTP_RETRY;
  	vstream_fclose(stream);
  	return (0);
-@@ -392,12 +392,12 @@
+@@ -259,12 +392,12 @@
       */
      if (ch == '5' && var_smtp_skip_5xx_greeting) {
  	vstring_sprintf(why, "connect to %s[%s]: server refused mail service",
@@ -1238,9 +1301,9 @@ diff -Nur postfix-1.1.2.orig/src/smtp/smtp_connect.c postfix-1.1.2/src/smtp/smtp
  }
  
  /* smtp_connect_host - direct connection to host */
-diff -Nur postfix-1.1.2.orig/src/smtp/smtp_unalias.c postfix-1.1.2/src/smtp/smtp_unalias.c
---- postfix-1.1.2.orig/src/smtp/smtp_unalias.c	Thu Sep 28 19:06:09 2000
-+++ postfix-1.1.2/src/smtp/smtp_unalias.c	Mon Jan 28 12:40:04 2002
+diff -Nur postfix-2.0.9.orig/src/smtp/smtp_unalias.c postfix-2.0.9/src/smtp/smtp_unalias.c
+--- postfix-2.0.9.orig/src/smtp/smtp_unalias.c	Thu Sep 28 19:06:09 2000
++++ postfix-2.0.9/src/smtp/smtp_unalias.c	Fri Apr 18 20:55:35 2003
 @@ -86,7 +86,11 @@
      if ((result = htable_find(cache, name)) == 0) {
  	fqdn = vstring_alloc(10);
@@ -1254,12 +1317,12 @@ diff -Nur postfix-1.1.2.orig/src/smtp/smtp_unalias.c postfix-1.1.2/src/smtp/smtp
  	    vstring_strcpy(fqdn, name);
  	htable_enter(cache, name, result = vstring_export(fqdn));
      }
-diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_check.c postfix-1.1.2/src/smtpd/smtpd_check.c
---- postfix-1.1.2.orig/src/smtpd/smtpd_check.c	Mon Jan 28 12:38:34 2002
-+++ postfix-1.1.2/src/smtpd/smtpd_check.c	Mon Jan 28 12:40:04 2002
-@@ -1187,6 +1195,49 @@
- 
- static int has_my_addr(const char *host)
+diff -Nur postfix-2.0.9.orig/src/smtpd/smtpd_check.c postfix-2.0.9/src/smtpd/smtpd_check.c
+--- postfix-2.0.9.orig/src/smtpd/smtpd_check.c	Fri Apr 18 20:55:10 2003
++++ postfix-2.0.9/src/smtpd/smtpd_check.c	Fri Apr 18 20:55:35 2003
+@@ -1362,6 +1362,49 @@
+ static int has_my_addr(SMTPD_STATE *state, const char *host,
+ 		            const char *reply_name, const char *reply_class)
  {
 +#ifdef INET6
 +    char   *myname = "has_my_addr";
@@ -1307,7 +1370,7 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_check.c postfix-1.1.2/src/smtpd/smt
      char   *myname = "has_my_addr";
      struct in_addr addr;
      char  **cpp;
-@@ -1222,6 +1273,7 @@
+@@ -1400,6 +1443,7 @@
  	msg_info("%s: host %s: no match", myname, host);
  
      return (NOPE);
@@ -1315,7 +1378,7 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_check.c postfix-1.1.2/src/smtpd/smt
  }
  
  /* i_am_mx - is this machine listed as MX relay */
-@@ -1647,11 +1699,28 @@
+@@ -1984,11 +2028,28 @@
  #define CHK_ADDR_RETURN(x,y) { *found = y; return(x); }
  
      addr = STR(vstring_strcpy(error_text, address));
@@ -1345,7 +1408,7 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_check.c postfix-1.1.2/src/smtpd/smt
  	    if ((value = dict_get(dict, addr)) != 0)
  		CHK_ADDR_RETURN(check_table_result(state, table, value, address,
  						   reply_name, reply_class,
-@@ -2402,16 +2463,32 @@
+@@ -2431,16 +2492,32 @@
      VSTRING *query;
      int     i;
      SMTPD_RBL_STATE *rbl;
@@ -1382,9 +1445,9 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_check.c postfix-1.1.2/src/smtpd/smt
  #endif
  
      /*
-diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_peer.c postfix-1.1.2/src/smtpd/smtpd_peer.c
---- postfix-1.1.2.orig/src/smtpd/smtpd_peer.c	Thu Jul  5 22:09:47 2001
-+++ postfix-1.1.2/src/smtpd/smtpd_peer.c	Mon Jan 28 12:40:04 2002
+diff -Nur postfix-2.0.9.orig/src/smtpd/smtpd_peer.c postfix-2.0.9/src/smtpd/smtpd_peer.c
+--- postfix-2.0.9.orig/src/smtpd/smtpd_peer.c	Thu Aug 22 19:50:51 2002
++++ postfix-2.0.9/src/smtpd/smtpd_peer.c	Fri Apr 18 20:55:35 2003
 @@ -63,6 +63,15 @@
  #include <netdb.h>
  #include <string.h>
@@ -1524,7 +1587,7 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_peer.c postfix-1.1.2/src/smtpd/smtp
  	    state->peer_code = 2;
  
  	    /*
-@@ -150,16 +194,31 @@
+@@ -160,16 +204,31 @@
  	state->peer_code = code; \
      }
  
@@ -1557,7 +1620,7 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_peer.c postfix-1.1.2/src/smtpd/smtp
  		for (i = 0; /* void */ ; i++) {
  		    if (hp->h_addr_list[i] == 0) {
  			msg_warn("%s: address not listed for hostname %s",
-@@ -167,12 +226,11 @@
+@@ -177,12 +236,11 @@
  			REJECT_PEER_NAME(state, 5);
  			break;
  		    }
@@ -1572,10 +1635,10 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_peer.c postfix-1.1.2/src/smtpd/smtp
  	}
      }
  
-diff -Nur postfix-1.1.2.orig/src/smtpstone/smtp-sink.c postfix-1.1.2/src/smtpstone/smtp-sink.c
---- postfix-1.1.2.orig/src/smtpstone/smtp-sink.c	Thu Nov  8 21:15:32 2001
-+++ postfix-1.1.2/src/smtpstone/smtp-sink.c	Mon Jan 28 12:40:04 2002
-@@ -518,7 +518,7 @@
+diff -Nur postfix-2.0.9.orig/src/smtpstone/smtp-sink.c postfix-2.0.9/src/smtpstone/smtp-sink.c
+--- postfix-2.0.9.orig/src/smtpstone/smtp-sink.c	Fri Aug 16 17:05:25 2002
++++ postfix-2.0.9/src/smtpstone/smtp-sink.c	Fri Apr 18 20:55:35 2003
+@@ -606,7 +606,7 @@
      } else {
  	if (strncmp(argv[optind], "inet:", 5) == 0)
  	    argv[optind] += 5;
@@ -1584,9 +1647,9 @@ diff -Nur postfix-1.1.2.orig/src/smtpstone/smtp-sink.c postfix-1.1.2/src/smtpsto
      }
  
      /*
-diff -Nur postfix-1.1.2.orig/src/util/Makefile.in postfix-1.1.2/src/util/Makefile.in
---- postfix-1.1.2.orig/src/util/Makefile.in	Mon Jan 28 12:38:34 2002
-+++ postfix-1.1.2/src/util/Makefile.in	Mon Jan 28 12:41:17 2002
+diff -Nur postfix-2.0.9.orig/src/util/Makefile.in postfix-2.0.9/src/util/Makefile.in
+--- postfix-2.0.9.orig/src/util/Makefile.in	Fri Apr 18 20:55:10 2003
++++ postfix-2.0.9/src/util/Makefile.in	Fri Apr 18 20:55:35 2003
 @@ -8,7 +8,7 @@
  	dict_tcp.c dict_unix.c dir_forest.c doze.c duplex_pipe.c \
  	environ.c events.c exec_command.c fifo_listen.c fifo_trigger.c \
@@ -1607,14 +1670,14 @@ diff -Nur postfix-1.1.2.orig/src/util/Makefile.in postfix-1.1.2/src/util/Makefil
  	lstat_as.o mac_expand.o mac_parse.o make_dirs.o match_list.o \
 @@ -60,7 +60,7 @@
  	dict_ht.h dict_ldap.h dict_mysql.h dict_ni.h dict_nis.h \
- 	dict_nisplus.h dict_pcre.h dict_regexp.h dict_static.h dict_tcp.h \
+ 	dict_nisplus.h dict_pcre.h dict_pgsql.h dict_regexp.h dict_static.h dict_tcp.h \
  	dict_unix.h dir_forest.h events.h exec_command.h find_inet.h \
 -	fsspace.h fullname.h get_domainname.h get_hostname.h hex_quote.h \
 +	fsspace.h fullname.h get_domainname.h get_hostname.h get_port.h hex_quote.h \
  	htable.h inet_addr_host.h inet_addr_list.h inet_addr_local.h \
  	inet_util.h intv.h iostuff.h line_wrap.h listen.h lstat_as.h \
  	mac_expand.h mac_parse.h make_dirs.h match_list.h match_ops.h \
-@@ -726,6 +726,7 @@
+@@ -780,6 +780,7 @@
  get_domainname.o: mymalloc.h
  get_domainname.o: get_hostname.h
  get_domainname.o: get_domainname.h
@@ -1622,7 +1685,7 @@ diff -Nur postfix-1.1.2.orig/src/util/Makefile.in postfix-1.1.2/src/util/Makefil
  get_hostname.o: get_hostname.c
  get_hostname.o: sys_defs.h
  get_hostname.o: mymalloc.h
-@@ -842,6 +843,7 @@
+@@ -905,6 +906,7 @@
  match_list.o: stringops.h
  match_list.o: argv.h
  match_list.o: dict.h
@@ -1630,9 +1693,9 @@ diff -Nur postfix-1.1.2.orig/src/util/Makefile.in postfix-1.1.2/src/util/Makefil
  match_list.o: match_ops.h
  match_list.o: match_list.h
  match_ops.o: match_ops.c
-diff -Nur postfix-1.1.2.orig/src/util/get_port.c postfix-1.1.2/src/util/get_port.c
---- postfix-1.1.2.orig/src/util/get_port.c	Thu Jan  1 01:00:00 1970
-+++ postfix-1.1.2/src/util/get_port.c	Mon Jan 28 12:40:04 2002
+diff -Nur postfix-2.0.9.orig/src/util/get_port.c postfix-2.0.9/src/util/get_port.c
+--- postfix-2.0.9.orig/src/util/get_port.c	Thu Jan  1 01:00:00 1970
++++ postfix-2.0.9/src/util/get_port.c	Fri Apr 18 20:55:35 2003
 @@ -0,0 +1,65 @@
 +/*++
 +/* NAME
@@ -1699,9 +1762,9 @@ diff -Nur postfix-1.1.2.orig/src/util/get_port.c postfix-1.1.2/src/util/get_port
 +	/* return empty string */
 +	return NULL;
 +}
-diff -Nur postfix-1.1.2.orig/src/util/get_port.h postfix-1.1.2/src/util/get_port.h
---- postfix-1.1.2.orig/src/util/get_port.h	Thu Jan  1 01:00:00 1970
-+++ postfix-1.1.2/src/util/get_port.h	Mon Jan 28 12:40:04 2002
+diff -Nur postfix-2.0.9.orig/src/util/get_port.h postfix-2.0.9/src/util/get_port.h
+--- postfix-2.0.9.orig/src/util/get_port.h	Thu Jan  1 01:00:00 1970
++++ postfix-2.0.9/src/util/get_port.h	Fri Apr 18 20:55:35 2003
 @@ -0,0 +1,28 @@
 +#ifndef _GET_PORT_H_INCLUDED_
 +#define _GET_PORT_H_INCLUDED_
@@ -1731,9 +1794,9 @@ diff -Nur postfix-1.1.2.orig/src/util/get_port.h postfix-1.1.2/src/util/get_port
 +/*--*/
 +
 +#endif
-diff -Nur postfix-1.1.2.orig/src/util/inet_addr_host.c postfix-1.1.2/src/util/inet_addr_host.c
---- postfix-1.1.2.orig/src/util/inet_addr_host.c	Fri Dec 11 19:55:35 1998
-+++ postfix-1.1.2/src/util/inet_addr_host.c	Mon Jan 28 12:40:04 2002
+diff -Nur postfix-2.0.9.orig/src/util/inet_addr_host.c postfix-2.0.9/src/util/inet_addr_host.c
+--- postfix-2.0.9.orig/src/util/inet_addr_host.c	Fri Dec 11 19:55:35 1998
++++ postfix-2.0.9/src/util/inet_addr_host.c	Fri Apr 18 20:55:35 2003
 @@ -38,7 +38,10 @@
  #include <sys_defs.h>
  #include <netinet/in.h>
@@ -1830,9 +1893,9 @@ diff -Nur postfix-1.1.2.orig/src/util/inet_addr_host.c postfix-1.1.2/src/util/in
  	vstream_fflush(VSTREAM_OUT);
      }
      inet_addr_list_free(&addr_list);
-diff -Nur postfix-1.1.2.orig/src/util/inet_addr_list.c postfix-1.1.2/src/util/inet_addr_list.c
---- postfix-1.1.2.orig/src/util/inet_addr_list.c	Tue Jul 31 20:13:41 2001
-+++ postfix-1.1.2/src/util/inet_addr_list.c	Mon Jan 28 12:40:04 2002
+diff -Nur postfix-2.0.9.orig/src/util/inet_addr_list.c postfix-2.0.9/src/util/inet_addr_list.c
+--- postfix-2.0.9.orig/src/util/inet_addr_list.c	Tue Jul 31 20:13:41 2001
++++ postfix-2.0.9/src/util/inet_addr_list.c	Fri Apr 18 20:55:35 2003
 @@ -51,6 +51,13 @@
  #include <arpa/inet.h>
  #include <stdlib.h>
@@ -1910,9 +1973,9 @@ diff -Nur postfix-1.1.2.orig/src/util/inet_addr_list.c postfix-1.1.2/src/util/in
  }
  
  /* inet_addr_list_uniq - weed out duplicates */
-diff -Nur postfix-1.1.2.orig/src/util/inet_addr_list.h postfix-1.1.2/src/util/inet_addr_list.h
---- postfix-1.1.2.orig/src/util/inet_addr_list.h	Tue Jul 31 19:56:47 2001
-+++ postfix-1.1.2/src/util/inet_addr_list.h	Mon Jan 28 12:40:04 2002
+diff -Nur postfix-2.0.9.orig/src/util/inet_addr_list.h postfix-2.0.9/src/util/inet_addr_list.h
+--- postfix-2.0.9.orig/src/util/inet_addr_list.h	Tue Jul 31 19:56:47 2001
++++ postfix-2.0.9/src/util/inet_addr_list.h	Fri Apr 18 20:55:35 2003
 @@ -16,19 +16,38 @@
    */
  #include <netinet/in.h>
@@ -1952,9 +2015,9 @@ diff -Nur postfix-1.1.2.orig/src/util/inet_addr_list.h postfix-1.1.2/src/util/in
  
  /* LICENSE
  /* .ad
-diff -Nur postfix-1.1.2.orig/src/util/inet_addr_local.c postfix-1.1.2/src/util/inet_addr_local.c
---- postfix-1.1.2.orig/src/util/inet_addr_local.c	Sun Feb 25 19:20:19 2001
-+++ postfix-1.1.2/src/util/inet_addr_local.c	Mon Jan 28 12:40:04 2002
+diff -Nur postfix-2.0.9.orig/src/util/inet_addr_local.c postfix-2.0.9/src/util/inet_addr_local.c
+--- postfix-2.0.9.orig/src/util/inet_addr_local.c	Sun Feb 25 19:20:19 2001
++++ postfix-2.0.9/src/util/inet_addr_local.c	Fri Apr 18 20:55:35 2003
 @@ -47,6 +47,13 @@
  #endif
  #include <errno.h>
@@ -1990,7 +2053,7 @@ diff -Nur postfix-1.1.2.orig/src/util/inet_addr_local.c postfix-1.1.2/src/util/i
 +	msg_fatal("%s: getifaddrs: %m", myname);
 +
 +    for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
-+		if (! (ifa->ifa_flags & IFF_RUNNING) || ifa->ifa_addr==NULL) 
++		if ((!(ifa->ifa_flags & IFF_RUNNING)) || (ifa->ifa_addr == NULL) || (ifa->ifa_netmask == NULL))
 +			continue;
 +	sa = ifa->ifa_addr;
 +	sam = ifa->ifa_netmask;
@@ -2055,12 +2118,12 @@ diff -Nur postfix-1.1.2.orig/src/util/inet_addr_local.c postfix-1.1.2/src/util/i
 +    struct addrinfo hints, *res, *res0;
 +#endif
 +    struct sockaddr_in6 addr6;
- 
--    if ((sock = socket(PF_INET, SOCK_DGRAM, 0)) < 0)
++
 +other_socket_type:
 +#endif
 +    buf = vstring_alloc(1024);
-+
+ 
+-    if ((sock = socket(PF_INET, SOCK_DGRAM, 0)) < 0)
 +    if ((sock = socket(af, SOCK_DGRAM, 0)) < 0) {
 +#ifdef INET6
 +	if (af == AF_INET6)
@@ -2076,7 +2139,7 @@ diff -Nur postfix-1.1.2.orig/src/util/inet_addr_local.c postfix-1.1.2/src/util/i
  
      /*
       * Get the network interface list. XXX The socket API appears to have no
-@@ -126,10 +213,15 @@
+@@ -126,10 +219,15 @@
       */
      the_end = (struct ifreq *) (ifc.ifc_buf + ifc.ifc_len);
      for (ifr = ifc.ifc_req; ifr < the_end;) {
@@ -2093,7 +2156,7 @@ diff -Nur postfix-1.1.2.orig/src/util/inet_addr_local.c postfix-1.1.2/src/util/i
  		if (mask_list) {
  		    ifr_mask = (struct ifreq *) mymalloc(IFREQ_SIZE(ifr));
  		    memcpy((char *) ifr_mask, (char *) ifr, IFREQ_SIZE(ifr));
-@@ -141,11 +233,61 @@
+@@ -141,11 +239,70 @@
  		}
  	    }
  	}
@@ -2111,8 +2174,13 @@ diff -Nur postfix-1.1.2.orig/src/util/inet_addr_local.c postfix-1.1.2/src/util/i
 +		addr6.sin6_addr.s6_addr[2] = addr6.sin6_addr.s6_addr[3] = 0;
 +	    }
 +#endif
-+	    if (!(IN6_IS_ADDR_UNSPECIFIED(&addr6.sin6_addr)))
++	    if (!(IN6_IS_ADDR_UNSPECIFIED(&addr6.sin6_addr))) {
 +	        inet_addr_list_append(addr_list, (struct sockaddr *)&addr6);
++		if (mask_list) {
++#error "mask_list for IPv6 without libinet6 not done yet (error to avoid open-relay)"
++			/* TODO: how to get netmask here? */
++		}
++	    }
 +	}
 +#endif
  	ifr = NEXT_INTERFACE(ifr);
@@ -2143,6 +2211,10 @@ diff -Nur postfix-1.1.2.orig/src/util/inet_addr_local.c postfix-1.1.2/src/util/i
 +		 if (!gaierror) {
 +			 for (res = res0; res; res = res->ai_next) {
 +			       inet_addr_list_append(addr_list, res->ai_addr);
++			       if (mask_list) {
++#error "mask_list for IPv6 without libinet6 not done yet (error to avoid open-relay)"
++				       /* TODO: calculate netmask basing on plen */
++			       }
 +			 }
 +			 freeaddrinfo(res0);
 +		 }
@@ -2155,7 +2227,7 @@ diff -Nur postfix-1.1.2.orig/src/util/inet_addr_local.c postfix-1.1.2/src/util/i
  }
  
  #ifdef TEST
-@@ -158,6 +300,8 @@
+@@ -158,6 +315,8 @@
      INET_ADDR_LIST addr_list;
      INET_ADDR_LIST mask_list;
      int     i;
@@ -2164,7 +2236,7 @@ diff -Nur postfix-1.1.2.orig/src/util/inet_addr_local.c postfix-1.1.2/src/util/i
  
      msg_vstream_init(argv[0], VSTREAM_ERR);
  
-@@ -172,8 +316,17 @@
+@@ -172,8 +331,17 @@
  	msg_warn("found only one active network interface");
  
      for (i = 0; i < addr_list.used; i++) {
@@ -2184,9 +2256,9 @@ diff -Nur postfix-1.1.2.orig/src/util/inet_addr_local.c postfix-1.1.2/src/util/i
      }
      vstream_fflush(VSTREAM_OUT);
      inet_addr_list_free(&addr_list);
-diff -Nur postfix-1.1.2.orig/src/util/inet_connect.c postfix-1.1.2/src/util/inet_connect.c
---- postfix-1.1.2.orig/src/util/inet_connect.c	Mon Nov 20 19:06:31 2000
-+++ postfix-1.1.2/src/util/inet_connect.c	Mon Jan 28 12:40:04 2002
+diff -Nur postfix-2.0.9.orig/src/util/inet_connect.c postfix-2.0.9/src/util/inet_connect.c
+--- postfix-2.0.9.orig/src/util/inet_connect.c	Mon Nov 20 19:06:31 2000
++++ postfix-2.0.9/src/util/inet_connect.c	Fri Apr 18 20:55:35 2003
 @@ -55,6 +55,9 @@
  #include <string.h>
  #include <unistd.h>
@@ -2275,9 +2347,9 @@ diff -Nur postfix-1.1.2.orig/src/util/inet_connect.c postfix-1.1.2/src/util/inet
      }
 +#endif
  }
-diff -Nur postfix-1.1.2.orig/src/util/inet_listen.c postfix-1.1.2/src/util/inet_listen.c
---- postfix-1.1.2.orig/src/util/inet_listen.c	Mon Nov 20 19:06:32 2000
-+++ postfix-1.1.2/src/util/inet_listen.c	Mon Jan 28 12:40:04 2002
+diff -Nur postfix-2.0.9.orig/src/util/inet_listen.c postfix-2.0.9/src/util/inet_listen.c
+--- postfix-2.0.9.orig/src/util/inet_listen.c	Mon Nov 20 19:06:32 2000
++++ postfix-2.0.9/src/util/inet_listen.c	Fri Apr 18 20:55:35 2003
 @@ -6,7 +6,7 @@
  /* SYNOPSIS
  /*	#include <listen.h>
@@ -2435,9 +2507,9 @@ diff -Nur postfix-1.1.2.orig/src/util/inet_listen.c postfix-1.1.2/src/util/inet_
      non_blocking(sock, block_mode);
      if (listen(sock, backlog) < 0)
  	msg_fatal("listen: %m");
-diff -Nur postfix-1.1.2.orig/src/util/listen.h postfix-1.1.2/src/util/listen.h
---- postfix-1.1.2.orig/src/util/listen.h	Mon Mar 22 02:57:11 1999
-+++ postfix-1.1.2/src/util/listen.h	Mon Jan 28 12:40:04 2002
+diff -Nur postfix-2.0.9.orig/src/util/listen.h postfix-2.0.9/src/util/listen.h
+--- postfix-2.0.9.orig/src/util/listen.h	Mon Mar 22 02:57:11 1999
++++ postfix-2.0.9/src/util/listen.h	Fri Apr 18 20:55:35 2003
 @@ -20,7 +20,7 @@
    * Listener external interface.
    */
@@ -2447,9 +2519,9 @@ diff -Nur postfix-1.1.2.orig/src/util/listen.h postfix-1.1.2/src/util/listen.h
  extern int fifo_listen(const char *, int, int);
  extern int stream_listen(const char *, int, int);
  
-diff -Nur postfix-1.1.2.orig/src/util/match_list.c postfix-1.1.2/src/util/match_list.c
---- postfix-1.1.2.orig/src/util/match_list.c	Tue Nov 20 21:07:15 2001
-+++ postfix-1.1.2/src/util/match_list.c	Mon Jan 28 12:40:04 2002
+diff -Nur postfix-2.0.9.orig/src/util/match_list.c postfix-2.0.9/src/util/match_list.c
+--- postfix-2.0.9.orig/src/util/match_list.c	Tue Nov 20 21:07:15 2001
++++ postfix-2.0.9/src/util/match_list.c	Fri Apr 18 20:55:35 2003
 @@ -118,7 +118,7 @@
  		    list = match_list_parse(list, vstring_str(buf));
  	    if (vstream_fclose(fp))
@@ -2459,93 +2531,10 @@ diff -Nur postfix-1.1.2.orig/src/util/match_list.c postfix-1.1.2/src/util/match_
  	    for (cp = pattern; *cp == '!'; cp++)
  		 /* void */ ;
  	    if (dict_handle(pattern) == 0)
-diff -Nur postfix-1.1.2.orig/src/util/sys_defs.h postfix-1.1.2/src/util/sys_defs.h
---- postfix-1.1.2.orig/src/util/sys_defs.h	Mon Jan 28 12:38:34 2002
-+++ postfix-1.1.2/src/util/sys_defs.h	Mon Jan 28 12:40:04 2002
-@@ -73,6 +73,10 @@
- #define DEF_MAILBOX_LOCK "flock, dotlock"
- #endif
- 
-+#if ((defined(__NetBSD_Version__) && __NetBSD_Version__ >= 105000000) || defined(USAGI_LIBINET6))
-+#define HAVE_GETIFADDRS
-+#endif
-+
-  /*
-   * UNIX on MAC.
-   */
-diff -Nur postfix-1.1.2.orig/src/util/valid_hostname.c postfix-1.1.2/src/util/valid_hostname.c
---- postfix-1.1.2.orig/src/util/valid_hostname.c	Sun Jan 28 15:10:18 2001
-+++ postfix-1.1.2/src/util/valid_hostname.c	Mon Jan 28 12:40:04 2002
-@@ -47,6 +47,13 @@
- #include <string.h>
- #include <ctype.h>
- 
-+#ifdef INET6
-+#include <netinet/in.h>
-+#include <sys/socket.h>
-+#include <arpa/inet.h>
-+#include <netdb.h>
-+#endif
-+
- /* Utility library. */
- 
- #include "msg.h"
-@@ -103,7 +110,23 @@
- 		    msg_warn("%s: misplaced hyphen: %.100s", myname, name);
- 		return (0);
- 	    }
--	} else {
-+	}
-+#ifdef INET6
-+	else if (ch == ':') {
-+	    struct addrinfo hints, *res;
-+
-+	    memset(&hints, 0, sizeof(hints));
-+	    hints.ai_family = AF_INET6;
-+	    hints.ai_socktype = SOCK_STREAM;	/*dummy*/
-+	    hints.ai_flags = AI_NUMERICHOST;
-+	    if (getaddrinfo(name, "0", &hints, &res) == 0) {
-+		freeaddrinfo(res);
-+		return 1;
-+	    } else
-+		return 0;
-+	}
-+#endif
-+	else {
- 	    if (gripe)
- 		msg_warn("%s: invalid character %d(decimal): %.100s",
- 			 myname, ch, name);
-@@ -135,6 +158,9 @@
-     int     byte_count = 0;
-     int     byte_val = 0;
-     int     ch;
-+#ifdef INET6
-+    struct addrinfo hints, *res;
-+#endif
- 
- #define BYTES_NEEDED	4
- 
-@@ -147,6 +173,17 @@
- 	return (0);
-     }
- 
-+#ifdef INET6
-+    memset(&hints, 0, sizeof(hints));
-+    hints.ai_family = AF_INET6;
-+    hints.ai_socktype = SOCK_STREAM;	/*dummy*/
-+    hints.ai_flags = AI_NUMERICHOST;
-+    if (getaddrinfo(addr, "0", &hints, &res) == 0) {
-+	freeaddrinfo(res);
-+	return 1;
-+    }
-+#endif
-+
-     /*
-      * Scary code to avoid sscanf() overflow nasties.
-      */
---- postfix-2.0.8/src/util/match_ops.c.orig	Wed Apr 16 18:09:53 2003
-+++ postfix-2.0.8/src/util/match_ops.c	Wed Apr 16 18:16:41 2003
-@@ -81,6 +81,309 @@
+diff -Nur postfix-2.0.9.orig/src/util/match_ops.c postfix-2.0.9/src/util/match_ops.c
+--- postfix-2.0.9.orig/src/util/match_ops.c	Mon Apr 14 16:44:19 2003
++++ postfix-2.0.9/src/util/match_ops.c	Fri Apr 18 20:55:35 2003
+@@ -81,6 +81,308 @@
  #include <match_ops.h>
  #include <stringops.h>
  
@@ -2714,7 +2703,6 @@ diff -Nur postfix-1.1.2.orig/src/util/valid_hostname.c postfix-1.1.2/src/util/va
 +{
 +#ifdef AF_PACKET
 +       if (family == AF_PACKET)
-+       if (family == AF_PACKET)
 +               return -1;
 +#endif
 +       if (get_addr_1(dst, arg, family))
@@ -2855,7 +2843,7 @@ diff -Nur postfix-1.1.2.orig/src/util/valid_hostname.c postfix-1.1.2/src/util/va
  /* match_string - match a string literal */
  
  int     match_string(int unused_flags, const char *string, const char *pattern)
-@@ -177,6 +480,7 @@
+@@ -177,6 +479,7 @@
      return (0);
  }
  
@@ -2863,7 +2851,7 @@ diff -Nur postfix-1.1.2.orig/src/util/valid_hostname.c postfix-1.1.2/src/util/va
  /* match_parse_mask - parse net/mask pattern */
  
  static int match_parse_mask(const char *pattern, unsigned long *net_bits,
-@@ -198,28 +502,55 @@
+@@ -198,28 +501,55 @@
      return (mask != 0);
  }
  
@@ -2920,7 +2908,7 @@ diff -Nur postfix-1.1.2.orig/src/util/valid_hostname.c postfix-1.1.2/src/util/va
  	if (dict_lookup(pattern, addr) != 0)
  	    return (1);
  	if (dict_errno != 0)
-@@ -230,6 +561,12 @@
+@@ -230,6 +560,12 @@
      /*
       * Try an exact match with the host address.
       */
@@ -2933,7 +2921,7 @@ diff -Nur postfix-1.1.2.orig/src/util/valid_hostname.c postfix-1.1.2/src/util/va
      if (strcasecmp(addr, pattern) == 0) {
  	return (1);
      }
-@@ -238,6 +575,20 @@
+@@ -238,6 +574,20 @@
       * In a net/mask pattern, the mask is specified as the number of bits of
       * the network part.
       */
@@ -2954,10 +2942,94 @@ diff -Nur postfix-1.1.2.orig/src/util/valid_hostname.c postfix-1.1.2/src/util/va
      if (match_parse_mask(pattern, &net_bits, &mask_shift)) {
  	addr_bits = inet_addr(addr);
  	if (addr_bits == INADDR_NONE)
-@@ -252,5 +603,6 @@
+@@ -252,5 +602,6 @@
  		      pattern, inet_ntoa(net_addr), mask_shift);
  	}
      }
 +#endif
      return (0);
  }
+diff -Nur postfix-2.0.9.orig/src/util/sys_defs.h postfix-2.0.9/src/util/sys_defs.h
+--- postfix-2.0.9.orig/src/util/sys_defs.h	Fri Apr 18 20:55:10 2003
++++ postfix-2.0.9/src/util/sys_defs.h	Fri Apr 18 20:55:35 2003
+@@ -73,6 +73,10 @@
+ #define DEF_MAILBOX_LOCK "flock, dotlock"
+ #endif
+ 
++#if ((defined(__NetBSD_Version__) && __NetBSD_Version__ >= 105000000) || defined(USAGI_LIBINET6))
++#define HAVE_GETIFADDRS
++#endif
++
+  /*
+   * UNIX on MAC.
+   */
+diff -Nur postfix-2.0.9.orig/src/util/valid_hostname.c postfix-2.0.9/src/util/valid_hostname.c
+--- postfix-2.0.9.orig/src/util/valid_hostname.c	Fri Dec 20 02:33:41 2002
++++ postfix-2.0.9/src/util/valid_hostname.c	Fri Apr 18 20:55:35 2003
+@@ -53,6 +53,13 @@
+ #include <string.h>
+ #include <ctype.h>
+ 
++#ifdef INET6
++#include <netinet/in.h>
++#include <sys/socket.h>
++#include <arpa/inet.h>
++#include <netdb.h>
++#endif
++
+ /* Utility library. */
+ 
+ #include "msg.h"
+@@ -109,7 +116,23 @@
+ 		    msg_warn("%s: misplaced hyphen: %.100s", myname, name);
+ 		return (0);
+ 	    }
+-	} else {
++	}
++#ifdef INET6
++	else if (ch == ':') {
++	    struct addrinfo hints, *res;
++
++	    memset(&hints, 0, sizeof(hints));
++	    hints.ai_family = AF_INET6;
++	    hints.ai_socktype = SOCK_STREAM;	/*dummy*/
++	    hints.ai_flags = AI_NUMERICHOST;
++	    if (getaddrinfo(name, "0", &hints, &res) == 0) {
++		freeaddrinfo(res);
++		return 1;
++	    } else
++		return 0;
++	}
++#endif
++	else {
+ 	    if (gripe)
+ 		msg_warn("%s: invalid character %d(decimal): %.100s",
+ 			 myname, ch, name);
+@@ -141,6 +164,9 @@
+     int     byte_count = 0;
+     int     byte_val = 0;
+     int     ch;
++#ifdef INET6
++    struct addrinfo hints, *res;
++#endif
+ 
+ #define BYTES_NEEDED	4
+ 
+@@ -166,6 +192,17 @@
+ 	return (1);
+     }
+ 
++#ifdef INET6
++    memset(&hints, 0, sizeof(hints));
++    hints.ai_family = AF_INET6;
++    hints.ai_socktype = SOCK_STREAM;	/*dummy*/
++    hints.ai_flags = AI_NUMERICHOST;
++    if (getaddrinfo(addr, "0", &hints, &res) == 0) {
++	freeaddrinfo(res);
++	return 1;
++    }
++#endif
++
+     /*
+      * Scary code to avoid sscanf() overflow nasties.
+      */
