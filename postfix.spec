@@ -5,6 +5,7 @@
 # --without ipv6 - build without IPv6 support
 # --with polish  - build with polish messages support
 # _without_psql  - no Postgres support
+# _without_mysql - no MySQL support
 # _without_ldap  - no LDAP support
 #
 %define	tls_ver 0.8.11a-1.1.11-0.9.6d
@@ -35,13 +36,14 @@ Patch3:		%{name}-pgsql.patch
 Patch4:		%{name}-master.cf_cyrus.patch
 Patch5:		%{name}-ipv6.patch
 Patch6:		%{name}-pl.patch
+Patch7:		%{name}-db.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{!?_without_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db-devel
 BuildRequires:	grep
 %{!?_without_ipv6:BuildRequires:	libinet6 >= 0.20010420-3}
-BuildRequires:	mysql-devel
+%{!?_without_mysql:BuildRequires:	mysql-devel}
 %{!?_without_ldap:BuildRequires:	openldap-devel >= 2.0.0}
 %{!?_without_ssl:BuildRequires:	openssl-devel >= 0.9.6a}
 BuildRequires:	pcre-devel
@@ -201,12 +203,13 @@ patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 %patch4 -p1
 %{!?_without_ipv6:%patch5 -p1}
 %{?_with_polish:%patch6 -p1}
+%patch7 -p1
 
 %build
 %{__make} -f Makefile.init makefiles
 %{__make} tidy
 %{__make} DEBUG="" OPT="%{rpmcflags}" \
-	CCARGS="-DHAS_LDAP -DHAS_PCRE %{!?_without_sasl:-DUSE_SASL_AUTH} -DHAS_MYSQL -DHAS_PGSQL -I%{_includedir}/mysql -I%{_includedir}/postgresql %{!?_without_ssl:-DHAS_SSL -I%{_includedir}/openssl} -DMAX_DYNAMIC_MAPS" \
+	CCARGS="%{!?_without_ldap:-DHAS_LDAP} -DHAS_PCRE %{!?_without_sasl:-DUSE_SASL_AUTH} %{!?_without_mysql:-DHAS_MYSQL} %{!?_without_psql:-DHAS_PGSQL} %{!?_without_mysql:-I%{_includedir}/mysql} %{!?_without_psql:-I%{_includedir}/postgresql} %{!?_without_ssl:-DHAS_SSL -I%{_includedir}/openssl} -DMAX_DYNAMIC_MAPS" \
 	AUXLIBS="-ldb -lresolv %{!?_without_sasl:-lsasl} %{!?_without_ssl:-lssl -lcrypto}"
 
 %install
@@ -383,9 +386,11 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %attr(755,root,root) %{_libdir}/postfix/dict_ldap.so
 %endif
 
+%if %{!?_without_mysql:1}%{?_without_mysql:0}
 %files dict-mysql
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_mysql.so
+%endif
 
 %files dict-pcre
 %defattr(644,root,root,755)
