@@ -1,14 +1,15 @@
 #
 # Conditiona build:
-# no_sasl - build wihtout SMTP AUTH support
-# no_ldap - build without LDAP support
-# no_pcre - build without Perl Compatible Regular Expresion support
+# --without sasl - build wihtout SMTP AUTH support
+# --without ldap - build without LDAP support
+# --without pcre - build without Perl Compatible Regular Expresion support
+# --with mysql - build with MySQL support
 #
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
 Name:		postfix
-Version:	20001005
-Release:	2
+Version:	20001210
+Release:	1
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
 Group(pl):	Sieciowe/Serwery
@@ -20,17 +21,18 @@ Source3:	%{name}.init
 Source5:	%{name}.sysconfig
 Source6:	virtual.tar.gz
 Patch0:		%{name}-config.patch
-Patch1:		http://www.misiek.eu.org/ipv6/%{name}-ver20000922-ipv6-20000922.patch.gz
+Patch1:		http://www.misiek.eu.org/ipv6/%{name}-ver20001030-ipv6-20001030.patch.gz
 Patch2:		%{name}-pl.patch
-Patch3:		%{name}-ldap2.patch
-Patch4:		%{name}-virtual.patch
+Patch3:		%{name}-virtual.patch
+Patch4:		%{name}-postconf.patch
+Patch5:		%{name}-sasl.patch
 URL:		http://www.postfix.org/
 Provides:	smtpdaemon
 Requires:	rc-scripts
-%{!?no_ldap:BuildRequires:	openldap-devel >= 2.0.0}
+%{!?bcond_off_ldap:BuildRequires:	openldap-devel >= 2.0.0}
 BuildRequires:	openssl-devel >= 0.9.4-2
-%{!?no_pcre:BuildRequires:	pcre-devel}
-%{!?no_sasl:BuildRequires:	cyrus-sasl-devel}
+%{!?bcond_off_pcre:BuildRequires:	pcre-devel}
+%{!?bcond_off_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db3-devel
 BuildRequires:	grep
 Prereq:		/sbin/chkconfig
@@ -55,14 +57,14 @@ Postfix is attempt to provide an alternative to the widely-used
 Sendmail program. Postfix attempts to be fast, easy to administer, and
 hopefully secure, while at the same time being sendmail compatible
 enough to not upset your users. This version have IPv6 support and
-%{!?no_ldap:no }LDAP support.
+%{!?bcond_off_ldap:no } LDAP support.
 
 %description -l pl
 Postfix jest prób± dostarczenia alternatywnego MTA w stosunku do
 szeroko u¿ywanego sendmaila. Postfix w zamierzeniu ma byæ szybki,
 ³atwy w administrowaniu, bezpieczny oraz ma byæ na tyle kompatybilny z
 sendmailem by nie denerwowaæ Twoich u¿ytkowników. Ta wersja wspiera
-IPv6%{!?no_ldap: oraz LDAP} %{?no_ldap: i nie zawiera wsparcia LDAP}.
+IPv6%{!?bcond_off_ldap: oraz LDAP} %{?bcond_off_ldap: i nie zawiera wsparcia LDAP}.
 
 %prep
 %setup -q -n snapshot-%{version}
@@ -70,15 +72,16 @@ tar zxf %{SOURCE6}
 %patch0 -p1
 %patch1 -p1 
 %patch2 -p1
-%patch3 -p1
+#%patch3 -p1
 %patch4 -p1
+%patch5 -p1
 
 %build
 %{__make} -f Makefile.init makefiles
 %{__make} tidy
 %{__make} DEBUG="" OPT="%{!?debug:$RPM_OPT_FLAGS}%{?debug:-O -g}" \
-	CCARGS="%{!?no_ldap:-DHAS_LDAP} %{!?no_pcre:-DHAS_PCRE} %{!?no_sasl:-DUSE_SASL_AUTH}" \
-	AUXLIBS="%{!?no_ldap:-llber -lldap} -lnsl -ldb -lresolv %{!?no_pcre:-lpcre} %{!?no_sasl:-lsasl}"
+	CCARGS="%{!?bcond_off_ldap:-DHAS_LDAP} %{!?bcond_off_pcre:-DHAS_PCRE} %{!?bcond_off_sasl:-DUSE_SASL_AUTH} %{?bcond_on_mysql:-DHAS_MYSQL -I/usr/include/mysql}" \
+	AUXLIBS="%{!?bcond_off_ldap:-llber -lldap} -lnsl -ldb -lresolv %{!?bcond_off_pcre:-lpcre} %{!?bcond_off_sasl:-lsasl} %{?bcond_on_mysql:-lmysqlclient}"
 
 %install
 rm -rf $RPM_BUILD_ROOT
