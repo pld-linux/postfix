@@ -1,18 +1,18 @@
 #
-# Conditional build:	
+# Conditional build:
 # --without sasl - build wihtout SMTP AUTH support
 # --without ldap - build without LDAP support
 # --without pcre - build without Perl Compatible Regular Expresion support
-# --without ssl  - build without SSL/TLS support
+# --without ssl - build without SSL/TLS support
 # --with mysql - build with MySQL support
-# --without ipv6  - build without IPv6 support
+# --without ipv6 - build without IPv6 support
 #
-%define	tls_ver 0.7.13c-snap20011127-0.9.6b
+%define tls_ver	0.7.13c-snap20011127-0.9.6b
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Serwer SMTP Postfix
 Name:		postfix
 Version:	20011127
-Release:	5
+Release:	6
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
 Group(pl):	Sieciowe/Serwery
@@ -29,26 +29,25 @@ Patch1:		%{name}-pl.patch
 Patch2:		%{name}-conf_msg.patch
 Patch3:		%{name}-ipv6.patch
 URL:		http://www.postfix.org/
-Provides:	smtpdaemon
-Prereq:		rc-scripts
+BuildRequires:	awk
+BuildRequires:	db3-devel
+BuildRequires:	grep
 %{!?_without_ldap:BuildRequires:	openldap-devel >= 2.0.0}
 %{!?_without_ssl:BuildRequires:	openssl-devel >= 0.9.6a}
 %{!?_without_pcre:BuildRequires:	pcre-devel}
 %{!?_without_sasl:BuildRequires:	cyrus-sasl-devel}
 %{!?_without_ipv6:BuildRequires:	libinet6 >= 0.20010420-3}
-BuildRequires:	db3-devel
-BuildRequires:	grep
-BuildRequires:	awk
-Prereq:		/sbin/chkconfig
-Prereq:		/usr/sbin/useradd
-Prereq:		/usr/sbin/groupadd
-Prereq:		/usr/sbin/userdel
-Prereq:		/usr/sbin/groupdel
-Prereq:		/usr/bin/getgid
-Prereq:		/bin/id
-Prereq:		/bin/hostname
-%{!?_without_ldap:Prereq:	openldap >= 2.0.0}
-BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
+PreReq:		/sbin/chkconfig
+PreReq:		rc-scripts
+%{!?_without_ldap:PreReq:	openldap >= 2.0.0}
+Requires(pre):	/bin/id
+Requires(pre):	/usr/bin/getgid
+Requires(pre):	/usr/sbin/groupadd
+Requires(pre):	/usr/sbin/useradd
+Requires(post):	/bin/hostname
+Requires:	/usr/sbin/groupdel
+Requires:	/usr/sbin/userdel
+Provides:	smtpdaemon
 Obsoletes:	smtpdaemon
 Obsoletes:	exim
 Obsoletes:	masqmail
@@ -60,6 +59,7 @@ Obsoletes:	sendmail-doc
 Obsoletes:	smail
 Obsoletes:	zmailer
 Requires:	procmail
+BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
 Postfix is attempt to provide an alternative to the widely-used
@@ -76,10 +76,10 @@ sendmailem by nie denerwowaæ Twoich u¿ytkowników. Ta wersja wspiera
 IPv6%{!?_without_ldap: oraz LDAP}.
 
 %prep
-%setup -q -n snapshot-%{version} -a 6 
+%setup -q -n snapshot-%{version} -a 6
 %patch0 -p1
 %patch1 -p1
-patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff 
+patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 %patch2 -p1
 %{!?_without_ipv6:%patch3 -p1 }
 
@@ -93,9 +93,9 @@ patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT%{_sysconfdir}/{mail,cron.daily,rc.d/init.d,sasl,sysconfig} \
-	   $RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,%{_mandir}/man{1,5,8}} \
-	   $RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public} \
-	   pfixtls
+	$RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,%{_mandir}/man{1,5,8}} \
+	$RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public} \
+	pfixtls
 
 rm -f {html,man}/Makefile.in conf/{LICENSE,main.cf.default}
 
@@ -118,7 +118,7 @@ ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
 ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/newaliases
 ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_libdir}/sendmail
 
-mv -f  $RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script-sgid \
+mv -f $RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script-sgid \
 	$RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script
 
 rm -f $RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script-{diff,nosgid}
@@ -127,9 +127,9 @@ touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 	{aliases,access,canonical,relocated,transport,virtual}{,.db}
 
 gzip -9nf *README HISTORY COMPATIBILITY LICENSE RELEASE_NOTES \
-	   RESTRICTION_CLASS TODO
+	RESTRICTION_CLASS TODO
 
-touch $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
+> $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -162,8 +162,8 @@ fi
 
 %post
 if ! grep -q "^postmaster:" /etc/mail/aliases; then
-        echo "Adding Entry for postmaster in /etc/mail/aliases" >&2
-        echo "postmaster:	root" >>/etc/mail/aliases
+	echo "Adding Entry for postmaster in /etc/mail/aliases" >&2
+	echo "postmaster:	root" >> /etc/mail/aliases
 fi
 if ! grep -q "^myhostname" /etc/mail/main.cf; then
 	postconf -e myhostname=`/bin/hostname -f`
@@ -187,9 +187,9 @@ fi
 
 %postun
 if [ $1 = 0 ]; then
-	/usr/sbin/groupdel maildrop 2> /dev/null
-	/usr/sbin/userdel postfix 2> /dev/null
-	/usr/sbin/groupdel postfix 2> /dev/null
+	/usr/sbin/groupdel maildrop 2>/dev/null
+	/usr/sbin/userdel postfix 2>/dev/null
+	/usr/sbin/groupdel postfix 2>/dev/null
 fi
 
 %files
@@ -225,16 +225,16 @@ fi
 %attr(755,root,root) %{_libdir}/sendmail
 %attr(755,root,root) %{_libdir}/postfix
 %attr(755,root,root) %dir %{_var}/spool/postfix
-%attr(700, postfix,root) %dir %{_var}/spool/postfix/active
-%attr(700, postfix,root) %dir %{_var}/spool/postfix/bounce
-%attr(700, postfix,root) %dir %{_var}/spool/postfix/corrupt
-%attr(700, postfix,root) %dir %{_var}/spool/postfix/defer
-%attr(700, postfix,root) %dir %{_var}/spool/postfix/deferred
-%attr(700, postfix,root) %dir %{_var}/spool/postfix/incoming
+%attr(700,postfix,root) %dir %{_var}/spool/postfix/active
+%attr(700,postfix,root) %dir %{_var}/spool/postfix/bounce
+%attr(700,postfix,root) %dir %{_var}/spool/postfix/corrupt
+%attr(700,postfix,root) %dir %{_var}/spool/postfix/defer
+%attr(700,postfix,root) %dir %{_var}/spool/postfix/deferred
+%attr(700,postfix,root) %dir %{_var}/spool/postfix/incoming
 %attr(1730,postfix,maildrop) %dir %{_var}/spool/postfix/maildrop
-%attr(755, postfix,root) %dir %{_var}/spool/postfix/pid
-%attr(700, postfix,root) %dir %{_var}/spool/postfix/private
-%attr(755, postfix,root) %dir %{_var}/spool/postfix/public
-%attr(700, postfix,root) %dir %{_var}/spool/postfix/saved
-%attr(644, postfix,root) %{_var}/spool/postfix/.nofinger
+%attr(755,postfix,root) %dir %{_var}/spool/postfix/pid
+%attr(700,postfix,root) %dir %{_var}/spool/postfix/private
+%attr(755,postfix,root) %dir %{_var}/spool/postfix/public
+%attr(700,postfix,root) %dir %{_var}/spool/postfix/saved
+%attr(644,postfix,root) %{_var}/spool/postfix/.nofinger
 %{_mandir}/man*/*
