@@ -39,7 +39,7 @@ BuildRequires:	mysql-devel
 BuildRequires:	openldap-devel >= 2.0.0
 %{!?_without_ssl:BuildRequires:	openssl-devel >= 0.9.6a}
 BuildRequires:	pcre-devel
-BuildRequires:	postgresql-libs
+BuildRequires:	postgresql-devel
 PreReq:		rc-scripts
 PreReq:		sed
 Requires(pre):	/usr/sbin/useradd
