@@ -31,8 +31,6 @@ case "$1" in
 	if [ ! -f /var/lock/subsys/postfix ]; then
 		msg_starting Postfix
 		busy
-		newaliases
-		$0 rebuilddb
 		MSG="`/usr/sbin/postfix start 2>&1`"
 		if [ "$?" = "0" ] ; then
 			deltext; ok
