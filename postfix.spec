@@ -59,8 +59,8 @@ Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/bin/getgid
 Requires(pre):	/bin/id
 Requires(post):	/bin/hostname
-Requires(post,postun):/sbin/ldconfig
-Requires(post,preun):/sbin/chkconfig
+Requires(post,postun):	/sbin/ldconfig
+Requires(post,preun):	/sbin/chkconfig
 Requires(postun):	/usr/sbin/userdel
 Requires(postun):	/usr/sbin/groupdel
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -323,6 +323,7 @@ if [ "$1" = "0" ]; then
 fi
 
 %triggerpostun -- postfix < 1:1.1.2
+umask 022
 sed -e 's/^\(pickup[ 	]\+fifo[ 	]\+[^ 	]\+[ 	]\+\)[^ 	]\+\([ 	]\)/\1-\2/;
 s/^\(cleanup[ 	]\+unix[ 	]\+\)[^ 	]\+\([ 	]\)/\1n\2/' /etc/mail/master.cf \
 	> /etc/mail/master.cf.rpmtmp
