@@ -1289,7 +1289,16 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_check.c postfix-1.1.2/src/smtpd/smt
  	    if ((value = dict_get(dict, addr)) != 0)
  		CHK_ADDR_RETURN(check_table_result(state, table, value, address,
  						   reply_name, reply_class,
-@@ -2406,12 +2468,23 @@
+@@ -2402,16 +2463,32 @@
+     VSTRING *query;
+     int     i;
+     SMTPD_RBL_STATE *rbl;
++#ifdef INET6
++    struct in_addr a;
++#else
++    struct in6_addr a;
++#endif
+ 
      if (msg_verbose)
  	msg_info("%s: %s %s", myname, reply_class, addr);
  
@@ -1358,7 +1367,7 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_peer.c postfix-1.1.2/src/smtpd/smtp
  /* Application-specific. */
  
  #include "smtpd.h"
-@@ -102,10 +106,18 @@
+@@ -102,21 +106,28 @@
  
  void    smtpd_peer_init(SMTPD_STATE *state)
  {
@@ -1380,7 +1389,10 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_peer.c postfix-1.1.2/src/smtpd/smtp
  
      /*
       * Avoid suprious complaints from Purify on Solaris.
-@@ -115,8 +127,7 @@
+      */
+-    memset((char *) &sin, 0, len);
++    memset((char *) &sa, 0, len);
+ 
      /*
       * Look up the peer address information.
       */
@@ -1443,7 +1455,7 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_peer.c postfix-1.1.2/src/smtpd/smtp
 +	} else if (valid_hostaddr(hbuf, DONT_GRIPE)) {
  	    msg_warn("numeric result %s in address->name lookup for %s",
 -		     hp->h_name, state->addr);
-+		     hp->hbuf, state->addr);
++		     hbuf, state->addr);
  	    state->name = mystrdup("unknown");
  	    state->peer_code = 5;
 -	} else if (!valid_hostname(hp->h_name, DONT_GRIPE)) {
@@ -1452,7 +1464,7 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_peer.c postfix-1.1.2/src/smtpd/smtp
  	    state->peer_code = 5;
  	} else {
 -	    state->name = mystrdup(hp->h_name);	/* hp->name is clobbered!! */
-+	    state->name = mystrdup(hp->hbuf);	/* hp->name is clobbered!! */
++	    state->name = mystrdup(hbuf);	/* hp->name is clobbered!! */
  	    state->peer_code = 2;
  
  	    /*
