@@ -42,6 +42,7 @@ Patch5:		%{name}-pl.patch
 Patch6:		%{name}-cdb_man.patch
 Patch7:         %{name}-ns-mx-acl.patch
 Patch8:         %{name}-kill_warnings.patch
+Patch9:         %{name}-ipv6-kill_warnings.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
@@ -211,6 +212,7 @@ zcat %{SOURCE8} | patch -p1 -s
 %{?with_cdb:%patch6 -p1}
 %patch7 -p1
 %patch8 -p1
+%patch9 -p1
 %{?with_cdb:sh dict_cdb.sh}
 
 %build
