@@ -13,7 +13,7 @@
 # _without_ssl		- without SSL/TLS support
 # _with_polish		- with double English+Polish messages
 #
-%define	tls_ver 0.8.13-2.0.3-0.9.7
+%define	tls_ver 0.8.13-2.0.4-0.9.7a
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
 Summary(es):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -22,8 +22,8 @@ Summary(pl):	Serwer SMTP Postfix
 Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
-Version:	2.0.5
-Release:	1
+Version:	2.0.6
+Release:	0.1
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -46,10 +46,10 @@ BuildRequires:	awk
 %{!?_without_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db-devel
 BuildRequires:	grep
-%{!?_without_ipv6:BuildRequires:	libinet6 >= 0.20010420-3}
+%{!?_without_ipv6:BuildRequires:	libinet6 >= 0.20030228-1}
 %{!?_without_mysql:BuildRequires:	mysql-devel}
 %{!?_without_ldap:BuildRequires:	openldap-devel >= 2.0.0}
-%{!?_without_ssl:BuildRequires:	openssl-devel >= 0.9.7a}
+%{!?_without_ssl:BuildRequires:		openssl-devel >= 0.9.7a}
 BuildRequires:	pcre-devel
 %{!?_without_pgsql:BuildRequires:	postgresql-devel}
 PreReq:		rc-scripts
