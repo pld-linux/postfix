@@ -53,8 +53,6 @@ nie denerwowaæ Twoich u¿ytkowników. Ta wersja wspiera IPv6 oraz LDAP.
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
-# postfix-tls.patch obsoletes pfixtls-%{pfixtls}/pfixtls.diff
-#patch -p1 -b -z .wiget <pfixtls-%{pfixtls}/pfixtls.diff
 
 %build
 make -f Makefile.init makefiles
