@@ -62,7 +62,7 @@ diff -Nur postfix-1.1.2.orig/conf/main.cf postfix-1.1.2/conf/main.cf
 -#mailbox_command = /some/where/procmail
 -#mailbox_command = /some/where/procmail -a "$EXTENSION"
 +#mailbox_command = /usr/bin/procmail
-+mailbox_command = /usr/bin/procmail -a "$EXTENSION"
++#mailbox_command = /usr/bin/procmail -a "$EXTENSION"
  
  # The mailbox_transport specifies the optional transport in master.cf
  # to use after processing aliases and .forward files. This parameter
