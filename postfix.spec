@@ -23,7 +23,7 @@ Requires:	rc-scripts
 BuildRequires:	openldap-devel
 BuildRequires:	openssl-devel >= 0.9.4-2
 BuildRequires:	pcre-devel
-BuildRequires:	sasl-devel
+BuildRequires:	cyrus-sasl-devel
 BuildRequires:	grep
 Obsoletes:	smtpdaemon
 Obsoletes:	sendmail
