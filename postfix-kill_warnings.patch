@@ -1,0 +1,111 @@
+diff -dur postfix-2.0.16.orig/src/global/mail_params.c postfix-2.0.16/src/global/mail_params.c
+--- postfix-2.0.16.orig/src/global/mail_params.c	2005-01-08 08:59:26.000000000 +0100
++++ postfix-2.0.16/src/global/mail_params.c	2005-01-08 09:25:31.372904944 +0100
+@@ -132,6 +132,7 @@
+ #include <pwd.h>
+ #include <grp.h>
+ #include <time.h>
++#include <ctype.h>
+ 
+ #ifdef STRCASECMP_IN_STRINGS_H
+ #include <strings.h>
+@@ -150,6 +151,7 @@
+ #endif
+ #include <safe_open.h>
+ #include <mymalloc.h>
++#include <vstring_vstream.h>
+ 
+ /* Global library. */
+ 
+diff -dur postfix-2.0.16.orig/src/global/mail_stream.c postfix-2.0.16/src/global/mail_stream.c
+--- postfix-2.0.16.orig/src/global/mail_stream.c	2003-04-15 21:06:28.000000000 +0200
++++ postfix-2.0.16/src/global/mail_stream.c	2005-01-08 09:25:31.372904944 +0100
+@@ -93,6 +93,7 @@
+ #include <vstream.h>
+ #include <stringops.h>
+ #include <argv.h>
++#include <string.h>
+ 
+ /* Global library. */
+ 
+diff -dur postfix-2.0.16.orig/src/global/pfixtls.c postfix-2.0.16/src/global/pfixtls.c
+--- postfix-2.0.16.orig/src/global/pfixtls.c	2005-01-08 08:59:26.000000000 +0100
++++ postfix-2.0.16/src/global/pfixtls.c	2005-01-08 09:25:31.374904640 +0100
+@@ -1086,15 +1086,13 @@
+ 	return (ret);
+ 
+     if (cmd == (BIO_CB_READ | BIO_CB_RETURN)) {
+-	msg_info("read from %08X [%08lX] (%d bytes => %ld (0x%X))",
+-		 (unsigned int)bio, (unsigned long)argp, argi,
+-		 ret, (unsigned int)ret);
++	msg_info("read from %p [%p (%d bytes => %ld (0x%X))",
++		 bio, argp, argi, ret, (unsigned int)ret);
+ 	pfixtls_dump(argp, (int) ret);
+ 	return (ret);
+     } else if (cmd == (BIO_CB_WRITE | BIO_CB_RETURN)) {
+-	msg_info("write to %08X [%08lX] (%d bytes => %ld (0x%X))",
+-		 (unsigned int)bio, (unsigned long)argp, argi,
+-	 	 ret, (unsigned int)ret);
++	msg_info("write to %p [%p] (%d bytes => %ld (0x%X))",
++		 bio, argp, argi, ret, (unsigned int)ret);
+ 	pfixtls_dump(argp, (int) ret);
+     }
+     return (ret);
+diff -dur postfix-2.0.16.orig/src/smtp/smtp_session.c postfix-2.0.16/src/smtp/smtp_session.c
+--- postfix-2.0.16.orig/src/smtp/smtp_session.c	2005-01-08 08:59:26.000000000 +0100
++++ postfix-2.0.16/src/smtp/smtp_session.c	2005-01-08 09:25:31.374904640 +0100
+@@ -35,12 +35,14 @@
+ /* System library. */
+ 
+ #include <sys_defs.h>
++#include <string.h>
+ 
+ /* Utility library. */
+ 
+ #include <mymalloc.h>
+ #include <vstream.h>
+ #include <stringops.h>
++#include <msg.h>
+ 
+ #include <mail_params.h>
+ #include <maps.h>
+diff -dur postfix-2.0.16.orig/src/tlsmgr/tlsmgr.c postfix-2.0.16/src/tlsmgr/tlsmgr.c
+--- postfix-2.0.16.orig/src/tlsmgr/tlsmgr.c	2005-01-08 08:59:26.000000000 +0100
++++ postfix-2.0.16/src/tlsmgr/tlsmgr.c	2005-01-08 09:25:31.375904488 +0100
+@@ -118,11 +118,6 @@
+ #include <string.h>
+ #include <sys/time.h>			/* gettimeofday, not POSIX */
+ 
+-/* OpenSSL library. */
+-#ifdef USE_SSL
+-#include <openssl/rand.h>		/* For the PRNG */
+-#endif
+-
+ /* Utility library. */
+ 
+ #include <msg.h>
+@@ -144,6 +139,11 @@
+ #include <master_proto.h>
+ #include <mail_server.h>
+ 
++/* OpenSSL library. */
++#ifdef USE_SSL
++#include <openssl/rand.h>		/* For the PRNG */
++#endif
++
+ /* Application-specific. */
+ 
+  /*
+diff -dur postfix-2.0.16.orig/src/util/sdbm.c postfix-2.0.16/src/util/sdbm.c
+--- postfix-2.0.16.orig/src/util/sdbm.c	2005-01-08 08:59:26.000000000 +0100
++++ postfix-2.0.16/src/util/sdbm.c	2005-01-08 09:26:06.995489488 +0100
+@@ -57,6 +57,9 @@
+ #endif
+ 
+ #include <sdbm.h>
++#include <mymalloc.h>
++#include <sys_defs.h>
++#include <msg.h>
+ 
+ /*
+  * useful macros
