@@ -35,7 +35,7 @@ Source3:	%{name}.init
 Source5:	%{name}.sysconfig
 Source6:	%{name}.sasl
 Source7:	ftp://ftp.corpit.ru/pub/postfix/%{name}-dict_cdb-1.1.11-20021104.tar.gz
-# Source8-md5:	5731b5081725f4688dc6fae119d617e4
+# Source7-md5:	5731b5081725f4688dc6fae119d617e4
 # http://www.ipnet6.org/postfix/
 Patch0:		tls+ipv6-1.20-pf-2.0.16.patch
 Patch1:		%{name}-config.patch
