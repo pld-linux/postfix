@@ -14,7 +14,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	1.1.11
-Release:	2
+Release:	6
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -31,6 +31,7 @@ Patch2:		%{name}-conf_msg.patch
 Patch3:		%{name}-ipv6.patch
 Patch4:		%{name}-dynamicmaps.patch
 Patch5:		%{name}-pgsql.patch
+Patch6:		%{name}-master.cf_cyrus.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{!?_without_sasl:BuildRequires:	cyrus-sasl-devel}
@@ -196,6 +197,7 @@ patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 %{!?_without_ipv6:%patch3 -p1 }
 %patch4 -p1
 %patch5 -p1
+%patch6 -p1
 
 %build
 %{__make} -f Makefile.init makefiles
