@@ -907,7 +907,7 @@
 +     */
 +
 +     dict_ldap->server_port = LDAP_PORT;
-+
++     if (msg_verbose)
 +       msg_info("%s: %s server_host URL is %s", myname, ldapsource,
 +                dict_ldap->server_host);
 +#endif
