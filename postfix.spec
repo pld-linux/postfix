@@ -12,6 +12,7 @@
 # _without_sasl		- without SMTP AUTH support
 # _without_ssl		- without SSL/TLS support
 # _with_polish		- with double English+Polish messages
+# _with_cdb		- tinycdb mapfile support
 #
 %define	tls_ver 0.8.13-2.0.6-0.9.7a
 Summary:	Postfix Mail Transport Agent
@@ -23,7 +24,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.0.7
-Release:	0.1
+Release:	0.2
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -34,6 +35,7 @@ Source3:	%{name}.init
 Source5:	%{name}.sysconfig
 Source6:	ftp://ftp.aet.tu-cottbus.de/pub/pfixtls/pfixtls-%{tls_ver}.tar.gz
 Source7:	%{name}.sasl
+%{?_with_cdb:Source8:ftp://ftp.corpit.ru/pub/postfix/postfix-dict_cdb-1.1.11-20021104.tar.gz}
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
@@ -52,6 +54,7 @@ BuildRequires:	grep
 %{!?_without_ssl:BuildRequires:		openssl-devel >= 0.9.7a}
 BuildRequires:	pcre-devel
 %{!?_without_pgsql:BuildRequires:	postgresql-devel}
+%{?_with_cdb:BuildRequires:		tinycdb-devel}
 PreReq:		rc-scripts
 PreReq:		sed
 Requires(pre):	/usr/sbin/useradd
@@ -82,7 +85,7 @@ Requires:	findutils
 Postfix is attempt to provide an alternative to the widely-used
 Sendmail program. Postfix attempts to be fast, easy to administer, and
 hopefully secure, while at the same time being sendmail compatible
-enough to not upset your users. This version has IPv6 support.
+enough to not upset your users. %{!?_without_ipv6:This version has IPv6 support.}
 
 %description -l pt_BR
 O Postfix é uma alternativa para o mundialmente utilizado sendmail. Se
@@ -116,8 +119,8 @@ configurazione di questo programma.
 Postfix jest prób± dostarczenia alternatywnego MTA w stosunku do
 szeroko u¿ywanego sendmaila. Postfix w zamierzeniu ma byæ szybki,
 ³atwy w administrowaniu, bezpieczny oraz ma byæ na tyle kompatybilny z
-sendmailem by nie denerwowaæ Twoich u¿ytkowników. Ta wersja wspiera
-IPv6.
+sendmailem by nie denerwowaæ Twoich u¿ytkowników. %{!?_without_ipv6:Ta wersja wspiera
+IPv6.}
 
 %description -l pt_BR
 O Postfix é uma alternativa para o mundialmente utilizado sendmail. Se
@@ -198,7 +201,7 @@ This package provides support for PostgreSQL maps in Postfix.
 Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 
 %prep
-%setup -q -a6
+%setup -q -a6 -a8
 echo Postfix TLS patch:
 patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 %patch0 -p1
@@ -208,6 +211,7 @@ patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 %patch4 -p1
 %{!?_without_ipv6:%patch5 -p1}
 %{?_with_polish:%patch6 -p1}
+%{?_with_cdb:sh dict_cdb.sh}
 
 %build
 %{__make} -f Makefile.init makefiles
@@ -216,8 +220,8 @@ patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 	%{?_without_ldap:LDAPSO=""} \
 	%{?_without_mysql:MYSQLSO=""} \
 	%{?_without_pgsql:PGSQLSO=""} \
-	CCARGS="%{!?_without_ldap:-DHAS_LDAP} -DHAS_PCRE %{!?_without_sasl:-DUSE_SASL_AUTH -I/usr/include/sasl} %{!?_without_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{!?_without_pgsql:-DHAS_PGSQL -I/usr/include/postgresql} %{!?_without_ssl:-DHAS_SSL -I/usr/include/openssl} -DMAX_DYNAMIC_MAPS" \
-	AUXLIBS="-ldb -lresolv %{!?_without_sasl:-lsasl} %{!?_without_ssl:-lssl -lcrypto}"
+	CCARGS="%{!?_without_ldap:-DHAS_LDAP} -DHAS_PCRE %{!?_without_sasl:-DUSE_SASL_AUTH -I/usr/include/sasl} %{!?_without_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{!?_without_pgsql:-DHAS_PGSQL -I/usr/include/postgresql} %{!?_without_ssl:-DHAS_SSL -I/usr/include/openssl} -DMAX_DYNAMIC_MAPS %{?_with_cdb:-DHAS_CDB -I/usr/include/cdb.h}" \
+	AUXLIBS="-ldb -lresolv %{!?_without_sasl:-lsasl} %{!?_without_ssl:-lssl -lcrypto} %{?_with_cdb:-L/usr/lib/libcdb.a -lcdb}"
 
 %install
 rm -rf $RPM_BUILD_ROOT
