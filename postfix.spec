@@ -253,9 +253,9 @@ install include/*.h $RPM_BUILD_ROOT%{_includedir}/postfix
 (cd man; tar cf - .) | (cd $RPM_BUILD_ROOT%{_mandir}; tar xf -)
 
 install %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/mail/aliases
-install %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.daily/postfix
-install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/postfix
-install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/postfix
+install %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/cron.daily/postfix
+install %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/rc.d/init.d/postfix
+install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/postfix
 install %{SOURCE7} $RPM_BUILD_ROOT%{_sysconfdir}/sasl/smtpd.conf
 install auxiliary/rmail/rmail $RPM_BUILD_ROOT%{_bindir}/rmail
 
@@ -359,10 +359,10 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %attr(755,root,root) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/postfix-script
 %attr(755,root,root) %{_sysconfdir}/mail/post-install
 %{_sysconfdir}/mail/postfix-files
-%attr(740,root,root) /etc/cron.daily/postfix
-%attr(754,root,root) /etc/rc.d/init.d/postfix
-%attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/postfix
-%{!?_without_sasl:%config(noreplace) %verify(not size mtime md5) /etc/sasl/smtpd.conf}
+%attr(740,root,root) %{_sysconfdir}/cron.daily/postfix
+%attr(754,root,root) %{_sysconfdir}/rc.d/init.d/postfix
+%attr(640,root,root) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/sysconfig/postfix
+%{!?_without_sasl:%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/sasl/smtpd.conf}
 %attr(755,root,root) %{_libdir}/libpostfix-*.so.*
 %attr(755,root,root) %{_bindir}/*
 %attr(755,root,root) %{_sbindir}/s*
