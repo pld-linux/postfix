@@ -80,7 +80,7 @@ IPv6%{!?bcond_off_ldap: oraz LDAP}.
 %build
 %{__make} -f Makefile.init makefiles
 %{__make} tidy
-%{__make} DEBUG="" OPT="%{?debug:-O0 -g}%{!?debug:$RPM_OPT_FLAGS}" \
+%{__make} DEBUG="" OPT="%{rpmcflags}" \
 	CCARGS="%{!?bcond_off_ldap:-DHAS_LDAP} %{!?bcond_off_pcre:-DHAS_PCRE} %{!?bcond_off_sasl:-DUSE_SASL_AUTH} %{?bcond_on_mysql:-DHAS_MYSQL -I%{_includedir}/mysql} %{!?bcond_off_ssl:-DHAS_SSL -I%{_includedir}/openssl}" \
 	AUXLIBS="%{!?bcond_off_ldap:-llber -lldap} -lnsl -ldb -lresolv %{!?bcond_off_pcre:-lpcre} %{!?bcond_off_sasl:-lsasl} %{?bcond_on_mysql:-lmysqlclient} %{!?bcond_off_ssl:-lssl -lcrypto}"
 
