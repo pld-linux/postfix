@@ -232,7 +232,8 @@ patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT%{_sysconfdir}/{mail,cron.daily,rc.d/init.d,sasl,sysconfig} \
+install -d $RPM_BUILD_ROOT/etc/{cron.daily,rc.d/init.d,sysconfig} \
+	$RPM_BUILD_ROOT%{_sysconfdir}/{mail,sasl} \
 	$RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,%{_includedir}/postfix,%{_mandir}/man{1,5,8}} \
 	$RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public} \
 	pfixtls
@@ -255,9 +256,9 @@ install include/*.h $RPM_BUILD_ROOT%{_includedir}/postfix
 (cd man; tar cf - .) | (cd $RPM_BUILD_ROOT%{_mandir}; tar xf -)
 
 install %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/mail/aliases
-install %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/cron.daily/postfix
-install %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/rc.d/init.d/postfix
-install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/postfix
+install %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.daily/postfix
+install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/postfix
+install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/postfix
 install %{SOURCE7} $RPM_BUILD_ROOT%{_sysconfdir}/sasl/smtpd.conf
 install auxiliary/rmail/rmail $RPM_BUILD_ROOT%{_bindir}/rmail
 
@@ -361,9 +362,9 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %attr(755,root,root) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/postfix-script
 %attr(755,root,root) %{_sysconfdir}/mail/post-install
 %{_sysconfdir}/mail/postfix-files
-%attr(740,root,root) %{_sysconfdir}/cron.daily/postfix
-%attr(754,root,root) %{_sysconfdir}/rc.d/init.d/postfix
-%attr(640,root,root) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/sysconfig/postfix
+%attr(740,root,root) /etc/cron.daily/postfix
+%attr(754,root,root) /etc/rc.d/init.d/postfix
+%attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/postfix
 %{!?_without_sasl:%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/sasl/smtpd.conf}
 %attr(755,root,root) %{_libdir}/libpostfix-*.so.*
 %attr(755,root,root) %{_bindir}/*
