@@ -83,10 +83,10 @@
  	rm -rf printfck
  
  tidy:	clean
-@@ -389,6 +397,8 @@
- deliver_request.o: mail_open_ok.h
- deliver_request.o: recipient_list.h
- deliver_request.o: deliver_request.h
+@@ -508,6 +516,8 @@
+ dict_proxy.o: mail_params.h
+ dict_proxy.o: clnt_stream.h
+ dict_proxy.o: dict_proxy.h
 +dict_ldap.o: dict_ldap.c
 +dict_ldap.o: ../../include/sys_defs.h
  domain_list.o: domain_list.c
@@ -110,15 +110,15 @@
  /* mail_conf_eval - expand macros in string */
 --- postfix-1.1.3.orig/src/global/mail_params.c
 +++ postfix-1.1.3/src/global/mail_params.c
-@@ -122,6 +122,8 @@
- #include <valid_hostname.h>
- #include <stringops.h>
- #include <safe.h>
+@@ -148,6 +148,8 @@
+ #ifdef HAS_DB
+ #include <dict_db.h>
+ #endif
 +#include <safe_open.h>
 +#include <mymalloc.h>
- 
+
  /* Global library. */
- 
+
 @@ -204,6 +206,7 @@
  char   *var_debug_peer_list;
  int     var_debug_peer_level;
@@ -216,8 +216,8 @@
  	unix_connect.c unix_listen.c unix_trigger.c unsafe.c username.c \
  	valid_hostname.c vbuf.c vbuf_print.c vstream.c vstream_popen.c \
  	vstring.c vstring_vstream.c watchdog.c writable.c write_buf.c \
--	write_wait.c strcasecmp.c dict_sdbm.c sdbm.c
-+	write_wait.c strcasecmp.c dict_sdbm.c sdbm.c load_lib.c
+-	write_wait.c strcasecmp.c nvtable.c host_port.c dict_sdbm.c sdbm.c
++	write_wait.c strcasecmp.c nvtable.c host_port.c dict_sdbm.c sdbm.c load_lib.c
  OBJS	= alldig.o argv.o argv_split.o attr_print0.o attr_print64.o \
  	attr_scan0.o attr_scan64.o base64_code.o basename.o binhash.o \
  	chroot_uid.o clean_env.o close_on_exec.o concatenate.o ctable.o \
@@ -233,8 +233,8 @@
  	unix_connect.o unix_listen.o unix_trigger.o unsafe.o username.o \
  	valid_hostname.o vbuf.o vbuf_print.o vstream.o vstream_popen.o \
  	vstring.o vstring_vstream.o watchdog.o writable.o write_buf.o \
--	write_wait.o $(STRCASE) dict_sdbm.o sdbm.o
-+	write_wait.o $(STRCASE) dict_sdbm.o sdbm.o load_lib.o
+-	write_wait.o nvtable.o $(STRCASE) host_port.o dict_sdbm.o sdbm.o
++	write_wait.o nvtable.o $(STRCASE) host_port.o dict_sdbm.o sdbm.o load_lib.o
  HDRS	= argv.h attr.h base64_code.h binhash.h chroot_uid.h clean_env.h \
  	connect.h ctable.h dict.h dict_db.h dict_dbm.h dict_env.h \
  	dict_ht.h dict_ldap.h dict_mysql.h dict_ni.h dict_nis.h \
@@ -244,10 +244,10 @@
  	timed_wait.h trigger.h username.h valid_hostname.h vbuf.h \
 -	vbuf_print.h vstream.h vstring.h vstring_vstream.h watchdog.h \
 +	vbuf_print.h vstream.h vstring.h vstring_vstream.h watchdog.h load_lib.h \
- 	dict_sdbm.h sdbm.h
+ 	nvtable.h host_port.h dict_sdbm.h sdbm.h
  TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
  	stream_test.c dup2_pass_on_exec.c
-@@ -81,6 +81,8 @@
+@@ -82,6 +82,8 @@
  CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
  FILES	= Makefile $(SRCS) $(HDRS)
  INCL	=
@@ -256,7 +256,7 @@
  LIB	= libutil.a
  TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
  	fifo_rdonly_bug fifo_rdwr_bug fifo_trigger fsspace fullname \
-@@ -93,8 +95,9 @@
+@@ -94,8 +96,9 @@
  
  LIB_DIR	= ../../lib
  INC_DIR	= ../../include
@@ -267,7 +267,7 @@
  
  all: $(LIB)
  
-@@ -103,15 +106,25 @@
+@@ -104,15 +107,25 @@
  
  test:	$(TESTPROG)
  
@@ -297,7 +297,7 @@
  	-for i in $(HDRS); \
  	do \
  	  cmp -s $$i $(INC_DIR)/$$i 2>/dev/null || cp $$i $(INC_DIR); \
-@@ -133,7 +146,8 @@
+@@ -134,7 +147,8 @@
  	lint $(SRCS)
  
  clean:
@@ -675,35 +675,35 @@
 +#endif
 --- postfix-1.1.3.orig/src/util/sys_defs.h
 +++ postfix-1.1.3/src/util/sys_defs.h
-@@ -494,6 +494,7 @@
+@@ -498,6 +498,7 @@
  #define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT
  #define PREPEND_PLUS_TO_OPTSTRING
  #define HAS_POSIX_REGEXP
 +#define HAS_DLOPEN
- #define DEF_SENDMAIL_PATH "/usr/sbin/sendmail"
- #define DEF_MAILQ_PATH	"/usr/bin/mailq"
- #define DEF_NEWALIAS_PATH "/usr/bin/newaliases"
-@@ -532,6 +533,7 @@
- #define USE_STATFS
- #define STATFS_IN_SYS_VFS_H
+ #define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
+ #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
+ #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
+@@ -526,6 +527,7 @@
+ #define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT	/* unverified */
+ #define PREPEND_PLUS_TO_OPTSTRING
  #define HAS_POSIX_REGEXP
 +#define HAS_DLOPEN
- #define DEF_SENDMAIL_PATH "/usr/sbin/sendmail"
- #define DEF_MAILQ_PATH	"/usr/bin/mailq"
- #define DEF_NEWALIAS_PATH "/usr/bin/newaliases"
-@@ -567,6 +569,7 @@
+ #define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
+ #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
+ #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
+@@ -564,6 +566,7 @@
  #define USE_STATFS
  #define STATFS_IN_SYS_VFS_H
  #define HAS_POSIX_REGEXP
 +#define HAS_SHL_LOAD
- #define DEF_SENDMAIL_PATH "/usr/sbin/sendmail"
- #define DEF_MAILQ_PATH	"/usr/bin/mailq"
- #define DEF_NEWALIAS_PATH "/usr/bin/newaliases"
-@@ -604,6 +607,7 @@
+ #define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
+ #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
+ #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
+@@ -599,6 +602,7 @@
  #define USE_STATFS
  #define STATFS_IN_SYS_VFS_H
  #define HAS_POSIX_REGEXP
 +#define HAS_SHL_LOAD
- #define DEF_SENDMAIL_PATH "/usr/bin/sendmail"
- #define DEF_MAILQ_PATH	"/usr/bin/mailq"
- #define DEF_NEWALIAS_PATH "/usr/bin/newaliases"
+ #define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
+ #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
+ #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"

@@ -50,70 +50,37 @@ diff -Nur postfix-1.1.2.orig/makedefs postfix-1.1.2/makedefs
  export SYSTYPE AR ARFL RANLIB SYSLIBS CC OPT DEBUG AWK OPTS
  
  sed 's/  / /g' <<EOF
-diff -Nur postfix-1.1.2.orig/src/dns/dns_lookup.c postfix-1.1.2/src/dns/dns_lookup.c
---- postfix-1.1.2.orig/src/dns/dns_lookup.c	Sun Feb  4 19:16:20 2001
-+++ postfix-1.1.2/src/dns/dns_lookup.c	Mon Jan 28 12:40:04 2002
-@@ -132,6 +132,9 @@
- } DNS_REPLY;
- 
- #define INET_ADDR_LEN	4		/* XXX */
-+#ifdef INET6
-+#define INET6_ADDR_LEN	16
-+#endif
- 
- /* dns_query - query name server and pre-parse the reply */
- 
-@@ -337,6 +340,19 @@
- 	memcpy(temp, pos, fixed->length);
- 	data_len = fixed->length;
- 	break;
-+#ifdef INET6
-+    case T_AAAA:
-+	if (fixed->length != INET6_ADDR_LEN) {
-+	    msg_warn("extract_answer: bad IPv6 address length: %d", fixed->length);
-+	    return (0);
-+	}
-+	if (fixed->length > sizeof(temp))
-+	    msg_panic("dns_get_rr: length %d > DNS_NAME_LEN",
-+		      fixed->length);
-+	memcpy(temp, pos, fixed->length);
-+	data_len = fixed->length;
-+	break;
-+#endif
-     case T_TXT:
- 	data_len = MIN2(pos[0] + 1, MIN2(fixed->length + 1, sizeof(temp)));
- 	for (src = pos + 1, dst = (unsigned char *) (temp);
 diff -Nur postfix-1.1.2.orig/src/global/Makefile.in postfix-1.1.2/src/global/Makefile.in
 --- postfix-1.1.2.orig/src/global/Makefile.in	Mon Jan 28 12:38:34 2002
 +++ postfix-1.1.2/src/global/Makefile.in	Mon Jan 28 12:40:04 2002
+diff -Nur postfix-1.1.2.orig/src/global/mynetworks.c postfix-1.1.2/src/global/mynetworks.c
 @@ -19,7 +19,7 @@
  	timed_ipc.c tok822_find.c tok822_node.c tok822_parse.c \
  	tok822_resolve.c tok822_rewrite.c tok822_tree.c xtext.c bounce_log.c \
  	flush_clnt.c mail_conf_time.c mbox_conf.c mbox_open.c abounce.c \
--	verp_sender.c match_parent_style.c pfixtls.c
-+	verp_sender.c match_parent_style.c pfixtls.c wildcard_inet_addr.c
+-	verp_sender.c match_parent_style.c mime_state.c header_token.c \
++	verp_sender.c match_parent_style.c mime_state.c header_token.c wildcard_inet_addr.c\
+ 	strip_addr.c virtual8_maps.c hold_message.c dict_proxy.c mail_dict.c \
+ 	pfixtls.c
  OBJS	= been_here.o bounce.o canon_addr.o cleanup_strerror.o clnt_stream.o \
- 	debug_peer.o debug_process.o defer.o deliver_completed.o \
- 	deliver_flock.o deliver_pass.o deliver_request.o domain_list.o \
-@@ -40,7 +40,7 @@
+@@ -42,7 +42,7 @@
  	timed_ipc.o tok822_find.o tok822_node.o tok822_parse.o \
  	tok822_resolve.o tok822_rewrite.o tok822_tree.o xtext.o bounce_log.o \
  	flush_clnt.o mail_conf_time.o mbox_conf.o mbox_open.o abounce.o \
--	verp_sender.o match_parent_style.o pfixtls.o
-+	verp_sender.o match_parent_style.o pfixtls.o wildcard_inet_addr.o
+-	verp_sender.o match_parent_style.o mime_state.o header_token.o \
++	verp_sender.o match_parent_style.o mime_state.o header_token.o wildcard_inet_addr.o\
+ 	strip_addr.o virtual8_maps.o hold_message.o dict_proxy.o mail_dict.o \
+ 	pfixtls.o
  HDRS	= been_here.h bounce.h canon_addr.h cleanup_user.h clnt_stream.h \
- 	config.h debug_peer.h debug_process.h defer.h deliver_completed.h \
- 	deliver_flock.h deliver_pass.h deliver_request.h domain_list.h \
-@@ -57,7 +57,7 @@
+@@ -61,7 +61,7 @@
  	rewrite_clnt.h sent.h smtp_stream.h split_addr.h string_list.h \
  	sys_exits.h timed_ipc.h tok822.h xtext.h bounce_log.h flush_clnt.h \
  	mbox_conf.h mbox_open.h abounce.h qmqp_proto.h verp_sender.h \
--	match_parent_style.h quote_flags.h pfixtls.h
-+	match_parent_style.h quote_flags.h pfixtls.h wildcard_inet_addr.h
+-	match_parent_style.h quote_flags.h mime_state.h header_token.h \
++	match_parent_style.h quote_flags.h mime_state.h header_token.h wildcard_inet_addr.h\
+ 	lex_822.h strip_addr.h virtual8_maps.h hold_message.h dict_proxy.h \
+ 	mail_dict.h pfixtls.h
  TESTSRC	= rec2stream.c stream2rec.c recdump.c
- WARN	= -W -Wformat -Wimplicit -Wmissing-prototypes \
- 	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
-diff -Nur postfix-1.1.2.orig/src/global/mynetworks.c postfix-1.1.2/src/global/mynetworks.c
 --- postfix-1.1.2.orig/src/global/mynetworks.c	Sun Feb 25 02:46:07 2001
 +++ postfix-1.1.2/src/global/mynetworks.c	Mon Jan 28 12:40:04 2002
 @@ -50,6 +50,11 @@
@@ -429,7 +396,7 @@ diff -Nur postfix-1.1.2.orig/src/global/resolve_local.c postfix-1.1.2/src/global
      int     len;
  
  #define RETURN(x) { myfree(saved_addr); return(x); }
-@@ -111,9 +117,25 @@
+@@ -118,9 +124,25 @@
      if (*dest == '[' && dest[len - 1] == ']') {
  	dest++;
  	dest[len -= 2] = 0;
@@ -449,7 +416,7 @@ diff -Nur postfix-1.1.2.orig/src/global/resolve_local.c postfix-1.1.2/src/global
 +	}
 +#else
  	if ((ipaddr.s_addr = inet_addr(dest)) != INADDR_NONE
- 	    && own_inet_addr(&ipaddr))
+ 	    && (own_inet_addr(&ipaddr) || proxy_inet_addr(&ipaddr)))
  	    RETURN(1);
 +#endif
      }
@@ -907,9 +874,9 @@ diff -Nur postfix-1.1.2.orig/src/smtp/smtp_connect.c postfix-1.1.2/src/smtp/smtp
  #include <timed_connect.h>
 +#include <get_port.h>
  #include <stringops.h>
+ #include <host_port.h>
  
- /* Global library. */
-@@ -133,19 +135,45 @@
+@@ -134,19 +136,45 @@
  				               VSTRING *why)
  {
      char   *myname = "smtp_connect_addr";
@@ -959,7 +926,7 @@ diff -Nur postfix-1.1.2.orig/src/smtp/smtp_connect.c postfix-1.1.2/src/smtp/smtp
  	msg_warn("%s: skip address with length %d", myname, addr->data_len);
  	smtp_errno = SMTP_RETRY;
  	return (0);
-@@ -154,17 +182,39 @@
+@@ -155,17 +183,39 @@
      /*
       * Initialize.
       */
@@ -1005,7 +972,7 @@ diff -Nur postfix-1.1.2.orig/src/smtp/smtp_connect.c postfix-1.1.2/src/smtp/smtp
  	sin.sin_addr.s_addr = inet_addr(var_smtp_bind_addr);
  	if (sin.sin_addr.s_addr == INADDR_NONE)
  	    msg_fatal("%s: bad %s parameter: %s",
-@@ -173,6 +223,25 @@
+@@ -174,6 +224,25 @@
  	    msg_warn("%s: bind %s: %m", myname, inet_ntoa(sin.sin_addr));
  	if (msg_verbose)
  	    msg_info("%s: bind %s", myname, inet_ntoa(sin.sin_addr));
@@ -1031,7 +998,7 @@ diff -Nur postfix-1.1.2.orig/src/smtp/smtp_connect.c postfix-1.1.2/src/smtp/smtp
      }
  
      /*
-@@ -180,8 +249,17 @@
+@@ -181,8 +250,17 @@
       * the mail appears to come from the "right" machine address.
       */
      else if ((addr_list = own_inet_addr_list())->used == 1) {
@@ -1050,7 +1017,7 @@ diff -Nur postfix-1.1.2.orig/src/smtp/smtp_connect.c postfix-1.1.2/src/smtp/smtp
  	if (!IN_CLASSA(inaddr)
  	    || !(((inaddr & IN_CLASSA_NET) >> IN_CLASSA_NSHIFT) == IN_LOOPBACKNET)) {
  	    if (bind(sock, (struct sockaddr *) & sin, sizeof(sin)) < 0)
-@@ -189,30 +267,85 @@
+@@ -190,30 +268,85 @@
  	    if (msg_verbose)
  		msg_info("%s: bind %s", myname, inet_ntoa(sin.sin_addr));
  	}
@@ -1143,7 +1110,7 @@ diff -Nur postfix-1.1.2.orig/src/smtp/smtp_connect.c postfix-1.1.2/src/smtp/smtp
  	smtp_errno = SMTP_RETRY;
  	close(sock);
  	return (0);
-@@ -222,8 +355,8 @@
+@@ -223,8 +356,8 @@
       * Skip this host if it takes no action within some time limit.
       */
      if (read_wait(sock, var_smtp_helo_tmout) < 0) {
@@ -1154,58 +1121,6 @@ diff -Nur postfix-1.1.2.orig/src/smtp/smtp_connect.c postfix-1.1.2/src/smtp/smtp
  	smtp_errno = SMTP_RETRY;
  	close(sock);
  	return (0);
-@@ -234,8 +367,8 @@
-      */
-     stream = vstream_fdopen(sock, O_RDWR);
-     if ((ch = VSTREAM_GETC(stream)) == VSTREAM_EOF) {
--	vstring_sprintf(why, "connect to %s[%s]: server dropped connection",
--			addr->name, inet_ntoa(sin.sin_addr));
-+	vstring_sprintf(why, "connect to %s [%s]: server dropped connection",
-+			addr->name, hbuf);
- 	smtp_errno = SMTP_RETRY;
- 	vstream_fclose(stream);
- 	return (0);
-@@ -247,7 +380,7 @@
-      */
-     if (ch == '4' && var_smtp_skip_4xx_greeting) {
- 	vstring_sprintf(why, "connect to %s[%s]: server refused mail service",
--			addr->name, inet_ntoa(sin.sin_addr));
-+			addr->name, hbuf);
- 	smtp_errno = SMTP_RETRY;
- 	vstream_fclose(stream);
- 	return (0);
-@@ -258,12 +391,12 @@
-      */
-     if (ch == '5' && var_smtp_skip_5xx_greeting) {
- 	vstring_sprintf(why, "connect to %s[%s]: server refused mail service",
--			addr->name, inet_ntoa(sin.sin_addr));
-+			addr->name, hbuf);
- 	smtp_errno = SMTP_RETRY;
- 	vstream_fclose(stream);
- 	return (0);
-     }
--    return (smtp_session_alloc(dest, stream, addr->name, inet_ntoa(sin.sin_addr)));
-+    return (smtp_session_alloc(dest, stream, addr->name, hbuf));
- }
- 
- /* smtp_connect_host - direct connection to host */
-@@ -273,7 +406,7 @@
-     SMTP_SESSION *session = 0;
-     DNS_RR *addr_list;
-     DNS_RR *addr;
--
-+    
-     /*
-      * Try each address in the specified order until we find one that works.
-      * The addresses belong to the same A record, so we have no information
-@@ -380,6 +513,7 @@
- 	    msg_fatal("unknown service: %s/%s", service, protocol);
- 	*portp = sp->s_port;
-     }
-+
-     return (buf);
- }
- 
 diff -Nur postfix-1.1.2.orig/src/smtp/smtp_unalias.c postfix-1.1.2/src/smtp/smtp_unalias.c
 --- postfix-1.1.2.orig/src/smtp/smtp_unalias.c	Thu Sep 28 19:06:09 2000
 +++ postfix-1.1.2/src/smtp/smtp_unalias.c	Mon Jan 28 12:40:04 2002
@@ -1225,32 +1140,6 @@ diff -Nur postfix-1.1.2.orig/src/smtp/smtp_unalias.c postfix-1.1.2/src/smtp/smtp
 diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_check.c postfix-1.1.2/src/smtpd/smtpd_check.c
 --- postfix-1.1.2.orig/src/smtpd/smtpd_check.c	Mon Jan 28 12:38:34 2002
 +++ postfix-1.1.2/src/smtpd/smtpd_check.c	Mon Jan 28 12:40:04 2002
-@@ -940,7 +940,11 @@
- 	msg_info("%s: %s", myname, name);
- 
-     dns_status = dns_lookup_types(name, 0, (DNS_RR **) 0, (VSTRING *) 0,
--				  (VSTRING *) 0, T_A, T_MX, 0);
-+				  (VSTRING *) 0, T_A, T_MX,
-+#ifdef INET6
-+				  T_AAAA,
-+#endif
-+				  0);
-     if (dns_status != DNS_OK)
- 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
- 				   "%d <%s>: %s odrzucony/rejected: Host not found",
-@@ -962,7 +966,11 @@
- 	msg_info("%s: %s", myname, name);
- 
-     dns_status = dns_lookup_types(name, 0, (DNS_RR **) 0, (VSTRING *) 0,
--				  (VSTRING *) 0, T_A, T_MX, 0);
-+				  (VSTRING *) 0, T_A, T_MX,
-+#ifdef INET6
-+				  T_AAAA,
-+#endif
-+				  0);
-     if (dns_status != DNS_OK)
- 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
- 				   "%d <%s>: %s odrzucony/rejected: Domain not found",
 @@ -1187,6 +1195,49 @@
  
  static int has_my_addr(const char *host)
@@ -1339,24 +1228,9 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_check.c postfix-1.1.2/src/smtpd/smt
  	    if ((value = dict_get(dict, addr)) != 0)
  		CHK_ADDR_RETURN(check_table_result(state, table, value, address,
  						   reply_name, reply_class,
-@@ -1881,7 +1933,7 @@
- static int reject_maps_rbl(SMTPD_STATE *state)
- {
-     char   *myname = "reject_maps_rbl";
--    ARGV   *octets = argv_split(state->addr, ".");
-+    ARGV   *octets;
-     VSTRING *query = vstring_alloc(100);
-     char   *saved_domains = mystrdup(var_maps_rbl_domains);
-     char   *bp = saved_domains;
-@@ -1893,17 +1945,29 @@
-     int     dns_status = DNS_FAIL;
-     int     i;
-     int     result;
-+    struct  in_addr a;
-     VSTRING *why;
- 
+@@ -2406,12 +2468,23 @@
      if (msg_verbose)
- 	msg_info("%s: %s", myname, state->addr);
+ 	msg_info("%s: %s %s", myname, reply_class, addr);
  
 -    /*
 -     * IPv4 only for now
@@ -1364,20 +1238,20 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_check.c postfix-1.1.2/src/smtpd/smt
 -#ifdef INET6
 +#ifndef INET6
 +    /* IPv4 only for now */
-     if (inet_pton(AF_INET, state->addr, &a) != 1)
+     if (inet_pton(AF_INET, addr, &a) != 1)
  	return SMTPD_CHECK_DUNNO;
 +    octets = argv_split(state->addr, ".");
 +#else
 +    /* IPv4 and IPv6-mapped IPv4 only for now */
 +    if (inet_pton(AF_INET, state->addr, &a) == 1)
-+        octets = argv_split(state->addr, ".");
++	octets = argv_split(state->addr, ".");
 +    else {
-+      struct in6_addr a6;
-+      if (inet_pton(AF_INET6, state->addr, &a6) != 1)
++	struct in6_addr a6;
++	if (inet_pton(AF_INET6, state->addr, &a6) != 1)
 +	  return SMTPD_CHECK_DUNNO;
-+      if (!IN6_IS_ADDR_V4MAPPED(&a6) || (strrchr(state->addr,':') == NULL))
++	if (!IN6_IS_ADDR_V4MAPPED(&a6) || (strrchr(state->addr,':') == NULL))
 +	  return SMTPD_CHECK_DUNNO;
-+      octets = argv_split(strrchr(state->addr,':')+1, ".");
++	octets = argv_split(strrchr(state->addr,':')+1, ".");
 +    }
  #endif
  
@@ -1423,7 +1297,7 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_peer.c postfix-1.1.2/src/smtpd/smtp
  /* Application-specific. */
  
  #include "smtpd.h"
-@@ -102,16 +106,23 @@
+@@ -102,10 +106,18 @@
  
  void    smtpd_peer_init(SMTPD_STATE *state)
  {
@@ -1444,6 +1318,9 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_peer.c postfix-1.1.2/src/smtpd/smtp
 +    len = sizeof(ss);
  
      /*
+      * Avoid suprious complaints from Purify on Solaris.
+@@ -115,8 +127,7 @@
+     /*
       * Look up the peer address information.
       */
 -    if (getpeername(vstream_fileno(state->client),
@@ -1452,7 +1329,7 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_peer.c postfix-1.1.2/src/smtpd/smtp
  	errno = 0;
      }
  
-@@ -127,18 +138,51 @@
+@@ -132,23 +143,56 @@
      /*
       * Look up and "verify" the client hostname.
       */
@@ -1500,14 +1377,21 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_peer.c postfix-1.1.2/src/smtpd/smtp
 +		state->peer_code = (error == EAI_AGAIN ? 4 : 5);
 +#else
  	    state->peer_code = (h_errno == TRY_AGAIN ? 4 : 5);
--	} else if (!valid_hostname(hp->h_name, DONT_GRIPE)) {
+-	} else if (valid_hostaddr(hp->h_name, DONT_GRIPE)) {
 +#endif
++	} else if (valid_hostaddr(hbuf, DONT_GRIPE)) {
+ 	    msg_warn("numeric result %s in address->name lookup for %s",
+-		     hp->h_name, state->addr);
++		     hp->hbuf, state->addr);
+ 	    state->name = mystrdup("unknown");
+ 	    state->peer_code = 5;
+-	} else if (!valid_hostname(hp->h_name, DONT_GRIPE)) {
 +	} else if (!valid_hostname(hbuf, DONT_GRIPE)) {
  	    state->name = mystrdup("unknown");
  	    state->peer_code = 5;
  	} else {
 -	    state->name = mystrdup(hp->h_name);	/* hp->name is clobbered!! */
-+	    state->name = mystrdup(hbuf);	/* hp->name is clobbered!! */
++	    state->name = mystrdup(hp->hbuf);	/* hp->name is clobbered!! */
  	    state->peer_code = 2;
  
  	    /*
