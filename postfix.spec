@@ -7,12 +7,12 @@
 # --with mysql - build with MySQL support
 # --without ipv6  - build without IPv6 support
 #
-%define	tls_ver 0.7.3-snap20010525-0.9.6a
+%define	tls_ver 0.7.12-snap20011105-0.9.6b
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Serwer SMTP Postfix
 Name:		postfix
-Version:	20010525
-Release:	0.8
+Version:	20011114
+Release:	0.1
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
 Group(pl):	Sieciowe/Serwery
