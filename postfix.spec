@@ -12,7 +12,7 @@ Summary(pl):	Serwer SMTP Postfix
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	1.1.3
-Release:	4
+Release:	5
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -62,6 +62,7 @@ Obsoletes:	sendmail-doc
 Obsoletes:	smail
 Obsoletes:	zmailer
 Requires:	procmail
+Requires:	diffutils
 
 %description
 Postfix is attempt to provide an alternative to the widely-used
