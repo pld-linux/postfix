@@ -22,7 +22,7 @@ Summary(pl):	Serwer SMTP Postfix
 Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
-Version:	2.0.4
+Version:	2.0.5
 Release:	1
 Epoch:		2
 Group:		Networking/Daemons
