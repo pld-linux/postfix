@@ -4,14 +4,14 @@
 # --without ssl  - build without SSL/TLS support
 # --without ipv6 - build without IPv6 support
 #
-%define	tls_ver 0.8.7-1.1.7-0.9.6c
+%define	tls_ver 0.8.10-1.1.10-0.9.6d
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
 Summary(fr):	Agent de transport de courrier Postfix
 Summary(pl):	Serwer SMTP Postfix
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
-Version:	1.1.8
+Version:	1.1.10
 Release:	1
 Epoch:		2
 Group:		Networking/Daemons
