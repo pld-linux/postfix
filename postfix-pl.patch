@@ -66,10 +66,10 @@ diff -Nur postfix-1.1.2.orig/src/bounce/bounce_notify_util.c postfix-1.1.2/src/b
 +			"########################################################################");
 +	post_mail_fputs(bounce, "");
 +	post_mail_fprintf(bounce,
-+			"Twój list nie móg³ byæ dostarczony przez %d godzin.",
++			"Twój list nie móg³ byæ dostarczony przez %.1f godzin.",
 +			  var_delay_warn_time);
 +	post_mail_fprintf(bounce,
-+			  "Bêd± podejmowane próby wys³ania jeszcze przez %d dni.",
++			  "Bêd± podejmowane próby wys³ania jeszcze przez %.1f dni.",
 +			  var_max_queue_time);
 +    }
 +
