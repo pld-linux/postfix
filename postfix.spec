@@ -1,97 +1,97 @@
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
 Name:		postfix
-Version:	19990122-pl01
-Release:	3
+Version:	19990627
+Release:	1
 URL:		http://www.postfix.org/
-Source0:	ftp://postfix.cloud9.net/%{name}-beta-%{version}.tar.gz
+Source0:	ftp://postfix.cloud9.net/snapshot-%{version}.tar.gz
 Source1:	postfix.aliases
 Source2:	postfix.cron
 Source3:	postfix.init
-Source4:	postfix-contrib-beta.tar.gz
-Source5:	postfix-beta-19990122-pl01.tar.gz.sig
-Source6:	postfix-contrib-beta.tar.gz.sig
-Source7:	mail.sh
 Patch0:		postfix-config.patch
-Patch1:		postfix-postconf.diff
+Patch1:		http://www.xaa.iae.nl/~xaa/postfix6/patch.19990714.txt
 Copyright:	Distributable
 Group:		Networking/Daemons
+Group(pl):	Sieciowe/Serwery
 Provides:	smtpdaemon
-Conflicts:	sendmail
-Conflicts:	smail
-Conflicts:	zmailer
-Conflicts:	zmail
-Conflicts:	exim
-Conflicts:	qmail
+BuildPrereq:	openldap-devel
+BuildPrereq:	grep
+Conflicts:	smtpdaemon
 Prereq:		/sbin/chkconfig
+Prereq:		%{_sbindir}/useradd
+Prereq:		%{_sbindir}/groupadd
+Prereq:		%{_sbindir}/userdel
+Prereq:		%{_sbindir}/groupdel
 BuildRoot:	/tmp/%{name}-%{version}-root
 
 %description
 Postfix is attempt to provide an alternative to the widely-used
 Sendmail program. Postfix attempts to be fast, easy to administer,
 and hopefully secure, while at the same time being sendmail
-compatible enough to not upset your users.
+compatible enough to not upset your users. This version have IPv6
+support and LDAP support.
 	 
 %description -l pl
 Postfix jest prób± dostarczenia alternatywnego MTA w stosunku
 do szeroko u¿ywanego sendmaila. Postfix w zamierzeniu ma byæ szybki,
 ³atwy w administrowaniu, bezpieczny oraz ma byæ na tyle kompatybilny
-z sendmailem by nie denerwowaæ Twoich u¿ytkowników.
+z sendmailem by nie denerwowaæ Twoich u¿ytkowników. Ta wersja
+wspiera IPv6 oraz LDAP.
 
 %prep
-%setup -q -n %{name}-beta-%{version}
+%setup -q -n snapshot-%{version}
 %patch0 -p1
 %patch1 -p1
 
 %build
 make -f Makefile.init makefiles
 make tidy
-make DEBUG="" OPT="$RPM_OPT_FLAGS"
+make DEBUG="" OPT="$RPM_OPT_FLAGS" CCARGS="-DHAS_LDAP" \
+     AUXLIBS="-llber -lldap"
 
 %install
+%define _sysconfdir	/etc
 rm -rf $RPM_BUILD_ROOT
-rm -f html/Makefile.in
+rm -f {html,man}/Makefile.in conf/{LICENSE,main.cf.default}
 
-install -d $RPM_BUILD_ROOT/etc/{cron.daily,profile.d,mail,rc.d/init.d} \
-	$RPM_BUILD_ROOT{%{_bindir},%{_libdir}/postfix,%{_mandir}/man{1,5,8},%{_sbindir}} \
-	$RPM_BUILD_ROOT/var/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public}
+install -d $RPM_BUILD_ROOT%{_sysconfdir}/{mail,cron.daily,rc.d/init.d} \
+	   $RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,%{_mandir}/man{1,5,8}} \
+	   $RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public}
 
-install bin/sendmail bin/post* $RPM_BUILD_ROOT/usr/sbin
-install `ls bin/*|egrep -v 'post|fsstone|smtp-|sendmail'` $RPM_BUILD_ROOT/usr/lib/postfix
-install conf/access $RPM_BUILD_ROOT/etc/mail
-install conf/canonical $RPM_BUILD_ROOT/etc/mail
-install conf/main.cf $RPM_BUILD_ROOT/etc/mail
-install conf/master.cf $RPM_BUILD_ROOT/etc/mail
-install conf/postfix-script-nosgid $RPM_BUILD_ROOT/etc/mail/postfix-script
-install conf/relocated $RPM_BUILD_ROOT/etc/mail
-install conf/transport $RPM_BUILD_ROOT/etc/mail
-install conf/virtual $RPM_BUILD_ROOT/etc/mail
-install man/man1/* $RPM_BUILD_ROOT%{_mandir}/man1
-install man/man5/* $RPM_BUILD_ROOT%{_mandir}man5
-install man/man8/* $RPM_BUILD_ROOT%{_mandir}man8
+install -d sample-conf; mv -f conf/sample* sample-conf/ || :
+install bin/*							$RPM_BUILD_ROOT%{_sbindir}
+install libexec/*						$RPM_BUILD_ROOT%{_libdir}/postfix
+install conf/*							$RPM_BUILD_ROOT%{_sysconfdir}/mail
+(cd man; tar cf - .) | (cd $RPM_BUILD_ROOT%{_mandir}; tar xf -)
 
-install -d sample; install conf/sample* sample
+install %{SOURCE1}	$RPM_BUILD_ROOT%{_sysconfdir}/mail/aliases
+install %{SOURCE2}	$RPM_BUILD_ROOT%{_sysconfdir}/cron.daily/postfix
+install %{SOURCE3}	$RPM_BUILD_ROOT%{_sysconfdir}/rc.d/init.d/postfix
 
-install %{SOURCE1} $RPM_BUILD_ROOT/etc/mail/aliases
-install %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.daily/postfix
-install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/postfix
+ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
+ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/newaliases
+ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_libdir}/sendmail
 
-install %{SOURCE7} $RPM_BUILD_ROOT/etc/profile.d
+mv -f	$RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script-sgid \
+	$RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script
 
-ln -sf ../sbin/sendmail $RPM_BUILD_ROOT/usr/bin/mailq
-ln -sf ../sbin/sendmail $RPM_BUILD_ROOT/usr/bin/newaliases
-ln -sf ../sbin/sendmail $RPM_BUILD_ROOT/usr/lib/sendmail
+rm -f	$RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-script-{diff,nosgid}
 
-touch $RPM_BUILD_ROOT/etc/mail/{aliases,access,canonical,relocated,transport,virtual}{,.db}
+touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
+{aliases,access,canonical,relocated,transport,virtual}{,.db}
 
-strip $RPM_BUILD_ROOT/usr/lib/postfix/* || :
-gzip -9nf $RPM_BUILD_ROOT/usr/man/man*/*
-touch $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
+strip		$RPM_BUILD_ROOT{%{_bindir}/*,%{_libdir}/*} || :
+gzip -9nf	$RPM_BUILD_ROOT%{_mandir}/man*/* \
+		LDAP_README HISTORY MYSQL_README UUCP_README
+touch		$RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
 %pre
 if [ -f /var/lock/subsys/postfix ]; then
 	/etc/rc.d/init.d/postfix stop 2> /dev/null
 fi
+%{_sbindir}/groupadd -f -g 62 postfix
+%{_sbindir}/useradd -M -g postfix -d /var/spool/postfix -u 62 -s /bin/false postfix 2> /dev/null
+%{_sbindir}/groupadd -f -g 63 maildrop
 
 %post
 /sbin/chkconfig --add postfix
@@ -100,29 +100,7 @@ if ! grep -q "^hostmaster:" /etc/mail/aliases; then
         echo "Adding Entry for hostmaster in /etc/mail/aliases"
         echo "hostmaster:       root" >>/etc/mail/aliases
 fi
-
-for i in postmaster postoffice MAILER-DAEMON postmast nobody webmaster administrator \
-ftpmaster newsmaster w3cache squid news proxy abuse ircd postfix; do
-        if ! grep -q "^$i:" /etc/mail/aliases; then
-                echo "Adding Entry for $i in /etc/mail/aliases"
-                echo "$i:       hostmaster" >>/etc/mail/aliases
-        fi
-done
 newaliases
-
-echo "
-UWAGA ! Postfix standardowo jest skonfigurowany do dostarczania
-poczty do prywatnych katalogów u¿ytkowników (\$HOME/Mailbox).
-By u¿ytkownicy mogli czytaæ nadchodz±c± pocztê musisz
-w pliku konfiguracyjnym /etc/sysconfig/system umie¶ciæ liniê:
-HOME_MAIL=yes
-Mo¿esz tak¿e uaktywniæ dostarczanie poczty w standardowe miejsce
-(/var/spool/mail/\$USER). By to uczyniæ wyedytuj plik
-/etc/mail/main.cf i zakomentuj liniê:
-home_mailbox = Mailbox
-
-				PLD Team
-"
 
 %preun
 if [ $1 = 0 ]; then
@@ -132,46 +110,51 @@ if [ $1 = 0 ]; then
 	/sbin/chkconfig --del postfix
 fi
 
+%postun
+%{_sbindir}/groupdel maildrop 2> /dev/null
+%{_sbindir}/userdel postfix 2> /dev/null
+%{_sbindir}/groupdel postfix 2> /dev/null
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
-%doc html sample 0README COMPATIBILITY HISTORY LICENSE RELEASE_NOTES TODO
-%config(noreplace) %verify(not size mtime md5) /etc/mail/aliases
-%ghost /etc/mail/aliases.db
-%attr(740,root,root) /etc/cron.daily/postfix
-%dir /etc/mail
-%config(noreplace) %verify(not size mtime md5) /etc/mail/access
-%ghost /etc/mail/access.db
-%config(noreplace) %verify(not size mtime md5) /etc/mail/canonical
-%ghost /etc/mail/canonical.db
-%config(noreplace) %verify(not size mtime md5) /etc/mail/main.cf
-%config(noreplace) %verify(not size mtime md5) /etc/mail/master.cf
-%attr(755,root,root) %config(noreplace) %verify(not size mtime md5) /etc/mail/postfix-script
-%config(noreplace) %verify(not size mtime md5) /etc/mail/relocated
-%ghost /etc/mail/relocated.db
-%config(noreplace) %verify(not size mtime md5) /etc/mail/transport
-%ghost /etc/mail/transport.db
-%config(noreplace) %verify(not size mtime md5) /etc/mail/virtual
-%ghost /etc/mail/virtual.db
-%attr(740,root,root) /etc/rc.d/init.d/postfix
-%attr(755,root,root) /etc/profile.d/mail.sh
-%attr(755,root,root) /usr/bin/*
-%attr(755,root,root) /usr/sbin/*
-%attr(755,root,root) /usr/lib/sendmail
-/usr/man/*/*
-%attr(755,root,root) /usr/lib/postfix
-%attr(755,root,root) %dir /var/spool/postfix
-%dir %attr(700, postfix,root, 700) %dir /var/spool/postfix/active
-%attr(700, postfix,root, 700) %dir /var/spool/postfix/bounce
-%attr(700, postfix,root, 700) %dir /var/spool/postfix/corrupt
-%attr(700, postfix,root, 700) %dir /var/spool/postfix/defer
-%attr(700, postfix,root, 700) %dir /var/spool/postfix/deferred
-%attr(700, postfix,root, 700) %dir /var/spool/postfix/incoming
-%attr(1733,postfix,root,1733) %dir /var/spool/postfix/maildrop
-%attr(755, postfix,root,755) %dir /var/spool/postfix/pid
-%attr(700, postfix,root, 700) %dir /var/spool/postfix/private
-%attr(755, postfix,root,755) %dir /var/spool/postfix/public
-%attr(700, postfix,root, 700) %dir /var/spool/postfix/saved
-%attr(644, postfix,root) /var/spool/postfix/.nofinger
+%doc html {LDAP_README,HISTORY,MYSQL_README,UUCP_README}.gz
+%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/access
+%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/aliases
+%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/canonical
+%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/relocated
+%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/transport
+%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/virtual
+%ghost %{_sysconfdir}/mail/*.db
+%dir %{_sysconfdir}/mail
+%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/main.cf
+%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/master.cf
+%attr(755,root,root) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/postfix-script
+%attr(740,root,root) %{_sysconfdir}/cron.daily/postfix
+%attr(740,root,root) %{_sysconfdir}/rc.d/init.d/postfix
+%attr(755,root,root) %{_bindir}/*
+%attr(755,root,root) %{_sbindir}/s*
+%attr(755,root,root) %{_sbindir}/post*i*
+%attr(755,root,root) %{_sbindir}/postl*
+%attr(755,root,root) %{_sbindir}/postc*
+%attr(755,root,root) %{_sbindir}/postmap
+%attr(755,root,root) %{_sbindir}/postsuper
+%attr(2755,root,maildrop) %{_sbindir}/postdrop
+%attr(755,root,root) %{_libdir}/sendmail
+%attr(644,root,root) %{_mandir}/man*/*
+%attr(755,root,root) %{_libdir}/postfix
+%attr(755,root,root) %dir %{_var}/spool/postfix
+%attr(700, postfix,root) %dir %{_var}/spool/postfix/active
+%attr(700, postfix,root) %dir %{_var}/spool/postfix/bounce
+%attr(700, postfix,root) %dir %{_var}/spool/postfix/corrupt
+%attr(700, postfix,root) %dir %{_var}/spool/postfix/defer
+%attr(700, postfix,root) %dir %{_var}/spool/postfix/deferred
+%attr(700, postfix,root) %dir %{_var}/spool/postfix/incoming
+%attr(1730,postfix,maildrop) %dir %{_var}/spool/postfix/maildrop
+%attr(755, postfix,root) %dir %{_var}/spool/postfix/pid
+%attr(700, postfix,root) %dir %{_var}/spool/postfix/private
+%attr(755, postfix,root) %dir %{_var}/spool/postfix/public
+%attr(700, postfix,root) %dir %{_var}/spool/postfix/saved
+%attr(644, postfix,root) %{_var}/spool/postfix/.nofinger
