@@ -23,6 +23,7 @@ Source2:	%{name}.cron
 Source3:	%{name}.init
 Source5:	%{name}.sysconfig
 Source6:	ftp://ftp.aet.tu-cottbus.de/pub/pfixtls/pfixtls-%{tls_ver}.tar.gz
+Source7:	%{name}.sasl
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-pl.patch
 # ftp://ftp.aet.tu-cottbus.de/pub/pfixtls
@@ -88,7 +89,8 @@ patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT%{_sysconfdir}/{mail,cron.daily,rc.d/init.d,sysconfig} \
+install -d
+$RPM_BUILD_ROOT%{_sysconfdir}/{mail,cron.daily,rc.d/init.d,sasl,sysconfig} \
 	   $RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,%{_mandir}/man{1,5,8}} \
 	   $RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public} \
 	   pfixtls
@@ -107,6 +109,7 @@ install %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/mail/aliases
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.daily/postfix
 install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/postfix
 install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/postfix
+install %{SOURCE7} $RPM_BUILD_ROOT/etc/sasl/smtpd.conf
 
 ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
 ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/newaliases
@@ -202,9 +205,10 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/main.cf
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/master.cf
 %attr(755,root,root) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/postfix-script
-%attr(740,root,root) /etc//cron.daily/postfix
+%attr(740,root,root) /etc/cron.daily/postfix
 %attr(754,root,root) /etc/rc.d/init.d/postfix
-%attr(640,root,root) %config(noreplace) /etc/sysconfig/postfix
+%attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/postfix
+%{!?_without_sasl:%config(noreplace) %verify(not size mtime md5) /etc/sasl/smtpd.conf}
 %attr(755,root,root) %{_bindir}/*
 %attr(755,root,root) %{_sbindir}/s*
 %attr(755,root,root) %{_sbindir}/post*i*
