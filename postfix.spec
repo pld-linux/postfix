@@ -36,6 +36,7 @@ Source7:	ftp://ftp.corpit.ru/pub/postfix/%{name}-dict_cdb-1.1.11-20021104.tar.gz
 # Source7-md5:	5731b5081725f4688dc6fae119d617e4
 Source8:	http://www.ipnet6.org/postfix/download/tls+ipv6-%{_tls_ipv6_ver}.patch.gz
 # Source8-md5:	5b02ebf2ec104c43f805d2bcb7bb16ef
+Source9:	%{name}.pamd
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
@@ -229,7 +230,7 @@ zcat %{SOURCE8} | patch -p1 -s
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT/etc/{cron.daily,rc.d/init.d,sysconfig} \
+install -d $RPM_BUILD_ROOT/etc/{cron.daily,rc.d/init.d,sysconfig,pam.d} \
 	$RPM_BUILD_ROOT%{_sysconfdir}/{mail,sasl} \
 	$RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,/usr/lib}\
 	$RPM_BUILD_ROOT{%{_includedir}/postfix,%{_mandir}/man{1,5,8}} \
@@ -260,6 +261,7 @@ install %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.daily/postfix
 install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/postfix
 install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/postfix
 install %{SOURCE6} $RPM_BUILD_ROOT%{_sysconfdir}/sasl/smtpd.conf
+install %{SOURCE9} $RPM_BUILD_ROOT/etc/pam.d/smtp
 install auxiliary/rmail/rmail $RPM_BUILD_ROOT%{_bindir}/rmail
 
 ln -sf /usr/sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
@@ -375,6 +377,7 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %attr(740,root,root) /etc/cron.daily/postfix
 %attr(754,root,root) /etc/rc.d/init.d/postfix
 %attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/postfix
+%config(noreplace) %verify(not md5 size mtime) /etc/pam.d/smtp
 %{?with_sasl:%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/sasl/smtpd.conf}
 %attr(755,root,root) %{_libdir}/libpostfix-*.so.*
 %attr(755,root,root) %{_bindir}/*
