@@ -135,7 +135,7 @@ if [ -n "`id -u postfix 2>/dev/null`" ]; then
 		exit 1
 	fi
 else
-	/usr/sbin/useradd -u 62 -r -d /var/spool/postfix -s /bin/false -c "Postfix User" -g postfix postfix 1>&2
+	/usr/sbin/useradd -u 62 -r -m -d /var/spool/postfix -s /bin/false -c "Postfix User" -g postfix postfix 1>&2
 	if [ -f /var/db/passwd.db ]; then
 		/usr/bin/update-db 1>&2
 	fi
