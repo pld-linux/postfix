@@ -40,9 +40,9 @@ Patch3:		%{name}-pgsql.patch
 Patch4:		%{name}-master.cf_cyrus.patch
 Patch5:		%{name}-pl.patch
 Patch6:		%{name}-cdb_man.patch
-Patch7:         %{name}-ns-mx-acl.patch
-Patch8:         %{name}-kill_warnings.patch
-Patch9:         %{name}-ipv6-kill_warnings.patch
+Patch7:		%{name}-ns-mx-acl.patch
+Patch8:		%{name}-kill_warnings.patch
+Patch9:		%{name}-ipv6-kill_warnings.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
@@ -83,7 +83,7 @@ Obsoletes:	smail
 Obsoletes:	smtpdaemon
 Obsoletes:	ssmtp
 Obsoletes:	zmailer
-BuildRoot:      %{tmpdir}/%{name}-%{version}-root-%(id -u -n)
+BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
 Postfix is attempt to provide an alternative to the widely-used
