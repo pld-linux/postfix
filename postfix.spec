@@ -1,5 +1,5 @@
 %define		ver	19991231
-%define		patchl	01
+%define		patchl	02
 %define		pfixtls	0.5.1-19991231-pl01-0.9.4
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
