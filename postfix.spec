@@ -23,7 +23,7 @@ URL:		http://www.postfix.org/
 Provides:	smtpdaemon
 Requires:	rc-scripts
 BuildRequires:	openldap-devel
-BuildRequires:	openssl-devel
+BuildRequires:	openssl-devel >= 0.9.4-2
 BuildRequires:	grep
 Obsoletes:	smtpdaemon
 Obsoletes:	sendmail
@@ -62,7 +62,7 @@ patch -p1 -s <pfixtls-%{pfixtls}/pfixtls.diff
 make -f Makefile.init makefiles
 make tidy
 make DEBUG="" OPT="$RPM_OPT_FLAGS" CCARGS="-DHAS_LDAP -DHAS_SSL" \
-     AUXLIBS="-llber -lldap -lssl -lsslcrypto"
+     AUXLIBS="-llber -lldap -lssl -lcrypto"
 
 %install
 rm -rf $RPM_BUILD_ROOT
