@@ -8,7 +8,7 @@
 # _without_mysql - no MySQL support
 # _without_ldap  - no LDAP support
 #
-%define	tls_ver 0.8.13-2.0.1-0.9.7
+%define	tls_ver 0.8.13-2.0.3-0.9.7
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
 Summary(es):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -17,7 +17,7 @@ Summary(pl):	Serwer SMTP Postfix
 Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
-Version:	2.0.2
+Version:	2.0.3
 Release:	0.1
 Epoch:		2
 Group:		Networking/Daemons
