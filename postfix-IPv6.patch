@@ -1,0 +1,738 @@
+--- postfix-19990906-pl08/global/mynetworks.c.wiget	Fri Dec 11 19:55:22 1998
++++ postfix-19990906-pl08/global/mynetworks.c	Wed Dec  1 13:01:35 1999
+@@ -43,12 +43,20 @@
+ #include <msg.h>
+ #include <vstring.h>
+ #include <inet_addr_list.h>
++#ifdef INET6
++#include <sys/socket.h>
++#include <netinet/in.h>
++#endif
+ 
+ /* Global library. */
+ 
+ #include <own_inet_addr.h>
+ #include <mynetworks.h>
+ 
++#ifdef INET6
++char ntop_buf[INET6_ADDRSTRLEN];
++#endif
++
+ /* mynetworks - return patterns that match my own networks */
+ 
+ const char *mynetworks(void)
+@@ -63,12 +71,24 @@
+ 	struct in_addr net;
+ 	int     shift;
+ 	int     i;
++#ifdef INET6
++	struct sockaddr_storage *sa;
++#endif
+ 
+ 	result = vstring_alloc(20);
+ 	my_addr_list = own_inet_addr_list();
+ 
+ 	for (i = 0; i < my_addr_list->used; i++) {
++#ifdef INET6
++	    if (my_addr_list->addrs[i].__ss_family!=AF_INET) {
++	        vstring_sprintf_append(result, "XAATODOmynetworks ");
++		continue;
++	    }
++	    sa = my_addr_list->addrs+i;
++	    addr = ntohl(((struct sockaddr_in *)sa)->sin_addr.s_addr);
++#else
+ 	    addr = ntohl(my_addr_list->addrs[i].s_addr);
++#endif
+ 	    if (IN_CLASSA(addr)) {
+ 		mask = IN_CLASSA_NET;
+ 		shift = IN_CLASSA_NSHIFT;
+@@ -82,8 +102,15 @@
+ 		mask = IN_CLASSD_NET;
+ 		shift = IN_CLASSD_NSHIFT;
+ 	    } else {
++#ifdef INET6
++		if (inet_ntop(sa->__ss_family, sa, ntop_buf, sizeof(ntop_buf)))
++		    msg_fatal("%s: bad address class: %s", myname, ntop_buf);
++		else
++		    msg_fatal("%s: bad address class: ???", myname);
++#else
+ 		msg_fatal("%s: bad address class: %s",
+ 			  myname, inet_ntoa(my_addr_list->addrs[i]));
++#endif
+ 	    }
+ 	    net.s_addr = htonl(addr & mask);
+ 	    vstring_sprintf_append(result, "%s/%d ",
+--- postfix-19990906-pl08/global/own_inet_addr.c.wiget	Tue Dec 15 01:37:31 1998
++++ postfix-19990906-pl08/global/own_inet_addr.c	Wed Dec  1 13:01:35 1999
+@@ -99,6 +99,23 @@
+ 
+ /* own_inet_addr - is this my own internet address */
+ 
++#ifdef INET6
++int     own_inet_addr(struct sockaddr_storage * addr)
++{
++    int     i;
++
++    if (addr_list.used == 0)
++	own_inet_addr_init(&addr_list);
++
++    for (i = 0; i < addr_list.used; i++)
++	if (addr->__ss_family == addr_list.addrs[i].__ss_family) {
++	    if (!bcmp(addr->__ss_pad1, addr_list.addrs[i].__ss_pad1,
++		      addr->__ss_len))
++	        return (1);
++	}
++    return (0);
++}
++#else
+ int     own_inet_addr(struct in_addr * addr)
+ {
+     int     i;
+@@ -111,6 +128,7 @@
+ 	    return (1);
+     return (0);
+ }
++#endif
+ 
+ /* own_inet_addr_list - return list of addresses */
+ 
+--- postfix-19990906-pl08/global/own_inet_addr.h.wiget	Fri Dec 11 19:55:26 1998
++++ postfix-19990906-pl08/global/own_inet_addr.h	Wed Dec  1 13:01:35 1999
+@@ -15,11 +15,18 @@
+   * System library.
+   */
+ #include <netinet/in.h>
++#ifdef INET6
++#include <sys/socket.h>
++#endif
+ 
+  /*
+   * External interface.
+   */
++#ifdef INET6
++extern int own_inet_addr(struct sockaddr_storage *);
++#else
+ extern int own_inet_addr(struct in_addr *);
++#endif
+ extern struct INET_ADDR_LIST *own_inet_addr_list(void);
+ 
+ /* LICENSE
+--- postfix-19990906-pl08/global/peer_name.c.wiget	Fri Dec 11 19:55:38 1998
++++ postfix-19990906-pl08/global/peer_name.c	Wed Dec  1 13:01:35 1999
+@@ -54,6 +54,11 @@
+ #include <sys/param.h>
+ #include <sys/socket.h>
+ #include <netinet/in.h>
++#ifdef INET6
++#if (! __GLIBC__ >= 2 && __GLIBC_MINOR__ >=1 )
++#include <netinet6/in6.h>
++#endif
++#endif
+ #include <arpa/inet.h>
+ #include <errno.h>
+ #include <netdb.h>
+@@ -69,20 +74,46 @@
+ PEER_NAME *peer_name(int sock)
+ {
+     static PEER_NAME peer;
+-    struct sockaddr_in sin;
+-    SOCKADDR_SIZE len = sizeof(sin);
++    union sockunion {
++	struct {
++	    u_char si_len;
++	    u_char si_family;
++	    u_short si_port;
++	} su_si;
++	struct sockaddr peer_un;
++	struct sockaddr_in peer_un4;
++#ifdef INET6
++	struct sockaddr_in6 peer_un6;
++#endif
++    } p_un;
++#define sin  p_un.peer_un
++#define sin4 p_un.peer_un4
++#ifdef INET6
++#define sin6 p_un.peer_un6
++    char ntop_buf[INET6_ADDRSTRLEN];
++#endif
++    SOCKADDR_SIZE len = sizeof(p_un);
+     struct hostent *hp;
+ 
+-    if (getpeername(sock, (struct sockaddr *) & sin, &len) == 0) {
+-	switch (sin.sin_family) {
++    if (getpeername(sock, (struct sockaddr *)& p_un, &len) == 0) {
++	switch (p_un.peer_un.sa_family) {
+ 	case AF_INET:
+ 	    peer.type = PEER_TYPE_INET;
+-	    hp = gethostbyaddr((char *) &(sin.sin_addr),
+-			       sizeof(sin.sin_addr), AF_INET);
++	    hp = gethostbyaddr((char *) &(sin4.sin_addr),
++			       sizeof(sin4.sin_addr), AF_INET);
+ 	    peer.name = (hp && valid_hostname(hp->h_name) ?
+ 			 hp->h_name : "unknown");
+-	    peer.addr = inet_ntoa(sin.sin_addr);
++	    peer.addr = inet_ntoa(sin4.sin_addr);
+ 	    return (&peer);
++#ifdef INET6
++	case AF_INET6:
++	    peer.type = PEER_TYPE_INET6;
++	    hp = gethostbyaddr((char *) &(sin6.sin6_addr),
++				sizeof(sin6.sin6_addr), AF_INET6);
++	    peer.name = (hp ? hp->h_name : "unknown");
++	    peer.addr = (char *)strdup(inet_ntop(AF_INET6, &sin6.sin6_addr, ntop_buf, sizeof(ntop_buf)));
++	    return (&peer);
++#endif
+ 	case AF_UNSPEC:
+ 	case AF_UNIX:
+ 	    peer.type = PEER_TYPE_LOCAL;
+--- postfix-19990906-pl08/global/peer_name.h.wiget	Fri Dec 11 19:55:32 1998
++++ postfix-19990906-pl08/global/peer_name.h	Wed Dec  1 13:01:35 1999
+@@ -22,6 +22,9 @@
+ #define PEER_TYPE_UNKNOWN	0
+ #define PEER_TYPE_INET		1
+ #define PEER_TYPE_LOCAL		2
++#ifdef INET6
++#define PEER_TYPE_INET6		3
++#endif
+ 
+ extern PEER_NAME *peer_name(int);
+ 
+--- postfix-19990906-pl08/smtpd/smtpd_check.c.wiget	Wed Dec  1 13:01:35 1999
++++ postfix-19990906-pl08/smtpd/smtpd_check.c	Wed Dec  1 13:01:35 1999
+@@ -604,7 +604,11 @@
+ 	msg_info("%s: %s", myname, name);
+ 
+     dns_status = dns_lookup_types(name, 0, (DNS_RR **) 0, (VSTRING *) 0,
+-				  (VSTRING *) 0, T_A, T_MX, 0);
++				  (VSTRING *) 0, T_A, T_MX,
++#ifdef INET6
++				  T_AAAA,
++#endif
++				  0);
+     if (dns_status != DNS_OK)
+ 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
+ 				   "%d <%s>: %s rejected: Host not found",
+@@ -626,7 +630,11 @@
+ 	msg_info("%s: %s", myname, name);
+ 
+     dns_status = dns_lookup_types(name, 0, (DNS_RR **) 0, (VSTRING *) 0,
+-				  (VSTRING *) 0, T_A, T_MX, 0);
++				  (VSTRING *) 0, T_A, T_MX,
++#ifdef INET6
++				  T_AAAA,
++#endif
++				  0);
+     if (dns_status != DNS_OK)
+ 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
+ 				   "%d <%s>: %s rejected: Domain not found",
+--- postfix-19990906-pl08/util/inet_addr_list.c.wiget	Fri Dec 11 19:55:36 1998
++++ postfix-19990906-pl08/util/inet_addr_list.c	Wed Dec  1 13:01:35 1999
+@@ -44,24 +44,58 @@
+ #include <netinet/in.h>
+ #include <arpa/inet.h>
+ 
++#ifdef INET6
++#include <sys/socket.h>
++#endif
++
+ /* Utility library. */
+ 
+ #include <msg.h>
+ #include <mymalloc.h>
+ #include <inet_addr_list.h>
+ 
++#ifdef INET6
++    char ntop_buf[INET6_ADDRSTRLEN];
++#endif
++
+ /* inet_addr_list_init - initialize internet address list */
+ 
+ void    inet_addr_list_init(INET_ADDR_LIST *list)
+ {
+     list->used = 0;
+     list->size = 2;
++#ifdef INET6
++    list->addrs = (struct sockaddr_storage *)
++#else
+     list->addrs = (struct in_addr *)
++#endif
+ 	mymalloc(sizeof(*list->addrs) * list->size);
+ }
+ 
+ /* inet_addr_list_append - append address to internet address list */
+ 
++#ifdef INET6
++void    inet_addr_list_append(INET_ADDR_LIST *list, 
++                              struct sockaddr_storage * addr)
++{
++    char   *myname = "inet_addr_list_append";
++
++    if (msg_verbose > 1) {
++        if (inet_ntop(addr->__ss_family,(struct sockaddr *)addr, 
++		      ntop_buf, sizeof(ntop_buf)))
++	    msg_info("%s: %s", myname, ntop_buf);
++	else
++	    msg_info("%s: ??????", myname);
++    }
++
++    if (list->used >= list->size)
++	list->size *= 2;
++    list->addrs = (struct sockaddr_storage *)
++	myrealloc((char *) list->addrs,
++		  sizeof(*list->addrs) * list->size);
++    list->addrs[list->used++] = *addr;
++}
++#else
+ void    inet_addr_list_append(INET_ADDR_LIST *list, struct in_addr * addr)
+ {
+     char   *myname = "inet_addr_list_append";
+@@ -76,6 +110,7 @@
+ 		  sizeof(*list->addrs) * list->size);
+     list->addrs[list->used++] = *addr;
+ }
++#endif
+ 
+ /* inet_addr_list_free - destroy internet address list */
+ 
+--- postfix-19990906-pl08/util/inet_addr_list.h.wiget	Fri Dec 11 19:55:35 1998
++++ postfix-19990906-pl08/util/inet_addr_list.h	Wed Dec  1 13:01:35 1999
+@@ -22,12 +22,20 @@
+ typedef struct INET_ADDR_LIST {
+     int     used;			/* nr of elements in use */
+     int     size;			/* actual list size */
++#ifdef INET6
++    struct sockaddr_storage *addrs;	/* payload */
++#else
+     struct in_addr *addrs;		/* payload */
++#endif
+ } INET_ADDR_LIST;
+ 
+ extern void inet_addr_list_init(INET_ADDR_LIST *);
+ extern void inet_addr_list_free(INET_ADDR_LIST *);
++#ifdef INET6
++extern void inet_addr_list_append(INET_ADDR_LIST *, struct sockaddr_storage *);
++#else
+ extern void inet_addr_list_append(INET_ADDR_LIST *, struct in_addr *);
++#endif
+ 
+ /* LICENSE
+ /* .ad
+--- postfix-19990906-pl08/util/inet_addr_local.c.wiget	Fri Nov  5 15:05:26 1999
++++ postfix-19990906-pl08/util/inet_addr_local.c	Wed Dec  1 13:01:35 1999
+@@ -138,6 +138,9 @@
+ {
+     INET_ADDR_LIST addr_list;
+     int     i;
++#ifdef INET6
++    char buf[INET6_ADDRSTRLEN];
++#endif
+ 
+     msg_vstream_init(argv[0], VSTREAM_ERR);
+ 
+@@ -151,7 +154,11 @@
+ 	msg_warn("found only one active network interface");
+ 
+     for (i = 0; i < addr_list.used; i++)
++#ifdef #INET6
++	vstream_printf("%s\n", net_ntop(AF_INET, addr_list.addrs[i]));
++#else
+ 	vstream_printf("%s\n", inet_ntoa(addr_list.addrs[i]));
++#endif
+     vstream_fflush(VSTREAM_OUT);
+     inet_addr_list_free(&addr_list);
+ }
+--- postfix-19990906-pl08/util/inet_listen.c.wiget	Mon Mar 22 02:26:26 1999
++++ postfix-19990906-pl08/util/inet_listen.c	Wed Dec  1 13:01:35 1999
+@@ -51,6 +51,11 @@
+ #include <sys_defs.h>
+ #include <sys/socket.h>
+ #include <netinet/in.h>
++#ifdef INET6
++#if (! __GLIBC__ >= 2 && __GLIBC_MINOR__ >=1 )
++#include <netinet6/in6.h>
++#endif
++#endif
+ #include <arpa/inet.h>
+ #include <netdb.h>
+ #ifndef MAXHOSTNAMELEN
+@@ -79,7 +84,13 @@
+ 
+ int     inet_listen(const char *addr, int backlog, int block_mode)
+ {
++#ifdef INET6
++    struct sockaddr_in6 sin;
++    struct addrinfo *ai,hints;
++    int res;
++#else
+     struct sockaddr_in sin;
++#endif
+     int     sock;
+     int     t = 1;
+     char   *buf;
+@@ -90,22 +101,55 @@
+      * Translate address information to internal form.
+      */
+     buf = inet_parse(addr, &host, &port);
++#ifdef INET6
++    bzero((void *)&hints, sizeof(hints));
++    hints.ai_flags = AI_PASSIVE;
++    hints.ai_family = PF_INET6;
++    hints.ai_socktype = SOCK_STREAM;
++    if (res = getaddrinfo(NULL, "smtp", &hints, &ai)) {
++	msg_fatal("Error getaddrinfo: %s", gai_strerror(res));
++    }
++/*
++    sin.sin6_family = AF_INET6;
++    sin.sin6_port = find_inet_port(port, "tcp");
++    XAA:not yet....
++    sin.sin6_addr.s6_addr = (*host ? find_inet_addr(host) : in6addr_any);
++    sin.sin6_addr = in6addr_any;
++*/
++#else
+     memset((char *) &sin, 0, sizeof(sin));
+     sin.sin_family = AF_INET;
+     sin.sin_port = find_inet_port(port, "tcp");
+     sin.sin_addr.s_addr = (*host ? find_inet_addr(host) : INADDR_ANY);
++#endif
+     myfree(buf);
+ 
+     /*
+      * Create a listener socket.
+      */
++#ifdef INET6
++    if ((sock = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
++#else
+     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
++#endif
+ 	msg_fatal("socket: %m");
+     if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *) &t, sizeof(t)) < 0)
+ 	msg_fatal("setsockopt: %m");
++#ifdef INET6
++    if (bind(sock, (struct sockaddr *) ai->ai_addr, ai->ai_addrlen) < 0)
++    /* not yet XAA
++	msg_fatal("bind %s port %d: %m", ai->ai_flags&AI_PASSIVE ?
++	       "IN6ADDR_ANY" : ai->ai_canonname, 
++	       ntohs(((struct sockaddr *)ai->ai_addr)->sin_port));
++    */
++	msg_fatal("bind %s: %m", ai->ai_flags&AI_PASSIVE ?
++	       "IN6ADDR_ANY" : ai->ai_canonname);
++    freeaddrinfo(ai);
++#else
+     if (bind(sock, (struct sockaddr *) & sin, sizeof(sin)) < 0)
+ 	msg_fatal("bind %s port %d: %m", sin.sin_addr.s_addr == INADDR_ANY ?
+ 	       "INADDR_ANY" : inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
++#endif
+     non_blocking(sock, block_mode);
+     if (listen(sock, backlog) < 0)
+ 	msg_fatal("listen: %m");
+--- postfix-19990906-pl08/smtp/smtp_addr.c.wiget	Mon Sep  6 05:11:07 1999
++++ postfix-19990906-pl08/smtp/smtp_addr.c	Wed Dec  1 13:01:35 1999
+@@ -141,6 +141,7 @@
+     /*
+      * Interpret a numerical name as an address.
+      */
++/* XAA TODO: check for numerical ipv6 address? */
+     if (ISDIGIT(host[0]) && (inaddr.s_addr = inet_addr(host)) != INADDR_NONE) {
+ 	memset((char *) &fixed, 0, sizeof(fixed));
+ 	return (dns_rr_append(addr_list,
+@@ -153,6 +154,7 @@
+      */
+     if (var_disable_dns) {
+ 	memset((char *) &fixed, 0, sizeof(fixed));
++/* TODO XAA, rewrite */
+ 	if ((hp = gethostbyname(host)) == 0) {
+ 	    vstring_sprintf(why, "%s: host not found", host);
+ 	    smtp_errno = SMTP_FAIL;
+@@ -176,7 +178,11 @@
+     /*
+      * Append the addresses for this host to the address list.
+      */
++#ifdef INET6
++    switch (dns_lookup_types(host, 0, &addr, (VSTRING *) 0, why, T_A, T_AAAA)) {/* XAA TODO: currently IPv6 and IPv4 are mixed in no order, ok? */
++#else
+     switch (dns_lookup(host, T_A, 0, &addr, (VSTRING *) 0, why)) {
++#endif
+     case DNS_OK:
+ 	for (rr = addr; rr; rr = rr->next)
+ 	    rr->pref = pref;
+@@ -297,6 +303,9 @@
+     INET_ADDR_LIST *self;
+     DNS_RR *addr;
+     int     i;
++#ifdef INET6
++    struct sockaddr_storage *sa;
++#endif
+ 
+     /*
+      * Find the first address that lists any address that this mail system is
+@@ -307,11 +316,30 @@
+     self = own_inet_addr_list();
+     for (addr = addr_list; addr; addr = addr->next) {
+ 	for (i = 0; i < self->used; i++)
++#ifdef INET6
++	    switch(addr->type) {
++		case T_A:
++		    if (self->addrs[i].__ss_family==AF_INET) {
++			if (!bcmp(self->addrs[i].__ss_pad1, addr->data,
++				  sizeof(struct in_addr)))
++			    return(addr);
++		    }
++		    break;
++		case T_AAAA:
++		    if (self->addrs[i].__ss_family==AF_INET6) {
++			if (!bcmp(self->addrs[i].__ss_pad1, addr->data,
++				  sizeof(struct in6_addr)))
++			    return(addr);
++		    }
++		    break;
++	    }
++#else
+ 	    if (INADDRP(addr->data)->s_addr == self->addrs[i].s_addr) {
+ 		if (msg_verbose)
+ 		    msg_info("%s: found at pref %d", myname, addr->pref);
+ 		return (addr);
+ 	    }
++#endif
+     }
+ 
+     /*
+--- postfix-19990906-pl08/smtp/smtp_connect.c.wiget	Wed Dec  1 13:01:35 1999
++++ postfix-19990906-pl08/smtp/smtp_connect.c	Wed Dec  1 13:38:56 1999
+@@ -124,6 +124,10 @@
+ {
+     char   *myname = "smtp_connect_addr";
+     struct sockaddr_in sin;
++#ifdef INET6
++    struct sockaddr_in6 sin6;
++    char ntop_buf[INET6_ADDRSTRLEN];
++#endif
+     int     sock;
+     INET_ADDR_LIST *addr_list;
+     int     conn_stat;
+@@ -135,7 +139,12 @@
+     /*
+      * Sanity checks.
+      */
++#ifdef INET6
++    if (((addr->type==T_A) && (addr->data_len > sizeof(sin.sin_addr))) ||
++	((addr->type==T_AAAA) && (addr->data_len >sizeof(sin6.sin6_addr)))) {
++#else
+     if (addr->data_len > sizeof(sin.sin_addr)) {
++#endif
+ 	msg_warn("%s: skip address with length %d", myname, addr->data_len);
+ 	smtp_errno = SMTP_RETRY;
+ 	return (0);
+@@ -144,11 +153,23 @@
+     /*
+      * Initialize.
+      */
+-    memset((char *) &sin, 0, sizeof(sin));
+-    sin.sin_family = AF_INET;
++    switch(addr->type) {
++	case T_A:
++            memset((char *) &sin, 0, sizeof(sin));
++            sin.sin_family = AF_INET;
++            if ((sock = socket(sin.sin_family, SOCK_STREAM, 0)) < 0)
++	        msg_fatal("%s: socket: %m", myname);
++	    break;
++#ifdef INET6
++ 	case T_AAAA:
++	    memset((char *) &sin6, 0, sizeof(sin6));
++	    sin6.sin6_family = AF_INET6;
++	    if ((sock = socket(sin6.sin6_family, SOCK_STREAM, 0)) < 0)
++	        msg_fatal("%s: socket: %m", myname);
++	    break;
++#endif
++    }
+ 
+-    if ((sock = socket(sin.sin_family, SOCK_STREAM, 0)) < 0)
+-	msg_fatal("%s: socket: %m", myname);
+ 
+     /*
+      * When running as a virtual host, bind to the virtual interface so that
+@@ -171,21 +192,52 @@
+     /*
+      * Connect to the SMTP server.
+      */
+-    sin.sin_port = port;
+-    memcpy((char *) &sin.sin_addr, addr->data, sizeof(sin.sin_addr));
++    switch(addr->type) {
++	case T_A:
++            sin.sin_port = port;
++	    memcpy((char *) &sin.sin_addr, addr->data, sizeof(sin.sin_addr));
++	    break;
++#ifdef INET6
++        case T_AAAA:
++            sin6.sin6_port = port;
++	    memcpy((char *) &sin6.sin6_addr, addr->data, sizeof(sin6.sin6_addr));
++	    break;
++#endif
++    }
+ 
+     if (msg_verbose)
+ 	msg_info("%s: trying: %s/%s port %d...",
+ 		 myname, addr->name, inet_ntoa(sin.sin_addr), ntohs(port));
+     if (var_smtp_conn_tmout > 0) {
+ 	non_blocking(sock, NON_BLOCKING);
+-	conn_stat = timed_connect(sock, (struct sockaddr *) & sin,
+-				  sizeof(sin), var_smtp_conn_tmout);
++	switch(addr->type) {
++	    case T_A:
++	        conn_stat = timed_connect(sock, (struct sockaddr *) & sin,
++				          sizeof(sin), var_smtp_conn_tmout);
++		break;
++#ifdef INET6
++	    case T_AAAA:
++	        conn_stat = timed_connect(sock, (struct sockaddr *) & sin6,
++				          sizeof(sin6), var_smtp_conn_tmout);
++		break;
++#endif
++	}
+ 	saved_errno = errno;
+ 	non_blocking(sock, BLOCKING);
+ 	errno = saved_errno;
+     } else {
+-	conn_stat = connect(sock, (struct sockaddr *) & sin, sizeof(sin));
++	switch (addr->type) {
++	    case T_A:
++	        conn_stat = connect(sock, (struct sockaddr *) & sin, 
++				    sizeof(sin));
++		break;
++#ifdef INET6
++	    case T_AAAA:
++	        conn_stat = connect(sock, (struct sockaddr *) & sin6, 
++				    sizeof(sin6));
++		break;
++#endif
++	}
+     }
+     if (conn_stat < 0) {
+ 	vstring_sprintf(why, "connect to %s: %m", addr->name);
+@@ -227,10 +279,28 @@
+ 	return (0);
+     }
+ #ifdef HAS_SSL
+-    pfixtls_setfd(sock);
++switch (addr->type) {
++	case T_A:
++		pfixtls_setfd(sock);
++		break;
++#ifdef INET6
++/* FIXME no IPv6 support in TLS ? */		
++	case T_AAAA:
++		break;
++#endif	
++}
+ #endif
+     vstream_ungetc(stream, ch);
+-    return (smtp_session_alloc(dest, stream, addr->name, inet_ntoa(sin.sin_addr)));
++    switch(addr->type) {
++	    case T_A:
++		    return (smtp_session_alloc(dest, stream, addr->name,
++					    inet_ntoa(sin.sin_addr)));
++#ifdef INET6		    
++	    case T_AAAA:
++		inet_ntop(AF_INET6, &sin6.sin6_addr, ntop_buf, sizeof(ntop_buf));
++		return (smtp_session_alloc(dest, stream, addr->name,
++					strdup(ntop_buf)));
++#endif		
+ }
+ 
+ /* smtp_connect_host - direct connection to host */
+--- postfix-19990906-pl08/smtp/smtp_unalias.c.wiget	Mon Jan 18 21:11:49 1999
++++ postfix-19990906-pl08/smtp/smtp_unalias.c	Wed Dec  1 13:01:35 1999
+@@ -83,7 +83,11 @@
+     if ((result = htable_find(cache, name)) == 0) {
+ 	fqdn = vstring_alloc(10);
+ 	if (dns_lookup_types(name, smtp_unalias_flags, (DNS_RR **) 0,
+-			     fqdn, (VSTRING *) 0, T_MX, T_A, 0) != DNS_OK)
++			     fqdn, (VSTRING *) 0, T_MX, T_A,
++#ifdef INET6
++			     T_AAAA,
++#endif
++			     0) != DNS_OK)
+ 	    vstring_strcpy(fqdn, name);
+ 	htable_enter(cache, name, result = vstring_export(fqdn));
+     }
+--- postfix-19990906-pl08/dns/dns_lookup.c.wiget	Sun Dec 20 02:38:29 1998
++++ postfix-19990906-pl08/dns/dns_lookup.c	Wed Dec  1 13:01:35 1999
+@@ -129,6 +129,9 @@
+ } DNS_REPLY;
+ 
+ #define INET_ADDR_LEN	4		/* XXX */
++#ifdef INET6
++#define INET6_ADDR_LEN	16
++#endif
+ 
+ /* dns_query - query name server and pre-parse the reply */
+ 
+@@ -285,6 +288,19 @@
+ 	memcpy(temp, pos, fixed->length);
+ 	data_len = fixed->length;
+ 	break;
++#ifdef INET6
++    case T_AAAA:
++	if (fixed->length != INET6_ADDR_LEN) {
++	    msg_warn("extract_answer: bad IPv6 address length: %d", fixed->length);
++	    return (0);
++	}
++	if (fixed->length > sizeof(temp))
++	    msg_panic("dns_get_rr: length %d > DNS_NAME_LEN",
++		      fixed->length);
++	memcpy(temp, pos, fixed->length);
++	data_len = fixed->length;
++	break;
++#endif
+     }
+     return (dns_rr_create(rr_name, fixed, pref, temp, data_len));
+ }
+--- postfix-19990906-pl08/master/master_listen.c.wiget	Mon Mar 22 02:32:59 1999
++++ postfix-19990906-pl08/master/master_listen.c	Wed Dec  1 13:01:35 1999
+@@ -63,6 +63,10 @@
+ 
+ #include "master.h"
+ 
++#ifdef INET6
++char ntop_buf[INET6_ADDRSTRLEN];
++#endif 
++
+ /* master_listen_init - enable connection requests */
+ 
+ void    master_listen_init(MASTER_SERV *serv)
+@@ -113,8 +117,17 @@
+ 	    close_on_exec(serv->listen_fd[0], CLOSE_ON_EXEC);
+ 	} else {				/* virtual */
+ 	    for (n = 0; n < serv->listen_fd_count; n++) {
++#ifdef INET6
++		if (!inet_ntop(serv->addr_list.inet->addrs[n].__ss_family,
++			       serv->addr_list.inet->addrs+n,
++			       ntop_buf, sizeof(ntop_buf))) {
++		    sprintf(ntop_buf, "?????");
++		}
++		end_point = concatenate(ntop_buf, ":", serv->name, (char *) 0);
++#else
+ 		end_point = concatenate(inet_ntoa(serv->addr_list.inet->addrs[n]),
+ 					":", serv->name, (char *) 0);
++#endif
+ 		serv->listen_fd[n]
+ 		    = inet_listen(end_point, serv->max_proc > var_proc_limit ?
+ 			     serv->max_proc : var_proc_limit, NON_BLOCKING);
+--- postfix-19990906-pl08/makedefs.wiget	Tue Aug 31 22:38:12 1999
++++ postfix-19990906-pl08/makedefs	Wed Dec  1 13:01:35 1999
+@@ -72,6 +72,7 @@
+   FreeBSD.2*)	SYSTYPE=FREEBSD2
+ 		;;
+   FreeBSD.3*)	SYSTYPE=FREEBSD3
++		SYSLIBS="-L/usr/local/v6/lib -linet6"
+ 		;;
+   FreeBSD.4*)	SYSTYPE=FREEBSD4
+ 		;;
+@@ -240,7 +241,7 @@
+ ARFL	= $ARFL
+ RANLIB	= $RANLIB
+ SYSLIBS	= $AUXLIBS $SYSLIBS
+-CC	= $CC $CCARGS
++CC	= $CC $CCARGS -DINET6
+ OPT	= $OPT
+ DEBUG	= $DEBUG
+ AWK	= $AWK
