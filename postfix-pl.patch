@@ -238,7 +238,7 @@ diff -Nur postfix-1.1.2.orig/src/global/sys_exits.c postfix-1.1.2/src/global/sys
 diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_check.c postfix-1.1.2/src/smtpd/smtpd_check.c
 --- postfix-1.1.2.orig/src/smtpd/smtpd_check.c	Tue Jan 22 15:52:15 2002
 +++ postfix-1.1.2/src/smtpd/smtpd_check.c	Mon Jan 28 12:35:46 2002
-@@ -834,7 +834,7 @@
+@@ -842,7 +842,7 @@
       */
      if (!valid_hostaddr(test_addr, DONT_GRIPE))
  	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -247,7 +247,7 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_check.c postfix-1.1.2/src/smtpd/smt
  				var_bad_name_code, reply_name, reply_class);
      else
  	stat = SMTPD_CHECK_DUNNO;
-@@ -870,7 +870,7 @@
+@@ -878,7 +878,7 @@
       */
      if (!valid_hostname(test_name, DONT_GRIPE))
  	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -256,7 +256,7 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_check.c postfix-1.1.2/src/smtpd/smt
  				var_bad_name_code, reply_name, reply_class);
      else
  	stat = SMTPD_CHECK_DUNNO;
-@@ -906,7 +906,7 @@
+@@ -914,7 +914,7 @@
       */
      if (!valid_hostname(test_name, DONT_GRIPE) || !strchr(test_name, '.'))
  	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -265,8 +265,8 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_check.c postfix-1.1.2/src/smtpd/smt
  				var_non_fqdn_code, reply_name, reply_class);
      else
  	stat = SMTPD_CHECK_DUNNO;
-@@ -935,7 +935,7 @@
- 				  (VSTRING *) 0, T_A, T_MX, 0);
+@@ -947,7 +947,7 @@
+ 				  0);
      if (dns_status != DNS_OK)
  	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 -				   "%d <%s>: %s rejected: Host not found",
@@ -274,8 +274,8 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_check.c postfix-1.1.2/src/smtpd/smt
  				   dns_status == DNS_NOTFOUND ?
  				   var_unk_name_code : 450,
  				   reply_name, reply_class));
-@@ -957,7 +957,7 @@
- 				  (VSTRING *) 0, T_A, T_MX, 0);
+@@ -973,7 +973,7 @@
+ 				  0);
      if (dns_status != DNS_OK)
  	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 -				   "%d <%s>: %s rejected: Domain not found",
@@ -283,16 +283,17 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_check.c postfix-1.1.2/src/smtpd/smt
  				   dns_status == DNS_NOTFOUND ?
  				   var_unk_addr_code : 450,
  				   reply_name, reply_class));
-@@ -992,7 +992,7 @@
-      * Deny relaying between sites that both are not in relay_domains.
-      */
+@@ -1041,7 +1041,8 @@
+     vstring_strcat(reply_msg, "%d <%s>: %s ");
+     vstring_strcat(reply_msg, var_reject_reply_msg_access_denied);
      return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
--			       "%d <%s>: %s rejected: Relay access denied",
-+			       "%d <%s>: %s odrzucony/rejected: Relay access denied",
- 			       var_relay_code, reply_name, reply_class));
+-			    vstring_export(reply_msg), var_relay_code, reply_name, reply_class));
++			    "%d <%s>: %s odrzucony/rejected: Relay access denied",
++			    var_relay_code, reply_name, reply_class));
  }
  
-@@ -1376,7 +1376,7 @@
+ /* permit_auth_destination - OK for message relaying */
+@@ -1474,7 +1475,7 @@
       */
      if (!*test_dom || !valid_hostname(test_dom, DONT_GRIPE) || !strchr(test_dom, '.'))
  	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -301,7 +302,7 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_check.c postfix-1.1.2/src/smtpd/smt
  				var_non_fqdn_code, reply_name, reply_class);
      else
  	stat = SMTPD_CHECK_DUNNO;
-@@ -1454,7 +1454,7 @@
+@@ -1552,7 +1553,7 @@
       */
      if (strcasecmp(value, "REJECT") == 0)
  	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -310,7 +311,7 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_check.c postfix-1.1.2/src/smtpd/smt
  			     var_access_map_code, reply_name, reply_class));
  
      /*
-@@ -1473,7 +1473,7 @@
+@@ -1571,7 +1572,7 @@
  	while (ISDIGIT(*value) || ISSPACE(*value))
  	    value++;
  	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -319,7 +320,7 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_check.c postfix-1.1.2/src/smtpd/smt
  				   code, reply_name, reply_class, value));
      }
  
-@@ -1903,7 +1903,7 @@
+@@ -2033,7 +2034,7 @@
  	    rbl_fodder = rbl_reason = "";
  	}
  	result = smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -328,7 +329,7 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_check.c postfix-1.1.2/src/smtpd/smt
  				 var_maps_rbl_code, state->addr, rbl_domain,
  				    rbl_fodder, rbl_reason);
  	if (txt_list)
-@@ -2030,7 +2030,7 @@
+@@ -2160,7 +2161,7 @@
  			 cpp[1], PERMIT_ALL);
  	} else if (strcasecmp(name, REJECT_ALL) == 0) {
  	    status = smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -337,7 +338,16 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_check.c postfix-1.1.2/src/smtpd/smt
  				  var_reject_code, reply_name, reply_class);
  	    if (cpp[1] != 0 && state->warn_if_reject == 0)
  		msg_warn("restriction `%s' after `%s' is ignored",
-@@ -2478,7 +2478,7 @@
+@@ -2614,7 +2615,7 @@
+ 	    && NOMATCH(virt_mailbox_maps, CONST_STR(reply->recipient))
+ 	    && NOMATCH(virtual_maps, CONST_STR(reply->recipient))) {
+ 	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
+-				   "%d <%s>: User unknown", 550, recipient);
++ 				   "%d <%s>: Nieznany uzytkownik / User unknown", 550, recipient);
+ 	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
+ 	}
+     }
+@@ -2630,7 +2631,7 @@
  	    && NOMATCH(virt_mailbox_maps, CONST_STR(reply->recipient))
  	    && NOMATCH(virtual_maps, CONST_STR(reply->recipient))) {
  	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
@@ -346,16 +356,7 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_check.c postfix-1.1.2/src/smtpd/smt
  	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
  	}
      }
-@@ -2494,7 +2494,7 @@
- 	    && NOMATCH(virt_mailbox_maps, CONST_STR(reply->recipient))
- 	    && NOMATCH(virtual_maps, CONST_STR(reply->recipient))) {
- 	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
--				   "%d <%s>: User unknown", 550, recipient);
-+				   "%d <%s>: Nieznany uzytkownik / User unknown", 550, recipient);
- 	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
- 	}
-     }
-@@ -2512,7 +2512,7 @@
+@@ -2648,7 +2649,7 @@
  	    && NOMATCH(virtual_maps, CONST_STR(reply->recipient))
  	    && NOMATCH(local_rcpt_maps, CONST_STR(reply->recipient))) {
  	    (void) smtpd_check_reject(state, MAIL_ERROR_BOUNCE,
@@ -364,7 +365,7 @@ diff -Nur postfix-1.1.2.orig/src/smtpd/smtpd_check.c postfix-1.1.2/src/smtpd/smt
  	    SMTPD_CHECK_RCPT_RETURN(STR(error_text));
  	}
      }
-@@ -2546,7 +2546,7 @@
+@@ -2682,7 +2683,7 @@
  
      if (var_message_limit > 0 && size > var_message_limit) {
  	(void) smtpd_check_reject(state, MAIL_ERROR_POLICY,

@@ -1,11 +1,14 @@
 #
 # Conditional build:
-# --without sasl - build without SMTP AUTH support
-# --without ssl  - build without SSL/TLS support
-# --without ipv6 - build without IPv6 support
-# --with polish - build with polish messages support
+# _without_ipv6		- without IPv6 support
+# _without_ldap		- without LDAP map module
+# _without_mysql	- without MySQL map module
+# _without_pgsql	- without PostgreSQL map module
+# _without_sasl		- without SMTP AUTH support
+# _without_ssl		- without SSL/TLS support
+# _with_polish		- with double English+Polish messages
 #
-%define	tls_ver 0.8.11a-1.1.11-0.9.6d
+%define	tls_ver 0.8.12-1.1.12-0.9.6h
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
 Summary(es):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -14,50 +17,54 @@ Summary(pl):	Serwer SMTP Postfix
 Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
-Version:	1.1.11
-Release:	6.1
+Version:	1.1.13
+Release:	1
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
+# Source0-md5:	772f193d768a5e37b60aef37f865589c
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
 Source5:	%{name}.sysconfig
-Source6:	ftp://ftp.aet.tu-cottbus.de/pub/pfixtls/pfixtls-%{tls_ver}.tar.gz
+Source6:	ftp://ftp.aet.tu-cottbus.de/pub/pfixtls/old/pfixtls-%{tls_ver}.tar.gz
+# Source6-md5:	8ca05709d753b4e767c0fc4ba857350f
 Source7:	%{name}.sasl
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
-Patch2:		%{name}-ipv6.patch
-Patch3:		%{name}-dynamicmaps.patch
-Patch4:		%{name}-pgsql.patch
-Patch5:		%{name}-master.cf_cyrus.patch
-%{?_with_polish:Patch6: %{name}-pl.patch}
+Patch2:		%{name}-dynamicmaps.patch
+Patch3:		%{name}-pgsql.patch
+Patch4:		%{name}-master.cf_cyrus.patch
+Patch5:		%{name}-ipv6.patch
+Patch6:		%{name}-pl.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{!?_without_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db3-devel
 BuildRequires:	grep
-%{!?_without_ipv6:BuildRequires:	libinet6 >= 0.20010420-3}
-BuildRequires:	mysql-devel
-BuildRequires:	openldap-devel >= 2.0.0
-%{!?_without_ssl:BuildRequires:	openssl-devel >= 0.9.6a}
+%{!?_without_ipv6:BuildRequires:	libinet6 >= 0.20030228}
+%{!?_without_mysql:BuildRequires:	mysql-devel}
+%{!?_without_ldap:BuildRequires:	openldap-devel >= 2.0.0}
+%{!?_without_ssl:BuildRequires:	openssl-devel >= 0.9.6j}
 BuildRequires:	pcre-devel
-BuildRequires:	postgresql-devel
+%{!?_without_pgsql:BuildRequires:	postgresql-devel}
 PreReq:		rc-scripts
 PreReq:		sed
+Requires(pre):	/bin/id
+Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/useradd
 Requires(pre):	/usr/sbin/groupadd
-Requires(pre):	/usr/bin/getgid
-Requires(pre):	/bin/id
 Requires(post):	/bin/hostname
-Requires(post,postun):/sbin/ldconfig
 Requires(post,preun):/sbin/chkconfig
-Requires(postun):	/usr/sbin/userdel
+Requires(post,postun):/sbin/ldconfig
 Requires(postun):	/usr/sbin/groupdel
-BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
+Requires(postun):	/usr/sbin/userdel
+%{!?_without_ssl:Requires:	openssl >= 0.9.6j}
+Requires:	diffutils
+Requires:	findutils
 Provides:	smtpdaemon
-Obsoletes:	smtpdaemon
+BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 Obsoletes:	exim
 Obsoletes:	masqmail
 Obsoletes:	omta
@@ -66,9 +73,8 @@ Obsoletes:	sendmail
 Obsoletes:	sendmail-cf
 Obsoletes:	sendmail-doc
 Obsoletes:	smail
+Obsoletes:	smtpdaemon
 Obsoletes:	zmailer
-Requires:	diffutils
-Requires:	findutils
 
 %description
 Postfix is attempt to provide an alternative to the widely-used
@@ -195,16 +201,19 @@ Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
 %patch1 -p1
 %patch2 -p1
-%{!?_without_ipv6:%patch3 -p1}
+%patch3 -p1
 %patch4 -p1
-%patch5 -p1
+%{!?_without_ipv6:%patch5 -p1}
 %{?_with_polish:%patch6 -p1}
 
 %build
 %{__make} -f Makefile.init makefiles
 %{__make} tidy
 %{__make} DEBUG="" OPT="%{rpmcflags}" \
-	CCARGS="-DHAS_LDAP -DHAS_PCRE %{!?_without_sasl:-DUSE_SASL_AUTH} -DHAS_MYSQL -DHAS_PGSQL -I%{_includedir}/mysql -I%{_includedir}/postgresql %{!?_without_ssl:-DHAS_SSL -I%{_includedir}/openssl} -DMAX_DYNAMIC_MAPS" \
+	%{?_without_ldap:LDAPSO=""} \
+	%{?_without_mysql:MYSQLSO=""} \
+	%{?_without_pgsql:PGSQLSO=""} \
+	CCARGS="%{!?_without_ldap:-DHAS_LDAP} -DHAS_PCRE %{!?_without_sasl:-DUSE_SASL_AUTH} %{!?_without_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{!?_without_pgsql:-DHAS_PGSQL -I/usr/include/postgresql} %{!?_without_ssl:-DHAS_SSL -I/usr/include/openssl} -DMAX_DYNAMIC_MAPS" \
 	AUXLIBS="-ldb -lresolv %{!?_without_sasl:-lsasl} %{!?_without_ssl:-lssl -lcrypto}"
 
 %install
@@ -238,9 +247,9 @@ install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/postfix
 install %{SOURCE7} $RPM_BUILD_ROOT%{_sysconfdir}/sasl/smtpd.conf
 install auxiliary/rmail/rmail $RPM_BUILD_ROOT%{_bindir}/rmail
 
-ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
-ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/newaliases
-ln -sf ../sbin/sendmail $RPM_BUILD_ROOT%{_libdir}/sendmail
+ln -sf /usr/sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
+ln -sf /usr/sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/newaliases
+ln -sf /usr/sbin/sendmail $RPM_BUILD_ROOT%{_libdir}/sendmail
 
 touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 	{aliases,access,canonical,relocated,transport,virtual}{,.db}
@@ -318,15 +327,15 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 
 %files
 %defattr(644,root,root,755)
-%doc html *README COMPATIBILITY HISTORY LICENSE RELEASE_NOTES
-%doc README_FILES/*README
-%doc sample-conf
+%doc html *README COMPATIBILITY HISTORY LICENSE RELEASE_NOTES README_FILES/*README sample-conf
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/access
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/aliases
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/canonical
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/relocated
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/transport
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/virtual
+%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/pcre_table
+%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/regexp_table
 #%ghost %{_sysconfdir}/mail/*.db
 %dir %{_sysconfdir}/mail
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/dynamicmaps.cf
@@ -375,18 +384,24 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %attr(755,root,root) %{_libdir}/libpostfix-*.so
 %{_includedir}/postfix
 
+%if 0%{!?_without_ldap:1}
 %files dict-ldap
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_ldap.so
+%endif
 
+%if 0%{!?_without_mysql:1}
 %files dict-mysql
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_mysql.so
+%endif
 
 %files dict-pcre
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_pcre.so
 
+%if 0%{!?_without_pgsql:1}
 %files dict-pgsql
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_pgsql.so
+%endif

@@ -1,0 +1,10 @@
+--- ./src/trivial-rewrite/resolve.c.org	Tue Jul 29 12:58:08 2003
++++ ./src/trivial-rewrite/resolve.c	Tue Jul 29 12:59:12 2003
+@@ -148,6 +148,7 @@
+ 	    if (saved_domain)
+ 		tok822_free_tree(saved_domain);
+ 	    saved_domain = domain;
++	    domain = 0;
+ 	}
+ 
+ 	/*
