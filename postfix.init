@@ -19,9 +19,9 @@
 [ -f /etc/sysconfig/postfix ] && . /etc/sysconfig/postfix
 
 # Check that networking is up.
-if [ "${NETWORKING}" = "no" ]; then
-	echo "WARNING: Networking is down. Postfix service can't be runed."
-	exit 1
+if is_no "${NETWORKING}"; then
+        msg_Network_Down Postfix
+        exit 1
 fi
 
 # See how we were called.
@@ -29,34 +29,39 @@ case "$1" in
   start)
 	# Check if the service is already running?
 	if [ ! -f /var/lock/subsys/postfix ]; then
-		show Starting postfix
+		msg_starting Postfix
 		busy
 		newaliases
 		$0 rebuilddb
 		MSG="`/usr/sbin/postfix start 2>&1`"
 		if [ "$?" = "0" ] ; then
 			deltext; ok
+			touch /var/lock/subsys/postfix
 		else
 			deltext; fail
 			echo "$MSG"
 		fi
 	else
-		echo "postfix already is running"
+		msg_Already_Running Postfix
 	fi
-	touch /var/lock/subsys/postfix
 	;;
   stop)
 	# Stop daemons.
-	show "Shutting down postfix"
-	busy
-	MSG="`/usr/sbin/postfix stop 2>&1`"
-	if [ "$?" = "0" ]; then
-		deltext; ok
-	else
-		deltext; fail
-		echo "$MSG"
+        if [ -f /var/lock/subsys/postfix ]; then
+                msg_stopping Postfix
+		busy
+		MSG="`/usr/sbin/postfix stop 2>&1`"
+		if [ "$?" = "0" ]; then
+			deltext; ok
+		else
+			deltext; fail
+			echo "$MSG"
+		fi
+		rm -f /var/lock/subsys/postfix
+        else
+                msg_Not_Running Postfix
+                exit 1
 	fi
-	rm -f /var/lock/subsys/postfix
 	;;
   restart)
 	$0 stop
@@ -67,6 +72,7 @@ case "$1" in
 	;;
   status)
 	status postfix
+	exit $?
 	;;
   rebuilddb)
         for I in access canonical relocated transport virtual; do
@@ -76,8 +82,8 @@ case "$1" in
 	done
   	;;
   *)
-	echo "Usage: $0 {start|stop|status|restart|reload|rebuilddb}"
+	msg_Usage "$0 {start|stop|status|restart|reload|rebuilddb}"
 	exit 1
 esac
 
-exit 0
+exit $RETVAL
