@@ -18,7 +18,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	1.1.12
-Release:	0.2
+Release:	1
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -333,6 +333,8 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/relocated
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/transport
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/virtual
+%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/pcre_table
+%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/regexp_table
 #%ghost %{_sysconfdir}/mail/*.db
 %dir %{_sysconfdir}/mail
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/dynamicmaps.cf
