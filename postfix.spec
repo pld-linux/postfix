@@ -8,7 +8,7 @@
 # _without_mysql - no MySQL support
 # _without_ldap  - no LDAP support
 #
-%define	tls_ver 0.8.12-2.0.0.1-0.9.6h
+%define	tls_ver 0.8.13-2.0.1-0.9.7
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
 Summary(es):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -17,7 +17,7 @@ Summary(pl):	Serwer SMTP Postfix
 Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
-Version:	2.0.0.1
+Version:	2.0.2
 Release:	0.1
 Epoch:		2
 Group:		Networking/Daemons
@@ -36,7 +36,6 @@ Patch3:		%{name}-pgsql.patch
 Patch4:		%{name}-master.cf_cyrus.patch
 Patch5:		%{name}-ipv6.patch
 Patch6:		%{name}-pl.patch
-Patch7:		%{name}-db.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{!?_without_sasl:BuildRequires:	cyrus-sasl-devel}
@@ -195,16 +194,15 @@ Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 
 %prep
 %setup -q -a6
-%patch0 -p1
 echo Postfix TLS patch:
 patch -p1 -s <pfixtls-%{tls_ver}/pfixtls.diff
+%patch0 -p1
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
 %{!?_without_ipv6:%patch5 -p1}
 %{?_with_polish:%patch6 -p1}
-%patch7 -p1
 
 %build
 %{__make} -f Makefile.init makefiles
