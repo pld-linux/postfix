@@ -1,8 +1,8 @@
 Summary:	Postfix Mail Transport Agent
 Summary(pl):	Agent Pocztowy Postfix
 Name:		postfix
-Version:	20000531
-Release:	4
+Version:	20000922
+Release:	1
 Group:		Networking/Daemons
 Group(pl):	Sieciowe/Serwery
 Copyright:	Distributable
@@ -12,7 +12,7 @@ Source2:	%{name}.cron
 Source3:	%{name}.init
 Source5:	%{name}.sysconfig
 Patch0:		%{name}-config.patch
-Patch1:		http://www.misiek.eu.org/ipv6/%{name}-ver20000514-ipv6-20000522.patch.gz
+Patch1:		http://www.misiek.eu.org/ipv6/%{name}-ver20000922-ipv6-20000922.patch.gz
 Patch2:		%{name}-pl.patch
 URL:		http://www.postfix.org/
 Provides:	smtpdaemon
@@ -52,7 +52,7 @@ IPv6%{!?noldap: oraz LDAP} %{?noldap: i nie zawiera wsparcia LDAP}.
 %prep
 %setup -q -n snapshot-%{version}
 %patch0 -p1
-%patch1 -p1
+%patch1 -p1 
 %patch2 -p1
 
 %build

@@ -1,5 +1,5 @@
---- snapshot-20000507/global/mail_params.h.wiget	Mon May  8 01:42:27 2000
-+++ snapshot-20000507/global/mail_params.h	Tue May  9 16:42:16 2000
+--- snapshot-20000507/src/global/mail_params.h.wiget	Mon May  8 01:42:27 2000
++++ snapshot-20000507/src/global/mail_params.h	Tue May  9 16:42:16 2000
 @@ -187,7 +187,7 @@
    */
  #define VAR_CONFIG_DIR		"config_directory"
@@ -9,8 +9,8 @@
  #endif
  extern char *var_config_dir;
  
---- snapshot-20000507/util/sys_defs.h.wiget	Sun May  7 19:30:37 2000
-+++ snapshot-20000507/util/sys_defs.h	Tue May  9 16:42:16 2000
+--- snapshot-20000507/src/util/sys_defs.h.wiget	Sun May  7 19:30:37 2000
++++ snapshot-20000507/src/util/sys_defs.h	Tue May  9 16:42:16 2000
 @@ -358,7 +358,7 @@
  #define HAS_FSYNC
  #define HAS_DB

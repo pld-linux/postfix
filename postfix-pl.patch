@@ -1,5 +1,5 @@
---- postfix-19991231-pl06/global/pipe_command.c.wiget	Fri Nov 19 21:54:37 1999
-+++ postfix-19991231-pl06/global/pipe_command.c	Tue Apr  4 21:11:22 2000
+--- postfix-19991231-pl06/src/global/pipe_command.c.wiget	Fri Nov 19 21:54:37 1999
++++ postfix-19991231-pl06/src/global/pipe_command.c	Tue Apr  4 21:11:22 2000
 @@ -462,9 +462,9 @@
  	if (pipe_command_wait_or_kill(pid, &wait_status, SIGKILL) < 0)
  	    msg_fatal("wait: %m");
@@ -45,8 +45,8 @@
  	    return (PIPE_STAT_DEFER);
  	} else {
  	    return (PIPE_STAT_OK);
---- postfix-19991231-pl06/global/sys_exits.c.wiget	Tue Apr  4 21:11:49 2000
-+++ postfix-19991231-pl06/global/sys_exits.c	Tue Apr  4 21:26:36 2000
+--- postfix-19991231-pl06/src/global/sys_exits.c.wiget	Tue Apr  4 21:11:49 2000
++++ postfix-19991231-pl06/src/global/sys_exits.c	Tue Apr  4 21:26:36 2000
 @@ -60,21 +60,21 @@
  } SYS_EXITS_TABLE;
  
@@ -77,8 +77,8 @@
  };
  
  /* sys_exits_strerror - map exit status to error string */
---- postfix-19991231-pl06/smtpd/smtpd_check.c.wiget	Tue Apr  4 21:11:22 2000
-+++ postfix-19991231-pl06/smtpd/smtpd_check.c	Tue Apr  4 21:11:22 2000
+--- postfix-19991231-pl06/src/smtpd/smtpd_check.c.wiget	Tue Apr  4 21:11:22 2000
++++ postfix-19991231-pl06/src/smtpd/smtpd_check.c	Tue Apr  4 21:11:22 2000
 @@ -638,7 +638,7 @@
       */
      if (!valid_hostaddr(test_addr))
@@ -205,8 +205,8 @@
  	return (STR(error_text));
      }
      fsspace(".", &fsbuf);
---- postfix-19991231-pl06/bounce/bounce_notify_service.c.wiget	Tue Jun  1 15:18:38 1999
-+++ postfix-19991231-pl06/bounce/bounce_notify_service.c	Tue Apr  4 21:11:22 2000
+--- postfix-19991231-pl06/src/bounce/bounce_notify_service.c.wiget	Tue Jun  1 15:18:38 1999
++++ postfix-19991231-pl06/src/bounce/bounce_notify_service.c	Tue Apr  4 21:11:22 2000
 @@ -108,12 +108,12 @@
  	post_mail_fputs(bounce, dest == var_bounce_rcpt
  		     || dest == var_2bounce_rcpt || dest == var_delay_rcpt ?
