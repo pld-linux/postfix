@@ -22,7 +22,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.1.5
-Release:	3
+Release:	1.1
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -51,18 +51,18 @@ Patch9:		%{name}-ipv6-kill_warnings.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
-BuildRequires:	db-devel
+BuildRequires:	db3-devel
 BuildRequires:	grep
 BuildRequires:	libinet6 >= 0.20030228-1
 %{?with_mysql:BuildRequires:	mysql-devel}
-%{?with_ldap:BuildRequires:	openldap-devel >= 2.2.0}
-%{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7d}
+%{?with_ldap:BuildRequires:	openldap-devel >= 2.0.0}
+%{?with_ssl:BuildRequires:	openssl-devel >= 0.9.6m}
 BuildRequires:	pcre-devel
 %{?with_pgsql:BuildRequires:	postgresql-devel}
 %{?with_cdb:BuildRequires:	tinycdb-devel}
 PreReq:		rc-scripts
 PreReq:		sed
-BuildRequires:	rpmbuild(macros) >= 1.159
+BuildRequires:	rpmbuild(macros) >= 1.127
 Requires(post):	/bin/hostname
 Requires(pre):	/bin/id
 Requires(pre):	/usr/bin/getgid
@@ -167,7 +167,7 @@ Summary:	LDAP map support for Postfix
 Summary(pl):	Obs³uga map LDAP dla Postfiksa
 Group:		Networking/Daemons
 Requires:	%{name} = %{epoch}:%{version}-%{release}
-Requires:	openldap >= 2.2.0
+Requires:	openldap >= 2.0.0
 
 %description dict-ldap
 This package provides support for LDAP maps in Postfix.
