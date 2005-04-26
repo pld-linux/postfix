@@ -283,7 +283,7 @@ if [ -n "`/usr/bin/getgid postfix`" ]; then
 		exit 1
 	fi
 else
-	/usr/sbin/groupadd -g 62 -r -f postfix
+	/usr/sbin/groupadd -g 62 postfix
 fi
 if [ -n "`/usr/bin/getgid maildrop`" ]; then
 	if [ "`/usr/bin/getgid maildrop`" != "63" ]; then
