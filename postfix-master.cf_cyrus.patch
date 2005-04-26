@@ -1,7 +1,6 @@
-diff -dur postfix-2.1.3.orig/conf/master.cf postfix-2.1.3/conf/master.cf
---- postfix-2.1.3.orig/conf/master.cf	2004-06-22 14:59:49.976722670 +0200
-+++ postfix-2.1.3/conf/master.cf	2004-06-22 15:03:29.362874731 +0200
-@@ -116,11 +116,11 @@
+--- postfix-2.2.2/conf/master.cf.orig	2005-01-24 20:12:46.000000000 +0100
++++ postfix-2.2.2/conf/master.cf	2005-04-26 11:46:51.000000000 +0200
+@@ -60,11 +60,11 @@
  # The Cyrus deliver program has changed incompatibly, multiple times.
  #
  old-cyrus unix  -       n       n       -       -       pipe
@@ -12,6 +11,6 @@ diff -dur postfix-2.1.3.orig/conf/master.cf postfix-2.1.3/conf/master.cf
  cyrus     unix  -       n       n       -       -       pipe
 -  user=cyrus argv=/cyrus/bin/deliver -e -r ${sender} -m ${extension} ${user}
 +  user=cyrus argv=/usr/lib/cyrus/deliver -e -r ${sender} -m ${extension} ${user}
- uucp      unix  -       n       n       -       -       pipe
-   flags=Fqhu user=uucp argv=uux -r -n -z -a$sender - $nexthop!rmail ($recipient)
- ifmail    unix  -       n       n       -       -       pipe
+ #
+ # See the Postfix UUCP_README file for configuration details.
+ #
