@@ -31,10 +31,10 @@ Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{vers
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
-Source5:	%{name}.sysconfig
-Source6:	%{name}.sasl
-Source9:	%{name}.pamd
-Source10:	http://web.onda.com.br/nadal/postfix/VDA/%{name}-2.1.5-trash.patch.gz
+Source4:	%{name}.sysconfig
+Source5:	%{name}.sasl
+Source6:	%{name}.pamd
+Source7:	http://web.onda.com.br/nadal/postfix/VDA/%{name}-2.1.5-trash.patch.gz
 # Source10-md5:	868209c12cf214566130b9c8b968cfed
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
@@ -209,7 +209,7 @@ Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 
 %prep
 %setup -q
-%{?with_vda:zcat %{SOURCE10} | patch -p1 -s}
+%{?with_vda:zcat %{SOURCE7} | patch -p1 -s}
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
@@ -257,9 +257,9 @@ install include/*.h $RPM_BUILD_ROOT%{_includedir}/postfix
 install %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/mail/aliases
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.daily/postfix
 install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/postfix
-install %{SOURCE5} $RPM_BUILD_ROOT/etc/sysconfig/postfix
-install %{SOURCE6} $RPM_BUILD_ROOT%{_sysconfdir}/sasl/smtpd.conf
-install %{SOURCE9} $RPM_BUILD_ROOT/etc/pam.d/smtp
+install %{SOURCE4} $RPM_BUILD_ROOT/etc/sysconfig/postfix
+install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/sasl/smtpd.conf
+install %{SOURCE6} $RPM_BUILD_ROOT/etc/pam.d/smtp
 install auxiliary/rmail/rmail $RPM_BUILD_ROOT%{_bindir}/rmail
 
 ln -sf /usr/sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
