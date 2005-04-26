@@ -22,7 +22,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.2.2
-Release:	0.1
+Release:	0.2
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -226,7 +226,7 @@ Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 	%{!?with_ldap:LDAPSO=""} \
 	%{!?with_mysql:MYSQLSO=""} \
 	%{!?with_pgsql:PGSQLSO=""} \
-	CCARGS="%{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL -I/usr/include/postgresql} %{?with_ssl:-DHAS_SSL -I/usr/include/openssl} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB} -DHAVE_GETIFADDRS" \
+	CCARGS="%{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL -I/usr/include/postgresql} %{?with_ssl:-DUSE_TLS -I/usr/include/openssl} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB} -DHAVE_GETIFADDRS" \
 	AUXLIBS="-ldb -lresolv %{?with_sasl:-lsasl} %{?with_ssl:-lssl -lcrypto} %{?with_cdb:-lcdb}"
 
 %install
