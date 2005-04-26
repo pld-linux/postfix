@@ -13,7 +13,6 @@
 # TODO:
 #	- check/fix 'polish' bcond
 #
-%define		_tls_ipv6_ver	1.26-pf-2.1.5
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
 Summary(es):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -22,36 +21,28 @@ Summary(pl):	Serwer SMTP Postfix
 Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
-Version:	2.1.5
-Release:	6
+Version:	2.2.2
+Release:	0.1
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	bcaa4aac80595d04c60c72844203a04d
+# Source0-md5:	1f5f54ec8a832af7faaa71607475b19b
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
 Source5:	%{name}.sysconfig
 Source6:	%{name}.sasl
-Source7:	ftp://ftp.corpit.ru/pub/postfix/%{name}-dict_cdb-1.1.11-20021104.tar.gz
-# Source7-md5:	5731b5081725f4688dc6fae119d617e4
-Source8:	ftp://ftp.stack.nl/pub/postfix/tls+ipv6/1.26/tls+ipv6-%{_tls_ipv6_ver}.patch.gz
-# Source8-md5:	3d3bbabe5c17d5d0809c698ad1df1e64
 Source9:	%{name}.pamd
-Source10:	http://web.onda.com.br/nadal/postfix/VDA/%{name}-%{version}-trash.patch.gz
+Source10:	http://web.onda.com.br/nadal/postfix/VDA/%{name}-2.1.5-trash.patch.gz
 # Source10-md5:	868209c12cf214566130b9c8b968cfed
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
-Patch4:		%{name}-master.cf_cyrus.patch
-#Patch5:	%{name}-pl.patch
-Patch6:		%{name}-cdb_man.patch
-Patch8:		%{name}-kill_warnings.patch
-Patch9:		%{name}-ipv6-kill_warnings.patch
-Patch10:	%{name}-getifaddrs.patch
+Patch3:		%{name}-master.cf_cyrus.patch
 # from http://akson.sgh.waw.pl/~chopin/unix/postfix-2.1.5-header_if_reject.diff
-Patch11:	%{name}-header_if_reject.patch
+Patch4:		%{name}-header_if_reject.patch
+#Patch5:	%{name}-pl.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
@@ -217,20 +208,14 @@ This package provides support for PostgreSQL maps in Postfix.
 Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 
 %prep
-%setup -q %{?with_cdb:-a7}
-zcat %{SOURCE8} | patch -p1 -s
+%setup -q
 %{?with_vda:zcat %{SOURCE10} | patch -p1 -s}
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
-%patch4 -p1
+%patch3 -p1
+%{?with_hir:%patch4 -p0}
 #%{?with_polish:%patch5 -p1}
-%{?with_cdb:%patch6 -p1}
-%patch8 -p1
-%patch9 -p1
-%patch10 -p1
-%{?with_hir:%patch11 -p0}
-%{?with_cdb:sh dict_cdb.sh}
 
 %build
 %{__make} -f Makefile.init makefiles
@@ -250,12 +235,9 @@ install -d $RPM_BUILD_ROOT/etc/{cron.daily,rc.d/init.d,sysconfig,pam.d} \
 	$RPM_BUILD_ROOT%{_sysconfdir}/{mail,sasl} \
 	$RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,/usr/lib}\
 	$RPM_BUILD_ROOT{%{_includedir}/postfix,%{_mandir}/man{1,5,8}} \
-	$RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public} \
-	pfixtls
+	$RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public}
 
 rm -f {html,man}/Makefile.in conf/{LICENSE,main.cf.default}
-
-install -d sample-conf; mv -f conf/sample* sample-conf || :
 
 install bin/* $RPM_BUILD_ROOT%{_sbindir}
 install libexec/* $RPM_BUILD_ROOT%{_libdir}/postfix
@@ -368,14 +350,13 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 
 %files
 %defattr(644,root,root,755)
-%doc html *README COMPATIBILITY HISTORY LICENSE RELEASE_NOTES
+%doc html *README COMPATIBILITY HISTORY LICENSE RELEASE_NOTES TLS_*
 %doc README_FILES/*README
-%doc sample-conf
 %doc examples/smtpd-policy
-%doc pfixtls
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/access
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/aliases
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/canonical
+%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/generic
 #%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/pcre_table
 #%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/regexp_table
 %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/relocated
@@ -407,10 +388,12 @@ mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
 %attr(2755,root,maildrop) %{_sbindir}/postqueue
 %attr(755,root,root) %{_sbindir}/postsuper
 %attr(2755,root,maildrop) %{_sbindir}/postdrop
+%attr(755,root,root) %{_sbindir}/qmqp-sink
 %attr(755,root,root) %{_sbindir}/qmqp-source
 %attr(755,root,root) /usr/lib/sendmail
 %dir %{_libdir}/postfix
 %attr(755,root,root) %{_libdir}/postfix/[!d]*
+%attr(755,root,root) %{_libdir}/postfix/discard
 %attr(755,root,root) %dir %{_var}/spool/postfix
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/active
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/bounce
