@@ -341,13 +341,6 @@ if [ "$1" = "0" ]; then
 	%groupremove postfix
 fi
 
-%triggerpostun -- postfix < 1:1.1.2
-umask 022
-sed -e 's/^\(pickup[ 	]\+fifo[ 	]\+[^ 	]\+[ 	]\+\)[^ 	]\+\([ 	]\)/\1-\2/;
-s/^\(cleanup[ 	]\+unix[ 	]\+\)[^ 	]\+\([ 	]\)/\1n\2/' /etc/mail/master.cf \
-	> /etc/mail/master.cf.rpmtmp
-mv -f /etc/mail/master.cf.rpmtmp /etc/mail/master.cf
-
 %files
 %defattr(644,root,root,755)
 %doc html *README COMPATIBILITY HISTORY LICENSE RELEASE_NOTES TLS_*
