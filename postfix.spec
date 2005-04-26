@@ -35,7 +35,7 @@ Source4:	%{name}.sysconfig
 Source5:	%{name}.sasl
 Source6:	%{name}.pamd
 Source7:	http://web.onda.com.br/nadal/postfix/VDA/%{name}-2.1.5-trash.patch.gz
-# Source10-md5:	868209c12cf214566130b9c8b968cfed
+# Source7-md5:	868209c12cf214566130b9c8b968cfed
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
