@@ -55,7 +55,7 @@ BuildRequires:	grep
 %{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7d}
 BuildRequires:	pcre-devel
 %{?with_pgsql:BuildRequires:	postgresql-devel}
-BuildRequires:	rpmbuild(macros) >= 1.159
+BuildRequires:	rpmbuild(macros) >= 1.202
 %{?with_cdb:BuildRequires:	tinycdb-devel}
 PreReq:		rc-scripts
 PreReq:		sed
@@ -277,30 +277,9 @@ rm -rf $RPM_BUILD_ROOT/etc/mail/makedefs.out $RPM_BUILD_ROOT/usr/share/man/cat*
 rm -rf $RPM_BUILD_ROOT
 
 %pre
-if [ -n "`/usr/bin/getgid postfix`" ]; then
-	if [ "`getgid postfix`" != "62" ]; then
-		echo "Error: group postfix doesn't have gid=62. Correct this before installing postfix." 1>&2
-		exit 1
-	fi
-else
-	/usr/sbin/groupadd -g 62 postfix
-fi
-if [ -n "`/usr/bin/getgid maildrop`" ]; then
-	if [ "`/usr/bin/getgid maildrop`" != "63" ]; then
-		echo "Error: group maildrop doesn't have gid=63. Correct this before installing postfix." 1>&2
-		exit 1
-	fi
-else
-	/usr/sbin/groupadd -g 63 maildrop
-fi
-if [ -n "`/bin/id -u postfix 2>/dev/null`" ]; then
-	if [ "`/bin/id -u postfix`" != "62" ]; then
-		echo "Error: user postfix doesn't have uid=62. Correct this before installing postfix." 1>&2
-		exit 1
-	fi
-else
-	/usr/sbin/useradd -u 62 -d /var/spool/postfix -s /bin/false -c "Postfix User" -g postfix postfix 1>&2
-fi
+%groupadd -g 62 postfix
+%groupadd -g 63 maildrop
+%useradd -u 62 -d /var/spool/postfix -s /bin/false -c "Postfix User" -g postfix postfix
 
 %post
 /sbin/ldconfig
@@ -309,7 +288,7 @@ if ! grep -q "^postmaster:" /etc/mail/aliases; then
 	echo "postmaster:	root" >>/etc/mail/aliases
 fi
 if [ "$1" = "1" ]; then
-# only on installation, not upgrade
+	# only on installation, not upgrade
 	if ! grep -q "^myhostname" /etc/mail/main.cf; then
 		postconf -e myhostname=`/bin/hostname -f`
 	fi
