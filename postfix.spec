@@ -23,7 +23,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.1.5
-Release:	5
+Release:	7
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -49,15 +49,16 @@ Patch4:		%{name}-master.cf_cyrus.patch
 Patch6:		%{name}-cdb_man.patch
 Patch8:		%{name}-kill_warnings.patch
 Patch9:		%{name}-ipv6-kill_warnings.patch
+Patch10:	%{name}-getifaddrs.patch
 # from http://akson.sgh.waw.pl/~chopin/unix/postfix-2.1.5-header_if_reject.diff
-Patch10:	%{name}-header_if_reject.patch
+Patch11:	%{name}-header_if_reject.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db-devel
+# getifaddrs() with IPv6 support
+BuildRequires:	glibc-devel >= 6:2.3.4
 BuildRequires:	grep
-# kill for now, is it really necessary ?
-#BuildRequires:	libinet6 >= 0.20030228-1
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.2.0}
 %{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7d}
@@ -65,7 +66,6 @@ BuildRequires:	pcre-devel
 %{?with_pgsql:BuildRequires:	postgresql-devel}
 BuildRequires:	rpmbuild(macros) >= 1.159
 %{?with_cdb:BuildRequires:	tinycdb-devel}
-BuildConflicts:	libinet6
 PreReq:		rc-scripts
 PreReq:		sed
 Requires(post):	/bin/hostname
@@ -228,17 +228,20 @@ zcat %{SOURCE8} | patch -p1 -s
 %{?with_cdb:%patch6 -p1}
 %patch8 -p1
 %patch9 -p1
-%{?with_hir:%patch10 -p0}
+%patch10 -p1
+%{?with_hir:%patch11 -p0}
 %{?with_cdb:sh dict_cdb.sh}
 
 %build
 %{__make} -f Makefile.init makefiles
 %{__make} tidy
-%{__make} DEBUG="" OPT="%{rpmcflags}" \
+%{__make} \
+	DEBUG="" \
+	OPT="%{rpmcflags}" \
 	%{!?with_ldap:LDAPSO=""} \
 	%{!?with_mysql:MYSQLSO=""} \
 	%{!?with_pgsql:PGSQLSO=""} \
-	CCARGS="%{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL -I/usr/include/postgresql} %{?with_ssl:-DHAS_SSL -I/usr/include/openssl} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB}" \
+	CCARGS="%{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL -I/usr/include/postgresql} %{?with_ssl:-DHAS_SSL -I/usr/include/openssl} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB} -DHAVE_GETIFADDRS" \
 	AUXLIBS="-ldb -lresolv %{?with_sasl:-lsasl} %{?with_ssl:-lssl -lcrypto} %{?with_cdb:-lcdb}"
 
 %install
