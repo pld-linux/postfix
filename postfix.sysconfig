@@ -1,4 +1,4 @@
-# Customized settings for postfix
+# Customized setings for postfix
 
 # Define nice level for postfix & config 
 SERVICE_RUN_NICE_LEVEL="+5"
