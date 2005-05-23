@@ -325,29 +325,29 @@ fi
 %doc html *README COMPATIBILITY HISTORY LICENSE RELEASE_NOTES TLS_*
 %doc README_FILES/*README
 %doc examples/smtpd-policy
-%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/access
-%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/aliases
-%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/canonical
-%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/generic
-#%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/pcre_table
-#%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/regexp_table
-%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/relocated
-%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/transport
-%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/virtual
-%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/header_checks
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/access
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/aliases
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/canonical
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/generic
+#%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/pcre_table
+#%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/regexp_table
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/relocated
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/transport
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/virtual
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/header_checks
 #%ghost %{_sysconfdir}/mail/*.db
 %dir %{_sysconfdir}/mail
-%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/dynamicmaps.cf
-%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/main.cf
-%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/master.cf
-%attr(755,root,root) %config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/mail/postfix-script
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/dynamicmaps.cf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/main.cf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/master.cf
+%attr(755,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/postfix-script
 %attr(755,root,root) %{_sysconfdir}/mail/post-install
 %{_sysconfdir}/mail/postfix-files
 %attr(740,root,root) /etc/cron.daily/postfix
 %attr(754,root,root) /etc/rc.d/init.d/postfix
-%attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/postfix
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/postfix
 %config(noreplace) %verify(not md5 size mtime) /etc/pam.d/smtp
-%{?with_sasl:%config(noreplace) %verify(not size mtime md5) %{_sysconfdir}/sasl/smtpd.conf}
+%{?with_sasl:%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/sasl/smtpd.conf}
 %attr(755,root,root) %{_libdir}/libpostfix-*.so.*
 %attr(755,root,root) %{_bindir}/*
 %attr(755,root,root) %{_sbindir}/s*
