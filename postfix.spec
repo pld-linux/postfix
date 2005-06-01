@@ -43,7 +43,7 @@ Patch3:		%{name}-master.cf_cyrus.patch
 # from http://akson.sgh.waw.pl/~chopin/unix/postfix-2.1.5-header_if_reject.diff
 Patch4:		%{name}-header_if_reject.patch
 #Patch5:	%{name}-pl.patch
-Patch6:		%{name}-foreground.patch
+Patch6:		%{name}-setsid.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
