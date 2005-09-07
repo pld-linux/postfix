@@ -22,7 +22,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.2.3
-Release:	2
+Release:	3
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -44,6 +44,7 @@ Patch3:		%{name}-master.cf_cyrus.patch
 Patch4:		%{name}-header_if_reject.patch
 #Patch5:	%{name}-pl.patch
 Patch6:		%{name}-setsid.patch
+Patch7:		%{name}-size-check-before-proxy.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
@@ -218,6 +219,7 @@ Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 %{?with_hir:%patch4 -p0}
 #%{?with_polish:%patch5 -p1}
 %patch6 -p1
+%patch7 -p1
 
 %build
 %{__make} -f Makefile.init makefiles
