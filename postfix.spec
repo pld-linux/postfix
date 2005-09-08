@@ -21,13 +21,13 @@ Summary(pl):	Serwer SMTP Postfix
 Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
-Version:	2.2.3
-Release:	3
+Version:	2.2.5
+Release:	1
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	f164b701c3e97b950d4cc64aff4de3c0
+# Source0-md5:	9c13d58494c64012bfd8ab0d6967305c
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
@@ -35,7 +35,7 @@ Source4:	%{name}.sysconfig
 Source5:	%{name}.sasl
 Source6:	%{name}.pamd
 Source7:	http://web.onda.com.br/nadal/postfix/VDA/%{name}-%{version}-vda.patch.gz
-# Source7-md5:	fcc8b7e7d94a9ce2d97453da0e6cd7c9
+# Source7-md5:	6fb8fdac842e561ca19cc1ed6cd9f810
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
@@ -45,6 +45,7 @@ Patch4:		%{name}-header_if_reject.patch
 #Patch5:	%{name}-pl.patch
 Patch6:		%{name}-setsid.patch
 Patch7:		%{name}-size-check-before-proxy.patch
+Patch8:		%{name}-log-proxy-rejects.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
@@ -220,6 +221,7 @@ Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 #%{?with_polish:%patch5 -p1}
 %patch6 -p1
 %patch7 -p1
+%patch8 -p1
 
 %build
 %{__make} -f Makefile.init makefiles
