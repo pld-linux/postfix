@@ -60,20 +60,20 @@ BuildRequires:	pcre-devel
 %{?with_pgsql:BuildRequires:	postgresql-devel}
 BuildRequires:	rpmbuild(macros) >= 1.202
 %{?with_cdb:BuildRequires:	tinycdb-devel}
-PreReq:		rc-scripts
-PreReq:		sed
 Requires(post):	/bin/hostname
+Requires(post,postun):	/sbin/ldconfig
+Requires(post,preun):	/sbin/chkconfig
+Requires(postun):	/usr/sbin/groupdel
+Requires(postun):	/usr/sbin/userdel
 Requires(pre):	/bin/id
 Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
 Requires:	/sbin/chkconfig
-Requires(post,preun):	/sbin/chkconfig
-Requires(post,postun):	/sbin/ldconfig
-Requires(postun):	/usr/sbin/groupdel
-Requires(postun):	/usr/sbin/userdel
 Requires:	diffutils
 Requires:	findutils
+Requires:	rc-scripts
+Requires:	sed
 %{?with_cdb:Requires:tinycdb}
 Provides:	group(postfix)
 Provides:	smtpdaemon
@@ -353,7 +353,7 @@ fi
 %attr(740,root,root) /etc/cron.daily/postfix
 %attr(754,root,root) /etc/rc.d/init.d/postfix
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/postfix
-%config(noreplace) %verify(not md5 size mtime) /etc/pam.d/smtp
+%config(noreplace) %verify(not md5 mtime size) /etc/pam.d/smtp
 %{?with_sasl:%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/sasl/smtpd.conf}
 %attr(755,root,root) %{_libdir}/libpostfix-*.so.*
 %attr(755,root,root) %{_bindir}/*
