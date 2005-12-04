@@ -1,0 +1,5 @@
+- Release: 3
+- fix daemon_directory in main.cf (it differs from standard on AMD64)
+- compiler warnigs caused by -ipv6.patch killed.
+  This broken code caused crash on AMD64 (there still is more of such
+  broken code in other parts of postfix)
