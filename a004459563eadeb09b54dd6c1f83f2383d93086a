@@ -1,0 +1,3 @@
+- removes some compiler warnings during postfix compilation
+  which may cause fatal runtime errors some architectures
+  (like AMD64) (-kill_warnings.patch)
