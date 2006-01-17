@@ -22,7 +22,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.2.5
-Release:	2
+Release:	3
 Epoch:		2
 Group:		Networking/Daemons
 License:	distributable
@@ -54,7 +54,7 @@ BuildRequires:	db-devel
 BuildRequires:	glibc-devel >= 6:2.3.4
 BuildRequires:	grep
 %{?with_mysql:BuildRequires:	mysql-devel}
-%{?with_ldap:BuildRequires:	openldap-devel >= 2.2.0}
+%{?with_ldap:BuildRequires:	openldap-devel >= 2.3.0}
 %{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7d}
 BuildRequires:	pcre-devel
 %{?with_pgsql:BuildRequires:	postgresql-devel}
@@ -167,7 +167,7 @@ Summary:	LDAP map support for Postfix
 Summary(pl):	Obs³uga map LDAP dla Postfiksa
 Group:		Networking/Daemons
 Requires:	%{name} = %{epoch}:%{version}-%{release}
-Requires:	openldap >= 2.2.0
+Requires:	openldap >= 2.3.0
 
 %description dict-ldap
 This package provides support for LDAP maps in Postfix.
