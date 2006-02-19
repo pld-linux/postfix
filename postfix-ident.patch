@@ -1,0 +1,322 @@
+Based on patch by: James F. Hranicky (jfhcise.ufl.edu)
+
+diff -urN -x '*~' -x '*.orig' postfix-2.2.5/src/global/mail_params.h postfix-2.2.5-ident/src/global/mail_params.h
+--- postfix-2.2.5/src/global/mail_params.h	2006-02-15 23:44:13.000000000 +0100
++++ postfix-2.2.5-ident/src/global/mail_params.h	2006-02-15 23:30:50.000000000 +0100
+@@ -2346,6 +2346,9 @@
+ #define DEF_SMTP_EHLO_DIS_MAPS		""
+ extern char *var_smtp_ehlo_dis_maps;
+ 
++#define VAR_SMTPD_IDENT_LOOKUP		"smtpd_ident_lookup"
++#define DEF_SMTPD_IDENT_LOOKUP		0
++extern bool var_smtpd_ident_lookup;
+  /*
+   * SMTPD messages
+   */
+Files postfix-2.2.5/src/smtpd/.smtpd_peer.c.swp and postfix-2.2.5-ident/src/smtpd/.smtpd_peer.c.swp differ
+diff -urN -x '*~' -x '*.orig' postfix-2.2.5/src/smtpd/Makefile.in postfix-2.2.5-ident/src/smtpd/Makefile.in
+--- postfix-2.2.5/src/smtpd/Makefile.in	2005-04-29 23:12:28.000000000 +0200
++++ postfix-2.2.5-ident/src/smtpd/Makefile.in	2006-02-15 22:09:42.000000000 +0100
+@@ -1,10 +1,10 @@
+ SHELL	= /bin/sh
+ SRCS	= smtpd.c smtpd_token.c smtpd_check.c smtpd_chat.c smtpd_state.c \
+ 	smtpd_peer.c smtpd_sasl_proto.c smtpd_sasl_glue.c smtpd_proxy.c \
+-	smtpd_xforward.c
++	smtpd_xforward.c smtpd_ident.c
+ OBJS	= smtpd.o smtpd_token.o smtpd_check.o smtpd_chat.o smtpd_state.o \
+ 	smtpd_peer.o smtpd_sasl_proto.o smtpd_sasl_glue.o smtpd_proxy.o \
+-	smtpd_xforward.o
++	smtpd_xforward.o smtpd_ident.o
+ HDRS	= smtpd_token.h smtpd_check.h smtpd_chat.h smtpd_sasl_proto.h \
+ 	smtpd_sasl_glue.h smtpd_proxy.h
+ TESTSRC	= smtpd_token_test.c
+diff -urN -x '*~' -x '*.orig' postfix-2.2.5/src/smtpd/smtpd.c postfix-2.2.5-ident/src/smtpd/smtpd.c
+--- postfix-2.2.5/src/smtpd/smtpd.c	2006-02-15 23:44:13.000000000 +0100
++++ postfix-2.2.5-ident/src/smtpd/smtpd.c	2006-02-15 22:31:33.000000000 +0100
+@@ -900,6 +900,7 @@
+ char   *var_local_rwr_clients;
+ char   *var_smtpd_ehlo_dis_words;
+ char   *var_smtpd_ehlo_dis_maps;
++bool	var_smtpd_ident_lookup;
+ 
+ bool    var_smtpd_use_tls;
+ bool    var_smtpd_enforce_tls;
+@@ -1951,10 +1952,18 @@
+      * intermediate proxy.
+      */
+     if (!state->proxy || state->xforward.flags == 0) {
+-	out_fprintf(out_stream, REC_TYPE_NORM,
+-		    "Received: from %s (%s [%s])",
+-		    state->helo_name ? state->helo_name : state->name,
+-		    state->name, state->rfc_addr);
++	if (var_smtpd_ident_lookup) {
++		out_fprintf(out_stream, REC_TYPE_NORM,
++			    "Received: from %s (%s [%s] ident=%s)",
++			    state->helo_name ? state->helo_name : state->name,
++			    state->name, state->rfc_addr,
++			    state->ident_user);
++	} else {
++		out_fprintf(out_stream, REC_TYPE_NORM,
++			    "Received: from %s (%s [%s])",
++			    state->helo_name ? state->helo_name : state->name,
++			    state->name, state->rfc_addr);
++	}
+ #ifdef USE_TLS
+ 	if (var_smtpd_tls_received_header && state->tls_context) {
+ 	    out_fprintf(out_stream, REC_TYPE_NORM,
+@@ -3375,6 +3384,7 @@
+ 	VAR_SMTPD_USE_TLS, DEF_SMTPD_USE_TLS, &var_smtpd_use_tls,
+ 	VAR_SMTPD_ENFORCE_TLS, DEF_SMTPD_ENFORCE_TLS, &var_smtpd_enforce_tls,
+ 	VAR_SMTPD_TLS_WRAPPER, DEF_SMTPD_TLS_WRAPPER, &var_smtpd_tls_wrappermode,
++	VAR_SMTPD_IDENT_LOOKUP, DEF_SMTPD_IDENT_LOOKUP, &var_smtpd_ident_lookup,
+ #ifdef USE_TLS
+ 	VAR_SMTPD_TLS_AUTH_ONLY, DEF_SMTPD_TLS_AUTH_ONLY, &var_smtpd_tls_auth_only,
+ 	VAR_SMTPD_TLS_ACERT, DEF_SMTPD_TLS_ACERT, &var_smtpd_tls_ask_ccert,
+diff -urN -x '*~' -x '*.orig' postfix-2.2.5/src/smtpd/smtpd.h postfix-2.2.5-ident/src/smtpd/smtpd.h
+--- postfix-2.2.5/src/smtpd/smtpd.h	2005-01-30 22:45:31.000000000 +0100
++++ postfix-2.2.5-ident/src/smtpd/smtpd.h	2006-02-15 21:11:46.000000000 +0100
+@@ -75,6 +75,7 @@
+     char   *addr;			/* client host address string */
+     char   *namaddr;			/* combined name and address */
+     char   *rfc_addr;			/* address for RFC 2821 */
++    char   *ident_user;			/* user name returned by ident RFC 1413 */
+     struct sockaddr_storage sockaddr;	/* binary client endpoint */
+     int     peer_code;			/* 2=ok, 4=soft, 5=hard */
+     int     error_count;		/* reset after DOT */
+@@ -232,6 +233,8 @@
+ extern void smtpd_peer_init(SMTPD_STATE *state);
+ extern void smtpd_peer_reset(SMTPD_STATE *state);
+ 
++extern char *smtpd_ident(struct sockaddr_in *peer_addr, struct sockaddr_in *smtpd_addr);
++
+ #define	SMTPD_PEER_CODE_OK	2
+ #define SMTPD_PEER_CODE_TEMP	4
+ #define SMTPD_PEER_CODE_PERM	5
+diff -urN -x '*~' -x '*.orig' postfix-2.2.5/src/smtpd/smtpd_ident.c postfix-2.2.5-ident/src/smtpd/smtpd_ident.c
+--- postfix-2.2.5/src/smtpd/smtpd_ident.c	1970-01-01 01:00:00.000000000 +0100
++++ postfix-2.2.5-ident/src/smtpd/smtpd_ident.c	2006-02-15 23:44:04.000000000 +0100
+@@ -0,0 +1,138 @@
++#include <sys_defs.h>
++#include <sys/socket.h>
++#include <netinet/in.h>
++#include <arpa/inet.h>
++#include <stdio.h>                      /* strerror() */
++#include <errno.h>
++#include <string.h>
++#include <mymalloc.h>
++#include <sys/types.h>
++#include <sys/time.h>
++#include <unistd.h>
++#include <vstream.h>
++
++#include <iostuff.h>
++#include "smtpd.h"
++
++#define IDENT_MSGSIZE 256 
++#define IDENT_TIMEOUT 10
++
++#define CHOMP(STR) { char *tmp; tmp = STR; while (*tmp) { \
++             if (*tmp == '\n' || *tmp == '\r') *tmp = '\0'; tmp++ ; } }
++
++char *smtpd_ident(struct sockaddr_in *peer_addr, struct sockaddr_in *smtpd_addr)
++{
++    int ident_sock;
++    char ident_msg[IDENT_MSGSIZE + 1], *sp;
++    char ident_user[IDENT_MSGSIZE + 1];
++    struct sockaddr_in local_addr;
++    struct sockaddr_in ident_addr;
++    char *return_val;
++    VSTREAM *ident_stream;
++
++    memset(ident_msg, 0, IDENT_MSGSIZE + 1);
++    memset(ident_user, 0, IDENT_MSGSIZE + 1);
++
++    /*
++     * Bind the local sockaddr to the same interface as smtpd before
++     * connecting back to the auth port on the peer. This helps
++     * with multihomed postfix servers. First, set up the address.
++     */
++
++    /* Local sockname */
++
++    memset((char *) &local_addr, 0, sizeof(local_addr));
++    local_addr.sin_family = AF_INET;
++    memcpy((void *) &local_addr.sin_addr, (void *) &smtpd_addr->sin_addr, sizeof(local_addr.sin_addr));
++
++    /* Remote sockname + port */
++
++    memset((char *) &ident_addr, 0, sizeof(ident_addr));
++    ident_addr.sin_family = AF_INET;
++    memcpy((void *) &ident_addr.sin_addr, (void *) &peer_addr->sin_addr, sizeof(ident_addr.sin_addr));
++    ident_addr.sin_port = htons(113);
++
++    do {
++        /* socket call */
++
++        if ((ident_sock = socket(ident_addr.sin_family, SOCK_STREAM, 0)) < 0) {
++            msg_warn("Can't allocate socket for ident lookup: %s", strerror(errno));
++            break;
++        }
++
++        /* Now bind the local sock to the interface */
++
++        if (bind(ident_sock, (struct sockaddr *)&local_addr, sizeof(local_addr)) < 0) {
++            msg_warn("local bind of ident sock failed: %s", strerror(errno));
++            break;
++         }
++
++        /* connect() back to the smtp client host on port 113 */
++
++         if (connect(ident_sock, (struct sockaddr *) &ident_addr, sizeof(ident_addr )) < 0) {
++            msg_warn( "ident connect to %s: %s", inet_ntoa(peer_addr->sin_addr), 
++                   strerror(errno));
++            break;
++         }
++
++        /* Ok, make this a vstream */
++
++        ident_stream = vstream_fdopen(ident_sock, O_RDWR);
++        ident_stream->timeout = IDENT_TIMEOUT;
++
++        /* Print the ident message to the remote host */
++    
++        vstream_fprintf(ident_stream, "%d, %d\n", ntohs(peer_addr->sin_port), ntohs(smtpd_addr->sin_port));
++        if (vstream_ftimeout(ident_stream)) {
++            msg_warn( "ident write timed out to %s", inet_ntoa(peer_addr->sin_addr));
++            break;
++        }
++
++        /* Read back the result */
++
++        vstream_fread(ident_stream, ident_msg, IDENT_MSGSIZE);
++        if (vstream_ftimeout(ident_stream)) {
++            msg_warn( "ident read timed out to %s", inet_ntoa(peer_addr->sin_addr));
++            break;
++        }
++    
++        /*
++         * Should I even bother with this?
++         *
++         * Even if so, don't worry about this failing, set the timeout low
++         */
++
++        ident_stream->timeout = 2;
++        vstream_fwrite(ident_stream, "quit\n", strlen("quit\n"));
++
++        if (strlen(ident_msg) == 0) {
++            msg_warn( "Failed to get ident string from %s", inet_ntoa(peer_addr->sin_addr));
++            break;
++        }
++    
++        if ((sp = strrchr(ident_msg, ':')) == NULL) {
++            msg_warn( "Invalid ident string from %s", inet_ntoa(peer_addr->sin_addr));
++            break;
++        }
++        sp++;
++        CHOMP(sp);
++        while (*sp && (*sp == ' ' || *sp == '\t')) {
++            sp++;
++        }
++
++        /* If we break before this line, we know we had some sort of bad error */
++
++        strncpy(ident_user, sp, IDENT_MSGSIZE);
++        msg_info( "Received ident string %s from %s", sp, inet_ntoa(peer_addr->sin_addr));
++    
++    } while (0);
++
++    if (strlen(ident_user) == 0) {
++        msg_warn( "Failed to get ident user for %s", inet_ntoa(peer_addr->sin_addr));
++        return NULL;
++    } 
++    
++    vstream_fclose(ident_stream);
++    return_val = mystrdup(ident_user);
++    return return_val;
++}
+diff -urN -x '*~' -x '*.orig' postfix-2.2.5/src/smtpd/smtpd_peer.c postfix-2.2.5-ident/src/smtpd/smtpd_peer.c
+--- postfix-2.2.5/src/smtpd/smtpd_peer.c	2005-01-30 22:42:18.000000000 +0100
++++ postfix-2.2.5-ident/src/smtpd/smtpd_peer.c	2006-02-15 23:29:08.000000000 +0100
+@@ -56,6 +56,7 @@
+ 
+ #include <sys_defs.h>
+ #include <sys/socket.h>
++#include <sys/types.h>
+ #include <netinet/in.h>
+ #include <arpa/inet.h>
+ #include <stdio.h>			/* strerror() */
+@@ -75,6 +76,7 @@
+ /* Global library. */
+ 
+ #include <mail_proto.h>
++#include <mail_params.h>
+ #include <valid_mailhost_addr.h>
+ 
+ /* Application-specific. */
+@@ -88,6 +90,8 @@
+     char   *myname = "smtpd_peer_init";
+     SOCKADDR_SIZE sa_len;
+     struct sockaddr *sa;
++    struct sockaddr_in serv_sin;
++    char *ident_user = NULL;
+     INET_PROTO_INFO *proto_info = inet_proto_info();
+ 
+     sa = (struct sockaddr *) & (state->sockaddr);
+@@ -108,6 +112,9 @@
+ 	state->addr = mystrdup(CLIENT_ADDR_UNKNOWN);
+ 	state->rfc_addr = mystrdup(CLIENT_ADDR_UNKNOWN);
+ 	state->peer_code = SMTPD_PEER_CODE_PERM;
++	if (var_smtpd_ident_lookup) {
++	    state->ident_user = mystrdup("NO-USER");
++	}
+     }
+ 
+     /*
+@@ -218,6 +225,9 @@
+ 	    if (aierr) {
+ 		msg_warn("%s: hostname %s verification failed: %s",
+ 			 state->addr, state->name, MAI_STRERROR(aierr));
++		if (var_smtpd_ident_lookup) {
++		    state->ident_user = mystrdup("NO-USER");
++		}
+ 		REJECT_PEER_NAME(state, (TEMP_AI_ERROR(aierr) ?
+ 			      SMTPD_PEER_CODE_TEMP : SMTPD_PEER_CODE_PERM));
+ 	    } else {
+@@ -239,6 +249,19 @@
+ 		freeaddrinfo(res0);
+ 	    }
+ 	}
++
++	if (var_smtpd_ident_lookup) {
++	    /* If getsockname fails, just forget it */
++	    sa_len = sizeof(serv_sin);
++	    if (getsockname(vstream_fileno(state->client), (struct sockaddr *)&serv_sin, &sa_len) >= 0) {
++		ident_user = smtpd_ident((struct sockaddr_in *)sa, &serv_sin);
++		if (ident_user == NULL)
++		    state->ident_user = mystrdup("NO-USER");
++		else
++		    state->ident_user = ident_user;
++	    } else
++		msg_warn("getsockname failed while doing ident lookup: %s", strerror(errno));
++	}
+     }
+ 
+     /*
+@@ -250,6 +273,9 @@
+ 	state->addr = mystrdup("127.0.0.1");	/* XXX bogus. */
+ 	state->rfc_addr = mystrdup("127.0.0.1");/* XXX bogus. */
+ 	state->peer_code = SMTPD_PEER_CODE_OK;
++	if (var_smtpd_ident_lookup) {
++	    state->ident_user = mystrdup("NO-USER");
++	}
+     }
+ 
+     /*
+@@ -267,4 +293,7 @@
+     myfree(state->addr);
+     myfree(state->namaddr);
+     myfree(state->rfc_addr);
++    if (var_smtpd_ident_lookup) {
++	myfree(state->ident_user);
++    }
+ }
