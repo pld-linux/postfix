@@ -1,22 +1,19 @@
-Based on patch by: James F. Hranicky (jfhcise.ufl.edu)
-
-diff -urN -x '*~' -x '*.orig' postfix-2.2.5/src/global/mail_params.h postfix-2.2.5-ident/src/global/mail_params.h
---- postfix-2.2.5/src/global/mail_params.h	2006-02-15 23:44:13.000000000 +0100
-+++ postfix-2.2.5-ident/src/global/mail_params.h	2006-02-15 23:30:50.000000000 +0100
+diff -urN -x '*~' postfix-2.2.5/src/global/mail_params.h postfix-2.2.5-ident/src/global/mail_params.h
+--- postfix-2.2.5/src/global/mail_params.h	2006-02-22 16:20:15.000000000 +0100
++++ postfix-2.2.5-ident/src/global/mail_params.h	2006-02-22 15:56:31.000000000 +0100
 @@ -2346,6 +2346,9 @@
  #define DEF_SMTP_EHLO_DIS_MAPS		""
  extern char *var_smtp_ehlo_dis_maps;
  
 +#define VAR_SMTPD_IDENT_LOOKUP		"smtpd_ident_lookup"
-+#define DEF_SMTPD_IDENT_LOOKUP		0
-+extern bool var_smtpd_ident_lookup;
++#define DEF_SMTPD_IDENT_LOOKUP		""
++extern char *var_smtpd_ident_lookup;
   /*
    * SMTPD messages
    */
-Files postfix-2.2.5/src/smtpd/.smtpd_peer.c.swp and postfix-2.2.5-ident/src/smtpd/.smtpd_peer.c.swp differ
-diff -urN -x '*~' -x '*.orig' postfix-2.2.5/src/smtpd/Makefile.in postfix-2.2.5-ident/src/smtpd/Makefile.in
+diff -urN -x '*~' postfix-2.2.5/src/smtpd/Makefile.in postfix-2.2.5-ident/src/smtpd/Makefile.in
 --- postfix-2.2.5/src/smtpd/Makefile.in	2005-04-29 23:12:28.000000000 +0200
-+++ postfix-2.2.5-ident/src/smtpd/Makefile.in	2006-02-15 22:09:42.000000000 +0100
++++ postfix-2.2.5-ident/src/smtpd/Makefile.in	2006-02-22 15:56:31.000000000 +0100
 @@ -1,10 +1,10 @@
  SHELL	= /bin/sh
  SRCS	= smtpd.c smtpd_token.c smtpd_check.c smtpd_chat.c smtpd_state.c \
@@ -30,18 +27,30 @@ diff -urN -x '*~' -x '*.orig' postfix-2.2.5/src/smtpd/Makefile.in postfix-2.2.5-
  HDRS	= smtpd_token.h smtpd_check.h smtpd_chat.h smtpd_sasl_proto.h \
  	smtpd_sasl_glue.h smtpd_proxy.h
  TESTSRC	= smtpd_token_test.c
-diff -urN -x '*~' -x '*.orig' postfix-2.2.5/src/smtpd/smtpd.c postfix-2.2.5-ident/src/smtpd/smtpd.c
---- postfix-2.2.5/src/smtpd/smtpd.c	2006-02-15 23:44:13.000000000 +0100
-+++ postfix-2.2.5-ident/src/smtpd/smtpd.c	2006-02-15 22:31:33.000000000 +0100
+diff -urN -x '*~' postfix-2.2.5/src/smtpd/smtpd.c postfix-2.2.5-ident/src/smtpd/smtpd.c
+--- postfix-2.2.5/src/smtpd/smtpd.c	2006-02-22 16:20:15.000000000 +0100
++++ postfix-2.2.5-ident/src/smtpd/smtpd.c	2006-02-22 16:17:23.000000000 +0100
 @@ -900,6 +900,7 @@
  char   *var_local_rwr_clients;
  char   *var_smtpd_ehlo_dis_words;
  char   *var_smtpd_ehlo_dis_maps;
-+bool	var_smtpd_ident_lookup;
++char   *var_smtpd_ident_lookup;
  
  bool    var_smtpd_use_tls;
  bool    var_smtpd_enforce_tls;
-@@ -1951,10 +1952,18 @@
+@@ -961,6 +962,11 @@
+ int     smtpd_input_transp_mask;
+ 
+  /*
++  * Hosts that should be ident-queried
++  */
++NAMADR_LIST *smtpd_ident_lookup;
++
++ /*
+   * Forward declarations.
+   */
+ static void helo_reset(SMTPD_STATE *);
+@@ -1951,10 +1957,18 @@
       * intermediate proxy.
       */
      if (!state->proxy || state->xforward.flags == 0) {
@@ -49,7 +58,7 @@ diff -urN -x '*~' -x '*.orig' postfix-2.2.5/src/smtpd/smtpd.c postfix-2.2.5-iden
 -		    "Received: from %s (%s [%s])",
 -		    state->helo_name ? state->helo_name : state->name,
 -		    state->name, state->rfc_addr);
-+	if (var_smtpd_ident_lookup) {
++	if (namadr_list_match(smtpd_ident_lookup, state->name, state->addr)) {
 +		out_fprintf(out_stream, REC_TYPE_NORM,
 +			    "Received: from %s (%s [%s] ident=%s)",
 +			    state->helo_name ? state->helo_name : state->name,
@@ -64,17 +73,27 @@ diff -urN -x '*~' -x '*.orig' postfix-2.2.5/src/smtpd/smtpd.c postfix-2.2.5-iden
  #ifdef USE_TLS
  	if (var_smtpd_tls_received_header && state->tls_context) {
  	    out_fprintf(out_stream, REC_TYPE_NORM,
-@@ -3375,6 +3384,7 @@
- 	VAR_SMTPD_USE_TLS, DEF_SMTPD_USE_TLS, &var_smtpd_use_tls,
- 	VAR_SMTPD_ENFORCE_TLS, DEF_SMTPD_ENFORCE_TLS, &var_smtpd_enforce_tls,
- 	VAR_SMTPD_TLS_WRAPPER, DEF_SMTPD_TLS_WRAPPER, &var_smtpd_tls_wrappermode,
-+	VAR_SMTPD_IDENT_LOOKUP, DEF_SMTPD_IDENT_LOOKUP, &var_smtpd_ident_lookup,
- #ifdef USE_TLS
- 	VAR_SMTPD_TLS_AUTH_ONLY, DEF_SMTPD_TLS_AUTH_ONLY, &var_smtpd_tls_auth_only,
- 	VAR_SMTPD_TLS_ACERT, DEF_SMTPD_TLS_ACERT, &var_smtpd_tls_ask_ccert,
-diff -urN -x '*~' -x '*.orig' postfix-2.2.5/src/smtpd/smtpd.h postfix-2.2.5-ident/src/smtpd/smtpd.h
+@@ -3229,6 +3243,9 @@
+     xclient_hosts = namadr_list_init(MATCH_FLAG_NONE, var_xclient_hosts);
+     xforward_hosts = namadr_list_init(MATCH_FLAG_NONE, var_xforward_hosts);
+     hogger_list = namadr_list_init(MATCH_FLAG_NONE, var_smtpd_hoggers);
++    smtpd_ident_lookup =
++	namadr_list_init(match_parent_style(VAR_SMTPD_IDENT_LOOKUP),
++			 var_smtpd_ident_lookup);
+     if (getuid() == 0 || getuid() == var_owner_uid)
+ 	smtpd_check_init();
+     debug_peer_init();
+@@ -3430,6 +3447,7 @@
+ 	VAR_SMTPD_SASL_TLS_OPTS, DEF_SMTPD_SASL_TLS_OPTS, &var_smtpd_sasl_tls_opts, 0, 0,
+ #endif
+  	VAR_REJECT_REPLY_MSG_ACCESS_DENIED, DEF_REJECT_REPLY_MSG_ACCESS_DENIED, &var_reject_reply_msg_access_denied, 1, 0, 
++	VAR_SMTPD_IDENT_LOOKUP, DEF_SMTPD_IDENT_LOOKUP, &var_smtpd_ident_lookup, 0, 0,
+ 	0,
+     };
+     static CONFIG_RAW_TABLE raw_table[] = {
+diff -urN -x '*~' postfix-2.2.5/src/smtpd/smtpd.h postfix-2.2.5-ident/src/smtpd/smtpd.h
 --- postfix-2.2.5/src/smtpd/smtpd.h	2005-01-30 22:45:31.000000000 +0100
-+++ postfix-2.2.5-ident/src/smtpd/smtpd.h	2006-02-15 21:11:46.000000000 +0100
++++ postfix-2.2.5-ident/src/smtpd/smtpd.h	2006-02-22 15:56:31.000000000 +0100
 @@ -75,6 +75,7 @@
      char   *addr;			/* client host address string */
      char   *namaddr;			/* combined name and address */
@@ -92,9 +111,9 @@ diff -urN -x '*~' -x '*.orig' postfix-2.2.5/src/smtpd/smtpd.h postfix-2.2.5-iden
  #define	SMTPD_PEER_CODE_OK	2
  #define SMTPD_PEER_CODE_TEMP	4
  #define SMTPD_PEER_CODE_PERM	5
-diff -urN -x '*~' -x '*.orig' postfix-2.2.5/src/smtpd/smtpd_ident.c postfix-2.2.5-ident/src/smtpd/smtpd_ident.c
+diff -urN -x '*~' postfix-2.2.5/src/smtpd/smtpd_ident.c postfix-2.2.5-ident/src/smtpd/smtpd_ident.c
 --- postfix-2.2.5/src/smtpd/smtpd_ident.c	1970-01-01 01:00:00.000000000 +0100
-+++ postfix-2.2.5-ident/src/smtpd/smtpd_ident.c	2006-02-15 23:44:04.000000000 +0100
++++ postfix-2.2.5-ident/src/smtpd/smtpd_ident.c	2006-02-22 15:56:31.000000000 +0100
 @@ -0,0 +1,138 @@
 +#include <sys_defs.h>
 +#include <sys/socket.h>
@@ -234,9 +253,9 @@ diff -urN -x '*~' -x '*.orig' postfix-2.2.5/src/smtpd/smtpd_ident.c postfix-2.2.
 +    return_val = mystrdup(ident_user);
 +    return return_val;
 +}
-diff -urN -x '*~' -x '*.orig' postfix-2.2.5/src/smtpd/smtpd_peer.c postfix-2.2.5-ident/src/smtpd/smtpd_peer.c
+diff -urN -x '*~' postfix-2.2.5/src/smtpd/smtpd_peer.c postfix-2.2.5-ident/src/smtpd/smtpd_peer.c
 --- postfix-2.2.5/src/smtpd/smtpd_peer.c	2005-01-30 22:42:18.000000000 +0100
-+++ postfix-2.2.5-ident/src/smtpd/smtpd_peer.c	2006-02-15 23:29:08.000000000 +0100
++++ postfix-2.2.5-ident/src/smtpd/smtpd_peer.c	2006-02-22 16:21:40.000000000 +0100
 @@ -56,6 +56,7 @@
  
  #include <sys_defs.h>
@@ -245,15 +264,25 @@ diff -urN -x '*~' -x '*.orig' postfix-2.2.5/src/smtpd/smtpd_peer.c postfix-2.2.5
  #include <netinet/in.h>
  #include <arpa/inet.h>
  #include <stdio.h>			/* strerror() */
-@@ -75,6 +76,7 @@
+@@ -74,13 +75,17 @@
+ 
  /* Global library. */
  
++#include <namadr_list.h>
  #include <mail_proto.h>
 +#include <mail_params.h>
  #include <valid_mailhost_addr.h>
  
  /* Application-specific. */
-@@ -88,6 +90,8 @@
+ 
+ #include "smtpd.h"
+ 
++extern NAMADR_LIST *smtpd_ident_lookup;
++
+ /* smtpd_peer_init - initialize peer information */
+ 
+ void    smtpd_peer_init(SMTPD_STATE *state)
+@@ -88,6 +93,8 @@
      char   *myname = "smtpd_peer_init";
      SOCKADDR_SIZE sa_len;
      struct sockaddr *sa;
@@ -262,32 +291,28 @@ diff -urN -x '*~' -x '*.orig' postfix-2.2.5/src/smtpd/smtpd_peer.c postfix-2.2.5
      INET_PROTO_INFO *proto_info = inet_proto_info();
  
      sa = (struct sockaddr *) & (state->sockaddr);
-@@ -108,6 +112,9 @@
+@@ -108,6 +115,7 @@
  	state->addr = mystrdup(CLIENT_ADDR_UNKNOWN);
  	state->rfc_addr = mystrdup(CLIENT_ADDR_UNKNOWN);
  	state->peer_code = SMTPD_PEER_CODE_PERM;
-+	if (var_smtpd_ident_lookup) {
-+	    state->ident_user = mystrdup("NO-USER");
-+	}
++	state->ident_user = mystrdup("NO-USER");
      }
  
      /*
-@@ -218,6 +225,9 @@
+@@ -218,6 +226,7 @@
  	    if (aierr) {
  		msg_warn("%s: hostname %s verification failed: %s",
  			 state->addr, state->name, MAI_STRERROR(aierr));
-+		if (var_smtpd_ident_lookup) {
-+		    state->ident_user = mystrdup("NO-USER");
-+		}
++		state->ident_user = mystrdup("NO-USER");
  		REJECT_PEER_NAME(state, (TEMP_AI_ERROR(aierr) ?
  			      SMTPD_PEER_CODE_TEMP : SMTPD_PEER_CODE_PERM));
  	    } else {
-@@ -239,6 +249,19 @@
+@@ -239,6 +248,20 @@
  		freeaddrinfo(res0);
  	    }
  	}
 +
-+	if (var_smtpd_ident_lookup) {
++	if (namadr_list_match(smtpd_ident_lookup, state->name, state->addr)) {
 +	    /* If getsockname fails, just forget it */
 +	    sa_len = sizeof(serv_sin);
 +	    if (getsockname(vstream_fileno(state->client), (struct sockaddr *)&serv_sin, &sa_len) >= 0) {
@@ -298,25 +323,22 @@ diff -urN -x '*~' -x '*.orig' postfix-2.2.5/src/smtpd/smtpd_peer.c postfix-2.2.5
 +		    state->ident_user = ident_user;
 +	    } else
 +		msg_warn("getsockname failed while doing ident lookup: %s", strerror(errno));
-+	}
++	} else
++	    state->ident_user = mystrdup("NO-USER");
      }
  
      /*
-@@ -250,6 +273,9 @@
+@@ -250,6 +273,7 @@
  	state->addr = mystrdup("127.0.0.1");	/* XXX bogus. */
  	state->rfc_addr = mystrdup("127.0.0.1");/* XXX bogus. */
  	state->peer_code = SMTPD_PEER_CODE_OK;
-+	if (var_smtpd_ident_lookup) {
-+	    state->ident_user = mystrdup("NO-USER");
-+	}
++	state->ident_user = mystrdup("NO-USER");
      }
  
      /*
-@@ -267,4 +293,7 @@
+@@ -267,4 +291,5 @@
      myfree(state->addr);
      myfree(state->namaddr);
      myfree(state->rfc_addr);
-+    if (var_smtpd_ident_lookup) {
-+	myfree(state->ident_user);
-+    }
++    myfree(state->ident_user);
  }
