@@ -24,8 +24,8 @@ Name:		postfix
 Version:	2.2.5
 Release:	4.1
 Epoch:		2
-Group:		Networking/Daemons
 License:	distributable
+Group:		Networking/Daemons
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
 # Source0-md5:	9c13d58494c64012bfd8ab0d6967305c
 Source1:	%{name}.aliases
@@ -59,7 +59,7 @@ BuildRequires:	grep
 %{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7d}
 BuildRequires:	pcre-devel
 %{?with_pgsql:BuildRequires:	postgresql-devel}
-BuildRequires:	rpmbuild(macros) >= 1.202
+BuildRequires:	rpmbuild(macros) >= 1.268
 %{?with_cdb:BuildRequires:	tinycdb-devel}
 Requires(post):	/bin/hostname
 Requires(post,postun):	/sbin/ldconfig
@@ -307,17 +307,11 @@ fi
 
 newaliases
 /sbin/chkconfig --add postfix
-if [ -f /var/lock/subsys/postfix ]; then
-	/etc/rc.d/init.d/postfix restart >&2
-else
-	echo "Run \"/etc/rc.d/init.d/postfix start\" to start postfix daemon." >&2
-fi
+%service postfix restart "postfix daemon"
 
 %preun
 if [ "$1" = "0" ]; then
-	if [ -f /var/lock/subsys/postfix ]; then
-		/etc/rc.d/init.d/postfix stop >&2
-	fi
+	%service postfix stop
 	/sbin/chkconfig --del postfix
 fi
 
