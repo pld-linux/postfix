@@ -1,1 +1,1 @@
-pwcheck_method:pam
+pwcheck_method:saslauthd
