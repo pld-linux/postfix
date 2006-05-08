@@ -219,7 +219,7 @@ Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 #%{?with_polish:%patch5 -p1}
 %patch6 -p1
 %patch7 -p1
-#%patch8 -p1
+%patch8 -p1
 %patch9 -p1
 
 %build
