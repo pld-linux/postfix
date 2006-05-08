@@ -21,13 +21,13 @@ Summary(pl):	Serwer SMTP Postfix
 Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
-Version:	2.2.5
-Release:	6
+Version:	2.2.10
+Release:	1
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	9c13d58494c64012bfd8ab0d6967305c
+# Source0-md5:	440a4702182a79ac2f51e8974fb742c9
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
@@ -35,7 +35,7 @@ Source4:	%{name}.sysconfig
 Source5:	%{name}.sasl
 Source6:	%{name}.pamd
 Source7:	http://web.onda.com.br/nadal/postfix/VDA/%{name}-%{version}-vda.patch.gz
-# Source7-md5:	6fb8fdac842e561ca19cc1ed6cd9f810
+# Source7-md5:	8237cd654eb116d35785b11de6e5ca9c
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
@@ -223,7 +223,7 @@ Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 #%{?with_polish:%patch5 -p1}
 %patch6 -p1
 %patch7 -p1
-%patch8 -p1
+#%patch8 -p1
 %patch9 -p1
 
 %build
