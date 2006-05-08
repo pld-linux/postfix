@@ -10,9 +10,9 @@
 +		smtpd_check_reject(state, MAIL_ERROR_POLICY,
 +					"%s", STR(state->proxy_buffer));
 +	    }
- 	} else {
- 	    state->error_mask |= MAIL_ERROR_SOFTWARE;
+ 	} else if (state->err != CLEANUP_STAT_SIZE) {
  	    state->err |= CLEANUP_STAT_PROXY;
+ 	    vstring_sprintf(state->proxy_buffer,
 --- postfix-2.2.3/src/smtpd/smtpd_check.c~	2005-09-08 15:51:27.482074664 +0200
 +++ postfix-2.2.3/src/smtpd/smtpd_check.c	2005-09-08 17:28:05.192097120 +0200
 @@ -764,7 +764,7 @@
