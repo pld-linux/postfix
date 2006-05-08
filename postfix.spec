@@ -100,10 +100,6 @@ Sendmail program. Postfix attempts to be fast, easy to administer, and
 hopefully secure, while at the same time being sendmail compatible
 enough to not upset your users. This version has IPv6 support.
 
-%description -l pt_BR
-O Postfix é uma alternativa para o mundialmente utilizado sendmail. Se
-você deseja um servidor SMTP *rápido*, instale este pacote.
-
 %description -l es
 Postfix es una alternativa para el mundialmente utilizado sendmail. Si
 desea tener un servidor SMTP *rápido*, debe instalar este paquete.
