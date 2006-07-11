@@ -6,7 +6,7 @@
 %bcond_without	sasl	# without SMTP AUTH support
 %bcond_without	ssl	# without SSL/TLS support
 %bcond_without	cdb	# without cdb map support
-%bcond_with	vda	# with VDA patch
+#%bcond_with	vda	# with VDA patch
 %bcond_with	hir	# with Beeth's header_if_reject patch
 #%bcond_with	polish	# with double English+Polish messages
 #
@@ -21,32 +21,33 @@ Summary(pl):	Serwer SMTP Postfix
 Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
-Version:	2.2.10
-Release:	1
+Version:	2.3
+%define		_rc	RC9
+Release:	0.%{_rc}.1
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
-Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	440a4702182a79ac2f51e8974fb742c9
+Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/experimental/%{name}-%{version}-%{_rc}.tar.gz
+# Source0-md5:	a77c464a7e4365dafc8aa2b35bda48e0
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
 Source4:	%{name}.sysconfig
 Source5:	%{name}.sasl
 Source6:	%{name}.pamd
-Source7:	http://web.onda.com.br/nadal/postfix/VDA/%{name}-%{version}-vda.patch.gz
-# Source7-md5:	8237cd654eb116d35785b11de6e5ca9c
+##Source7:	http://web.onda.com.br/nadal/postfix/VDA/%{name}-%{version}-vda.patch.gz
+## Source7-md5:	8237cd654eb116d35785b11de6e5ca9c
 Patch0:		%{name}-config.patch
-Patch1:		%{name}-conf_msg.patch
-Patch2:		%{name}-dynamicmaps.patch
+#Patch1:		%{name}-conf_msg.patch
+#Patch2:		%{name}-dynamicmaps.patch
 Patch3:		%{name}-master.cf_cyrus.patch
 # from http://akson.sgh.waw.pl/~chopin/unix/postfix-2.1.5-header_if_reject.diff
 Patch4:		%{name}-header_if_reject.patch
 #Patch5:	%{name}-pl.patch
-Patch6:		%{name}-setsid.patch
-Patch7:		%{name}-size-check-before-proxy.patch
-Patch8:		%{name}-log-proxy-rejects.patch
-Patch9:		%{name}-ident.patch
+#Patch6:		%{name}-setsid.patch
+#Patch7:		%{name}-size-check-before-proxy.patch
+#Patch8:		%{name}-log-proxy-rejects.patch
+#Patch9:		%{name}-ident.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
@@ -55,6 +56,7 @@ BuildRequires:	db-devel
 BuildRequires:	glibc-devel >= 6:2.3.4
 BuildRequires:	grep
 %{?with_mysql:BuildRequires:	mysql-devel}
+%{?with_mysql:BuildRequires:	zlib-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.3.0}
 %{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7d}
 BuildRequires:	pcre-devel
@@ -209,18 +211,18 @@ This package provides support for PostgreSQL maps in Postfix.
 Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 
 %prep
-%setup -q
-%{?with_vda:zcat %{SOURCE7} | patch -p1 -s}
+%setup -q -n %{name}-%{version}-%{_rc}
+#%{?with_vda:zcat %{SOURCE7} | patch -p1 -s}
 %patch0 -p1
-%patch1 -p1
-%patch2 -p1
+#%patch1 -p1 --obsolete/update ?
+#%patch2 -p1 --obsolete/update ?
 %patch3 -p1
 %{?with_hir:%patch4 -p0}
 #%{?with_polish:%patch5 -p1}
-%patch6 -p1
-%patch7 -p1
-%patch8 -p1
-%patch9 -p1
+#%patch6 -p1 --obsolete
+#%patch7 -p1 --obsolete
+#%patch8 -p1 --obsolete/update ?
+#%patch9 -p1 --obsolete/update ?
 
 %build
 %{__make} -f Makefile.init makefiles
@@ -232,7 +234,7 @@ Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 	%{!?with_mysql:MYSQLSO=""} \
 	%{!?with_pgsql:PGSQLSO=""} \
 	CCARGS="%{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL -I/usr/include/postgresql} %{?with_ssl:-DUSE_TLS -I/usr/include/openssl} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB} -DHAVE_GETIFADDRS" \
-	AUXLIBS="-ldb -lresolv %{?with_sasl:-lsasl} %{?with_ssl:-lssl -lcrypto} %{?with_cdb:-lcdb}"
+	AUXLIBS="-ldb -lresolv %{?with_sasl:-lsasl} %{?with_ssl:-lssl -lcrypto} %{?with_cdb:-lcdb} -lpcre %{?with_ldap:-lldap -llber} %{?with_pgsql:-lpq} %{?with_mysql:-lmysqlclient -lz}"
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -254,7 +256,7 @@ for f in dns global master util ; do
 	install lib/lib${f}.a $RPM_BUILD_ROOT%{_libdir}/libpostfix-${f}.so.1
 	ln -sf lib${f}.so.1 $RPM_BUILD_ROOT%{_libdir}/libpostfix-${f}.so
 done
-install lib/dict*.so $RPM_BUILD_ROOT%{_libdir}/postfix
+#install lib/dict*.so $RPM_BUILD_ROOT%{_libdir}/postfix
 install include/*.h $RPM_BUILD_ROOT%{_includedir}/postfix
 
 (cd man; tar cf - .) | (cd $RPM_BUILD_ROOT%{_mandir}; tar xf -)
@@ -336,7 +338,7 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/header_checks
 #%ghost %{_sysconfdir}/mail/*.db
 %dir %{_sysconfdir}/mail
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/dynamicmaps.cf
+#%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/dynamicmaps.cf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/main.cf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/master.cf
 %attr(755,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/postfix-script
@@ -385,24 +387,24 @@ fi
 %attr(755,root,root) %{_libdir}/libpostfix-*.so
 %{_includedir}/postfix
 
-%if %{with ldap}
-%files dict-ldap
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/postfix/dict_ldap.so
-%endif
+#%if %{with ldap}
+#%files dict-ldap
+#%defattr(644,root,root,755)
+#%attr(755,root,root) %{_libdir}/postfix/dict_ldap.so
+#%endif
 
-%if %{with mysql}
-%files dict-mysql
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/postfix/dict_mysql.so
-%endif
+#%if %{with mysql}
+#%files dict-mysql
+#%defattr(644,root,root,755)
+#%attr(755,root,root) %{_libdir}/postfix/dict_mysql.so
+#%endif
 
-%files dict-pcre
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/postfix/dict_pcre.so
+#%files dict-pcre
+#%defattr(644,root,root,755)
+#%attr(755,root,root) %{_libdir}/postfix/dict_pcre.so
 
-%if %{with pgsql}
-%files dict-pgsql
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/postfix/dict_pgsql.so
-%endif
+#%if %{with pgsql}
+#%files dict-pgsql
+#%defattr(644,root,root,755)
+#%attr(755,root,root) %{_libdir}/postfix/dict_pgsql.so
+#%endif
