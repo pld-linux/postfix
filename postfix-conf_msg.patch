@@ -1,32 +1,5 @@
---- postfix-2.2.2/src/global/mail_params.c.orig	2005-01-19 02:22:02.000000000 +0100
-+++ postfix-2.2.2/src/global/mail_params.c	2005-04-26 11:41:23.000000000 +0200
-@@ -78,6 +78,7 @@
- /*	char	*var_debug_peer_list;
- /*	int	var_debug_peer_level;
- /*	int	var_in_flow_delay;
-+/*	char    *var_reject_reply_msg_access_denied;
- /*	int	var_fault_inj_code;
- /*	char   *var_bounce_service;
- /*	char   *var_cleanup_service;
-@@ -267,6 +268,7 @@
- char   *var_export_environ;
- char   *var_debug_peer_list;
- int     var_debug_peer_level;
-+char   *var_reject_reply_msg_access_denied;
- int     var_fault_inj_code;
- char   *var_bounce_service;
- char   *var_cleanup_service;
-@@ -510,6 +512,7 @@
- 	VAR_FLUSH_SERVICE, DEF_FLUSH_SERVICE, &var_flush_service, 1, 0,
- 	VAR_VERIFY_SERVICE, DEF_VERIFY_SERVICE, &var_verify_service, 1, 0,
- 	VAR_TRACE_SERVICE, DEF_TRACE_SERVICE, &var_trace_service, 1, 0,
-+	VAR_REJECT_REPLY_MSG_ACCESS_DENIED, DEF_REJECT_REPLY_MSG_ACCESS_DENIED, &var_reject_reply_msg_access_denied, 1, 0,
- #ifdef USE_TLS
- 	VAR_TLS_RAND_EXCH_NAME, DEF_TLS_RAND_EXCH_NAME, &var_tls_rand_exch_name, 0, 0,
- 	VAR_SMTPD_TLS_CERT_FILE, DEF_SMTPD_TLS_CERT_FILE, &var_smtpd_tls_cert_file, 0, 0,
-diff -dur postfix-2.1.3.orig/src/global/mail_params.h postfix-2.1.3/src/global/mail_params.h
---- postfix-2.1.3.orig/src/global/mail_params.h	2004-06-22 14:32:58.615734426 +0200
-+++ postfix-2.1.3/src/global/mail_params.h	2004-06-22 14:33:21.260418134 +0200
+--- src/global/mail_params.h.orig	2004-06-22 14:32:58.615734426 +0200
++++ src/global/mail_params.h	2004-06-22 14:33:21.260418134 +0200
 @@ -2204,6 +2204,13 @@
  extern char *var_anvil_service;
  #endif
@@ -41,9 +14,8 @@ diff -dur postfix-2.1.3.orig/src/global/mail_params.h postfix-2.1.3/src/global/m
  /* LICENSE
  /* .ad
  /* .fi
-diff -dur postfix-2.1.3.orig/src/smtpd/smtpd.c postfix-2.1.3/src/smtpd/smtpd.c
---- postfix-2.1.3.orig/src/smtpd/smtpd.c	2004-06-22 14:32:57.338808646 +0200
-+++ postfix-2.1.3/src/smtpd/smtpd.c	2004-06-22 14:41:40.372360162 +0200
+--- src/smtpd/smtpd.c.orig	2004-06-22 14:32:57.338808646 +0200
++++ src/smtpd/smtpd.c	2004-06-22 14:41:40.372360162 +0200
 @@ -3089,6 +3089,7 @@
  	VAR_RELAY_CCERTS, DEF_RELAY_CCERTS, &var_relay_ccerts, 0, 0,
  	VAR_SMTPD_SASL_TLS_OPTS, DEF_SMTPD_SASL_TLS_OPTS, &var_smtpd_sasl_tls_opts, 0, 0,
@@ -52,48 +24,29 @@ diff -dur postfix-2.1.3.orig/src/smtpd/smtpd.c postfix-2.1.3/src/smtpd/smtpd.c
  	0,
      };
      static CONFIG_RAW_TABLE raw_table[] = {
-diff -dur postfix-2.1.3.orig/src/smtpd/smtpd_check.c postfix-2.1.3/src/smtpd/smtpd_check.c
---- postfix-2.1.3.orig/src/smtpd/smtpd_check.c	2004-06-22 14:32:57.348808065 +0200
-+++ postfix-2.1.3/src/smtpd/smtpd_check.c	2004-06-22 14:33:21.271417494 +0200
-@@ -1103,6 +1103,7 @@
- 			               char *reply_name, char *reply_class)
- {
-     char   *myname = "check_relay_domains";
-+	VSTRING *reply_msg = vstring_alloc(1);
- 
- #if 1
-     static int once;
-@@ -1133,9 +1134,10 @@
-     /*
-      * Deny relaying between sites that both are not in relay_domains.
-      */
-+    vstring_strcat(reply_msg, "%d <%s>: %s ");
-+    vstring_strcat(reply_msg, var_reject_reply_msg_access_denied);
-     return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
--			       "%d <%s>: %s rejected: Relay access denied",
--			       var_relay_code, reply_name, reply_class));
-+			    vstring_export(reply_msg), var_relay_code, reply_name, reply_class));
- }
- 
- /* permit_auth_destination - OK for message relaying */
-@@ -1192,6 +1194,7 @@
- static int reject_unauth_destination(SMTPD_STATE *state, char *recipient)
- {
-     char   *myname = "reject_unauth_destination";
-+	VSTRING *reply_msg = vstring_alloc(1);
- 
-     if (msg_verbose)
- 	msg_info("%s: %s", myname, recipient);
-@@ -1205,9 +1208,10 @@
-     /*
-      * Reject relaying to sites that are not listed in relay_domains.
-      */
-+	vstring_strcat(reply_msg, "%d <%s>: ");
-+	vstring_strcat(reply_msg, var_reject_reply_msg_access_denied);
-     return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
--			       "%d <%s>: Relay access denied",
--			       var_relay_code, recipient));
-+			       vstring_export(reply_msg), var_relay_code, recipient));
- }
- 
- /* reject_unauth_pipelining - reject improper use of SMTP command pipelining */
+--- src/global/mail_params.c	2006-06-15 02:50:02.000000000 +0200
++++ src/global/mail_params.c-new	2006-07-11 19:29:07.162325784 +0200
+@@ -78,6 +78,7 @@
+ /*	char	*var_debug_peer_list;
+ /*	int	var_debug_peer_level;
+ /*	int	var_in_flow_delay;
++/*	char	*var_reject_reply_msg_access_denied;
+ /*	int	var_fault_inj_code;
+ /*	char   *var_bounce_service;
+ /*	char   *var_cleanup_service;
+@@ -246,6 +247,7 @@
+ char   *var_export_environ;
+ char   *var_debug_peer_list;
+ int     var_debug_peer_level;
++char	*var_reject_reply_msg_access_denied;
+ int     var_fault_inj_code;
+ char   *var_bounce_service;
+ char   *var_cleanup_service;
+@@ -488,6 +490,7 @@
+ 	VAR_FLUSH_SERVICE, DEF_FLUSH_SERVICE, &var_flush_service, 1, 0,
+ 	VAR_VERIFY_SERVICE, DEF_VERIFY_SERVICE, &var_verify_service, 1, 0,
+ 	VAR_TRACE_SERVICE, DEF_TRACE_SERVICE, &var_trace_service, 1, 0,
++	VAR_REJECT_REPLY_MSG_ACCESS_DENIED, DEF_REJECT_REPLY_MSG_ACCESS_DENIED, &var_reject_reply_msg_access_denied, 1, 0,
+ 	0,
+     };
+     static CONFIG_STR_FN_TABLE function_str_defaults_2[] = {

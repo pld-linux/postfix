@@ -93,15 +93,6 @@ diff -durN postfix-2.1.3.orig/src/global/Makefile.in postfix-2.1.3/src/global/Ma
  	rm -rf printfck
  
  tidy:	clean
-@@ -575,6 +594,8 @@
- dict_proxy.o: mail_params.h
- dict_proxy.o: clnt_stream.h
- dict_proxy.o: dict_proxy.h
-+dict_ldap.o: dict_ldap.c
-+dict_ldap.o: ../../include/sys_defs.h
- domain_list.o: domain_list.c
- domain_list.o: ../../include/sys_defs.h
- domain_list.o: ../../include/match_list.h
 diff -durN postfix-2.1.3.orig/src/global/mail_conf.c postfix-2.1.3/src/global/mail_conf.c
 --- postfix-2.1.3.orig/src/global/mail_conf.c	2004-04-10 16:52:51.000000000 +0200
 +++ postfix-2.1.3/src/global/mail_conf.c	2004-06-22 15:39:24.247860093 +0200
@@ -119,75 +110,6 @@ diff -durN postfix-2.1.3.orig/src/global/mail_conf.c postfix-2.1.3/src/global/ma
  }
  
  /* mail_conf_eval - expand macros in string */
-diff -durN postfix-2.1.3.orig/src/global/mail_params.c postfix-2.1.3/src/global/mail_params.c
---- postfix-2.1.3.orig/src/global/mail_params.c	2004-06-22 15:38:57.219459372 +0200
-+++ postfix-2.1.3/src/global/mail_params.c	2004-06-22 15:39:24.248860034 +0200
-@@ -154,6 +154,8 @@
- #ifdef HAS_DB
- #include <dict_db.h>
- #endif
-+#include <safe_open.h>
-+#include <mymalloc.h>
- 
- /* Global library. */
- 
-@@ -270,6 +272,7 @@
- char   *var_debug_peer_list;
- int     var_debug_peer_level;
- char   *var_reject_reply_msg_access_denied;
-+int     var_command_maxtime;
- int     var_fault_inj_code;
- char   *var_bounce_service;
- char   *var_cleanup_service;
-@@ -456,6 +459,38 @@
- 		  (long) var_sgid_gid);
- }
- 
-+static char *read_file(const char *name)
-+{
-+    char *ret;
-+    VSTRING *why=vstring_alloc(1);
-+    VSTRING *new_name=vstring_alloc(1);
-+    VSTREAM *vp=safe_open(name, O_RDONLY, 0, NULL, -1, -1, why);
-+
-+    /*
-+     * Ugly macros to make complex expressions less unreadable.
-+     */
-+#define SKIP(start, var, cond) \
-+	for (var = start; *var && (cond); var++);
-+
-+#define TRIM(s) { \
-+	char *p; \
-+	for (p = (s) + strlen(s); p > (s) && ISSPACE(p[-1]); p--); \
-+	*p = 0; \
-+    }
-+
-+    if (!vp) {
-+	msg_fatal("%s: unable to open: %s",name,vstring_str(why));
-+    }
-+    vstring_get_nonl(new_name,vp);
-+    vstream_fclose(vp);
-+    SKIP(vstring_str(new_name),ret,ISSPACE(*ret));
-+    ret=mystrdup(ret);
-+    TRIM(ret);
-+    vstring_free(why);
-+    vstring_free(new_name);
-+    return ret;
-+}
-+
- /* mail_params_init - configure built-in parameters */
- 
- void    mail_params_init()
-@@ -632,6 +667,9 @@
-      * Variables that are needed by almost every program.
-      */
-     get_mail_conf_str_table(other_str_defaults);
-+    if (*var_myorigin=='/') {
-+	var_myorigin=read_file(var_myorigin);
-+    }
-     get_mail_conf_int_table(other_int_defaults);
-     get_mail_conf_bool_table(bool_defaults);
-     get_mail_conf_time_table(time_defaults);
 diff -durN postfix-2.1.3.orig/src/master/Makefile.in postfix-2.1.3/src/master/Makefile.in
 --- postfix-2.1.3.orig/src/master/Makefile.in	2004-04-22 21:37:35.000000000 +0200
 +++ postfix-2.1.3/src/master/Makefile.in	2004-06-22 15:39:24.249859975 +0200
@@ -214,94 +136,6 @@ diff -durN postfix-2.1.3.orig/src/master/Makefile.in postfix-2.1.3/src/master/Ma
  
  $(BIN_DIR)/$(PROG): $(PROG)
  	 cp $(PROG) $(BIN_DIR)
---- postfix-2.2.2/src/util/Makefile.in.orig	2005-03-11 16:14:00.000000000 +0100
-+++ postfix-2.2.2/src/util/Makefile.in	2005-04-26 11:45:19.000000000 +0200
-@@ -30,13 +30,13 @@
- 	attr_print_plain.c sane_connect.c neuter.c name_code.c \
- 	uppercase.c unix_recv_fd.c stream_recv_fd.c unix_send_fd.c \
- 	stream_send_fd.c dict_sdbm.c hex_code.c dummy_read.c dummy_write.c \
--	myaddrinfo.c sock_addr.c inet_proto.c cidr_match.c mask_addr.c
-+	myaddrinfo.c sock_addr.c inet_proto.c cidr_match.c mask_addr.c load_lib.c
- OBJS	= alldig.o argv.o argv_split.o attr_print0.o attr_print64.o \
- 	attr_scan0.o attr_scan64.o base64_code.o basename.o binhash.o \
- 	chroot_uid.o clean_env.o close_on_exec.o concatenate.o ctable.o \
- 	dict.o dict_alloc.o dict_db.o dict_cdb.o dict_dbm.o dict_debug.o dict_env.o \
- 	dict_cidr.o dict_ht.o dict_ni.o dict_nis.o \
--	dict_nisplus.o dict_open.o dict_pcre.o dict_regexp.o \
-+	dict_nisplus.o dict_open.o dict_regexp.o \
- 	dict_static.o dict_tcp.o dict_unix.o dir_forest.o doze.o \
- 	duplex_pipe.o environ.o events.o exec_command.o fifo_listen.o \
- 	fifo_trigger.o file_limit.o find_inet.o fsspace.o fullname.o \
-@@ -62,7 +62,7 @@
- 	attr_print_plain.o sane_connect.o $(STRCASE) neuter.o name_code.o \
- 	uppercase.o unix_recv_fd.o stream_recv_fd.o unix_send_fd.o \
- 	stream_send_fd.o dict_sdbm.o hex_code.o dummy_read.o dummy_write.o \
--	myaddrinfo.o sock_addr.o inet_proto.o cidr_match.o mask_addr.o
-+	myaddrinfo.o sock_addr.o inet_proto.o cidr_match.o mask_addr.o load_lib.o
- HDRS	= argv.h attr.h base64_code.h binhash.h chroot_uid.h clean_env.h \
- 	connect.h ctable.h dict.h dict_db.h dict_cdb.h dict_dbm.h dict_env.h \
- 	dict_cidr.h dict_ht.h dict_ni.h dict_nis.h \
-@@ -83,13 +83,14 @@
- 	vbuf_print.h vstream.h vstring.h vstring_vstream.h watchdog.h \
- 	auto_clnt.h attr_clnt.h sane_connect.h name_code.h dict_sdbm.h \
- 	hex_code.h myaddrinfo.h sock_addr.h inet_proto.h cidr_match.h \
--	mask_addr.h
-+	mask_addr.h load_lib.h
- TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
- 	stream_test.c dup2_pass_on_exec.c
- DEFS	= -I. -D$(SYSTYPE)
- CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
- FILES	= Makefile $(SRCS) $(HDRS)
- INCL	=
-+PCRESO	= dict_pcre.so
- LIB	= libutil.a
- TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
- 	fifo_rdonly_bug fifo_rdwr_bug fifo_trigger fsspace fullname \
-@@ -104,8 +105,9 @@
- 
- LIB_DIR	= ../../lib
- INC_DIR	= ../../include
-+LIBS    = $(LIB_DIR)/$(LIB) $(LIB_DIR)/$(PCRESO)
- 
--.c.o:;	$(CC) $(CFLAGS) -c $*.c
-+.c.o:;	$(CC) -fPIC $(CFLAGS) -c $*.c
- 
- all: $(LIB)
- 
-@@ -114,15 +116,19 @@
- 
- test:	$(TESTPROG)
- 
-+$(PCRESO): dict_pcre.o
-+	gcc -shared -Wl,-soname,dict_pcre.so -o $@ $? -lpcre -L. -lutil
-+
- $(LIB):	$(OBJS)
--	$(AR) $(ARFL) $(LIB) $?
--	$(RANLIB) $(LIB)
-+	gcc -shared -Wl,-soname,libpostfix-util.so.1 -o $(LIB) $(OBJS) -ldl
- 
- $(LIB_DIR)/$(LIB): $(LIB)
- 	cp $(LIB) $(LIB_DIR)
--	$(RANLIB) $(LIB_DIR)/$(LIB)
- 
--update: $(LIB_DIR)/$(LIB) $(HDRS)
-+$(LIB_DIR)/$(PCRESO): $(PCRESO)
-+	cp $(PCRESO) $(LIB_DIR)
-+
-+update: $(LIBS) $(HDRS)
- 	-for i in $(HDRS); \
- 	do \
- 	  cmp -s $$i $(INC_DIR)/$$i 2>/dev/null || cp $$i $(INC_DIR); \
-@@ -144,7 +150,8 @@
- 	lint $(SRCS)
- 
- clean:
--	rm -f *.o $(LIB) *core $(TESTPROG) junk $(MAKES) *.tmp
-+	rm -f *.o $(LIB) $(PCRESO) *core $(TESTPROG) \
-+		junk $(MAKES) *.tmp
- 	rm -rf printfck
- 
- tidy:	clean
 diff -durN postfix-2.1.3.orig/src/util/dict.h postfix-2.1.3/src/util/dict.h
 --- postfix-2.1.3.orig/src/util/dict.h	2003-07-03 17:04:13.000000000 +0200
 +++ postfix-2.1.3/src/util/dict.h	2004-06-22 15:39:24.253859738 +0200
@@ -735,3 +569,160 @@ diff -dur postfix-2.1.3.orig/src/global/mail_dict.c postfix-2.1.3/src/global/mai
 +#type	location of .so file			name of open function
 +#====	================================	=====================
 +*	/usr/lib/postfix/dict_%s.so		dict_%s_open
+--- postfix-2.3-RC9/src/global/mail_params.c.orig	2006-07-11 19:37:10.708815544 +0200
++++ postfix-2.3-RC9/src/global/mail_params.c	2006-07-11 19:38:56.587719504 +0200
+@@ -148,6 +148,8 @@
+ #ifdef STRCASECMP_IN_STRINGS_H
+ #include <strings.h>
+ #endif
++#include <safe_open.h>
++#include <mymalloc.h>
+ 
+ /* Utility library. */
+ 
+@@ -248,6 +250,7 @@
+ char   *var_debug_peer_list;
+ int     var_debug_peer_level;
+ char	*var_reject_reply_msg_access_denied;
++int	var_command_maxtime;
+ int     var_fault_inj_code;
+ char   *var_bounce_service;
+ char   *var_cleanup_service;
+@@ -433,6 +436,38 @@
+ 		  (long) var_sgid_gid);
+ }
+ 
++static char *read_file(const char *name)
++{
++    char *ret;
++    VSTRING *why=vstring_alloc(1);
++    VSTRING *new_name=vstring_alloc(1);
++    VSTREAM *vp=safe_open(name, O_RDONLY, 0, NULL, -1, -1, why);
++
++    /*
++     * Ugly macros to make complex expressions less unreadable.
++     */
++#define SKIP(start, var, cond) \
++	for (var = start; *var && (cond); var++);
++
++#define TRIM(s) { \
++	char *p; \
++	for (p = (s) + strlen(s); p > (s) && ISSPACE(p[-1]); p--); \
++	*p = 0; \
++    }
++
++    if (!vp) {
++	msg_fatal("%s: unable to open: %s",name,vstring_str(why));
++    }
++    vstring_get_nonl(new_name,vp);
++    vstream_fclose(vp);
++    SKIP(vstring_str(new_name),ret,ISSPACE(*ret));
++    ret=mystrdup(ret);
++    TRIM(ret);
++    vstring_free(why);
++    vstring_free(new_name);
++    return ret;
++}
++
+ /* mail_params_init - configure built-in parameters */
+ 
+ void    mail_params_init()
+@@ -584,6 +619,9 @@
+      * Variables that are needed by almost every program.
+      */
+     get_mail_conf_str_table(other_str_defaults);
++    if (*var_myorigin=='/') {
++	var_myorigin=read_file(var_myorigin);
++    }
+     get_mail_conf_int_table(other_int_defaults);
+     get_mail_conf_bool_table(bool_defaults);
+     get_mail_conf_time_table(time_defaults);
+--- postfix-2.3-RC9/src/util/Makefile.in.orig	2006-07-09 19:45:23.000000000 +0200
++++ postfix-2.3-RC9/src/util/Makefile.in	2006-07-11 19:49:15.792586056 +0200
+@@ -30,14 +30,14 @@
+ 	username.c valid_hostname.c vbuf.c vbuf_print.c vstream.c \
+ 	vstream_popen.c vstring.c vstring_vstream.c watchdog.c writable.c \
+ 	write_buf.c write_wait.c sane_basename.c format_tv.c allspace.c \
+-	allascii.c load_file.c
++	allascii.c load_file.c load_lib.c
+ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
+ 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
+ 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
+ 	chroot_uid.o cidr_match.o clean_env.o close_on_exec.o concatenate.o \
+ 	ctable.o dict.o dict_alloc.o dict_cdb.o dict_cidr.o dict_db.o \
+ 	dict_dbm.o dict_debug.o dict_env.o dict_ht.o dict_ni.o dict_nis.o \
+-	dict_nisplus.o dict_open.o dict_pcre.o dict_regexp.o dict_sdbm.o \
++	dict_nisplus.o dict_open.o dict_regexp.o dict_sdbm.o \
+ 	dict_static.o dict_tcp.o dict_unix.o dir_forest.o doze.o dummy_read.o \
+ 	dummy_write.o duplex_pipe.o environ.o events.o exec_command.o \
+ 	fifo_listen.o fifo_trigger.o file_limit.o find_inet.o fsspace.o \
+@@ -62,7 +62,7 @@
+ 	username.o valid_hostname.o vbuf.o vbuf_print.o vstream.o \
+ 	vstream_popen.o vstring.o vstring_vstream.o watchdog.o writable.o \
+ 	write_buf.o write_wait.o sane_basename.o format_tv.o allspace.o \
+-	allascii.o load_file.o
++	allascii.o load_file.o load_lib.o
+ HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
+ 	chroot_uid.h cidr_match.h clean_env.h connect.h ctable.h dict.h \
+ 	dict_cdb.h dict_cidr.h dict_db.h dict_dbm.h dict_env.h dict_ht.h \
+@@ -81,13 +81,14 @@
+ 	sigdelay.h sock_addr.h spawn_command.h split_at.h stat_as.h \
+ 	stringops.h sys_defs.h timed_connect.h timed_wait.h trigger.h \
+ 	username.h valid_hostname.h vbuf.h vbuf_print.h vstream.h vstring.h \
+-	vstring_vstream.h watchdog.h format_tv.h load_file.h
++	vstring_vstream.h watchdog.h format_tv.h load_file.h load_lib.h
+ TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
+ 	stream_test.c dup2_pass_on_exec.c
+ DEFS	= -I. -D$(SYSTYPE)
+ CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
+ FILES	= Makefile $(SRCS) $(HDRS)
+ INCL	=
++PCRESO	= dict_pcre.so
+ LIB	= libutil.a
+ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
+ 	fifo_rdonly_bug fifo_rdwr_bug fifo_trigger fsspace fullname \
+@@ -102,8 +103,9 @@
+ 
+ LIB_DIR	= ../../lib
+ INC_DIR	= ../../include
++LIBS    = $(LIB_DIR)/$(LIB) $(LIB_DIR)/$(PCRESO)
+ 
+-.c.o:;	$(CC) $(CFLAGS) -c $*.c
++.c.o:;	$(CC) -fPIC $(CFLAGS) -c $*.c
+ 
+ all: $(LIB)
+ 
+@@ -114,15 +116,19 @@
+ 
+ test:	$(TESTPROG)
+ 
++$(PCRESO): dict_pcre.o
++	gcc -shared -Wl,-soname,dict_pcre.so -o $@ $? -lpcre -L. -lutil
++
+ $(LIB):	$(OBJS)
+-	$(AR) $(ARFL) $(LIB) $?
+-	$(RANLIB) $(LIB)
++	gcc -shared -Wl,-soname,libpostfix-util.so.1 -o $(LIB) $(OBJS) -ldl
+ 
+ $(LIB_DIR)/$(LIB): $(LIB)
+ 	cp $(LIB) $(LIB_DIR)
+-	$(RANLIB) $(LIB_DIR)/$(LIB)
+ 
+-update: $(LIB_DIR)/$(LIB) $(HDRS)
++$(LIB_DIR)/$(PCRESO): $(PCRESO)
++	cp $(PCRESO) $(LIB_DIR)
++
++update: $(LIBS) $(HDRS)
+ 	-for i in $(HDRS); \
+ 	do \
+ 	  cmp -s $$i $(INC_DIR)/$$i 2>/dev/null || cp $$i $(INC_DIR); \
+@@ -144,7 +150,8 @@
+ 	lint $(SRCS)
+ 
+ clean:
+-	rm -f *.o $(LIB) *core $(TESTPROG) junk $(MAKES) *.tmp
++	rm -f *.o $(LIB) $(PCRESO) *core $(TESTPROG) \
++		junk $(MAKES) *.tmp
+ 	rm -rf printfck
+ 
+ tidy:	clean
