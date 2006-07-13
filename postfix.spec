@@ -13,6 +13,7 @@
 # TODO:
 #	- check/fix 'polish' bcond
 #
+%define		_rc	RC9
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
 Summary(es):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -22,7 +23,6 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.3
-%define		_rc	RC9
 Release:	0.%{_rc}.1
 Epoch:		2
 License:	distributable
@@ -41,11 +41,11 @@ Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
 Patch3:		%{name}-master.cf_cyrus.patch
-# from http://akson.sgh.waw.pl/~chopin/unix/postfix-2.1.5-header_if_reject.diff
+# from http:	//akson.sgh.waw.pl/~chopin/unix/postfix-2.1.5-header_if_reject.diff
 Patch4:		%{name}-header_if_reject.patch
 #Patch5:	%{name}-pl.patch
-#Patch6:		%{name}-size-check-before-proxy.patch
-#Patch7:		%{name}-log-proxy-rejects.patch
+#Patch6:	%{name}-size-check-before-proxy.patch
+#Patch7:	%{name}-log-proxy-rejects.patch
 Patch8:		%{name}-ident.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
@@ -55,7 +55,6 @@ BuildRequires:	db-devel
 BuildRequires:	glibc-devel >= 6:2.3.4
 BuildRequires:	grep
 %{?with_mysql:BuildRequires:	mysql-devel}
-%{?with_mysql:BuildRequires:	zlib-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.3.0}
 %{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7d}
 BuildRequires:	pcre-devel
@@ -63,6 +62,7 @@ BuildRequires:	pcre-devel
 BuildRequires:	rpmbuild(macros) >= 1.268
 BuildRequires:	sed >= 4.0
 %{?with_cdb:BuildRequires:	tinycdb-devel}
+%{?with_mysql:BuildRequires:	zlib-devel}
 Requires(post):	/bin/hostname
 Requires(post,postun):	/sbin/ldconfig
 Requires(post,preun):	/sbin/chkconfig
@@ -240,7 +240,7 @@ sed -i '/scache_clnt_create/s/server/var_scache_service/' src/global/scache_clnt
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/{cron.daily,rc.d/init.d,sysconfig,pam.d} \
 	$RPM_BUILD_ROOT%{_sysconfdir}/{mail,sasl} \
-	$RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,/usr/lib}\
+	$RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,%{_prefix}/lib}\
 	$RPM_BUILD_ROOT{%{_includedir}/postfix,%{_mandir}/man{1,5,8}} \
 	$RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public}
 
@@ -269,16 +269,16 @@ install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/sasl/smtpd.conf
 install %{SOURCE6} $RPM_BUILD_ROOT/etc/pam.d/smtp
 install auxiliary/rmail/rmail $RPM_BUILD_ROOT%{_bindir}/rmail
 
-ln -sf /usr/sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
-ln -sf /usr/sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/newaliases
-ln -sf /usr/sbin/sendmail $RPM_BUILD_ROOT/usr/lib/sendmail
+ln -sf %{_sbindir}/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
+ln -sf %{_sbindir}/sendmail $RPM_BUILD_ROOT%{_bindir}/newaliases
+ln -sf %{_sbindir}/sendmail $RPM_BUILD_ROOT/usr/lib/sendmail
 
 touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 	{aliases,access,canonical,relocated,transport,virtual}{,.db}
 
 > $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
-rm -rf $RPM_BUILD_ROOT/etc/mail/makedefs.out $RPM_BUILD_ROOT/usr/share/man/cat*
+rm -rf $RPM_BUILD_ROOT%{_sysconfdir}/mail/makedefs.out $RPM_BUILD_ROOT%{_mandir}/cat*
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -290,13 +290,13 @@ rm -rf $RPM_BUILD_ROOT
 
 %post
 /sbin/ldconfig
-if ! grep -q "^postmaster:" /etc/mail/aliases; then
-	echo "Adding Entry for postmaster in /etc/mail/aliases" >&2
-	echo "postmaster:	root" >>/etc/mail/aliases
+if ! grep -q "^postmaster:" %{_sysconfdir}/mail/aliases; then
+echo "Adding Entry for postmaster in %{_sysconfdir}/mail/aliases" >&2
+echo "postmaster: root" >>%{_sysconfdir}/mail/aliases
 fi
 if [ "$1" = "1" ]; then
 	# only on installation, not upgrade
-	if ! grep -q "^myhostname" /etc/mail/main.cf; then
+if ! grep -q "^myhostname" %{_sysconfdir}/mail/main.cf; then
 		postconf -e myhostname=`/bin/hostname -f`
 	fi
 else
