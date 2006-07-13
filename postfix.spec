@@ -61,6 +61,7 @@ BuildRequires:	grep
 BuildRequires:	pcre-devel
 %{?with_pgsql:BuildRequires:	postgresql-devel}
 BuildRequires:	rpmbuild(macros) >= 1.268
+BuildRequires:	sed >= 4.0
 %{?with_cdb:BuildRequires:	tinycdb-devel}
 Requires(post):	/bin/hostname
 Requires(post,postun):	/sbin/ldconfig
@@ -215,12 +216,13 @@ Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 %patch0 -p1
 %patch1 -p0
 %patch2 -p1
-%patch3 -p1
+#%patch3 -p1
 %{?with_hir:%patch4 -p0}
 #%{?with_polish:%patch5 -p1}
 #%patch6 -p1
 #%patch7 -p1 --obsolete/update ?
 %patch8 -p1
+sed -i '/scache_clnt_create/s/server/var_scache_service/' src/global/scache_clnt.c
 
 %build
 %{__make} -f Makefile.init makefiles
