@@ -216,7 +216,7 @@ Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 %patch0 -p1
 %patch1 -p0
 %patch2 -p1
-#%patch3 -p1
+%patch3 -p1
 %{?with_hir:%patch4 -p0}
 #%{?with_polish:%patch5 -p1}
 #%patch6 -p1
@@ -338,7 +338,7 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/header_checks
 #%ghost %{_sysconfdir}/mail/*.db
 %dir %{_sysconfdir}/mail
-#%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/dynamicmaps.cf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/dynamicmaps.cf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/main.cf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/master.cf
 %attr(755,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/postfix-script
