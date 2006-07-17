@@ -211,7 +211,7 @@ Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 
 %prep
 %setup -q
-#%{?with_vda:zcat %{SOURCE7} | patch -p1 -s}
+%{?with_vda:zcat %{SOURCE7} | patch -p1 -s}
 %patch0 -p1
 %patch1 -p0
 %patch2 -p1
