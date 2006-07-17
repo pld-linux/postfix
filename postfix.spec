@@ -295,7 +295,7 @@ echo "postmaster: root" >>%{_sysconfdir}/mail/aliases
 fi
 if [ "$1" = "1" ]; then
 	# only on installation, not upgrade
-if ! grep -q "^myhostname" %{_sysconfdir}/mail/main.cf; then
+	if ! grep -q "^myhostname" %{_sysconfdir}/mail/main.cf; then
 		postconf -e myhostname=`/bin/hostname -f`
 	fi
 else
