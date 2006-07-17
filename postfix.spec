@@ -21,13 +21,13 @@ Summary(pl):	Serwer SMTP Postfix
 Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
-Version:	2.2.10
-Release:	1
+Version:	2.3.0
+Release:	0.1
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	440a4702182a79ac2f51e8974fb742c9
+# Source0-md5:	72a714e0cc8a5fdbe770359ae965e09b
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
@@ -35,18 +35,17 @@ Source4:	%{name}.sysconfig
 Source5:	%{name}.sasl
 Source6:	%{name}.pamd
 Source7:	http://web.onda.com.br/nadal/postfix/VDA/%{name}-%{version}-vda.patch.gz
-# Source7-md5:	8237cd654eb116d35785b11de6e5ca9c
+# Source7-md5:	e29d9db6641b22f788d496912e045992
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
 Patch3:		%{name}-master.cf_cyrus.patch
-# from http://akson.sgh.waw.pl/~chopin/unix/postfix-2.1.5-header_if_reject.diff
+# from http:	//akson.sgh.waw.pl/~chopin/unix/postfix-2.1.5-header_if_reject.diff
 Patch4:		%{name}-header_if_reject.patch
 #Patch5:	%{name}-pl.patch
-Patch6:		%{name}-setsid.patch
-Patch7:		%{name}-size-check-before-proxy.patch
-Patch8:		%{name}-log-proxy-rejects.patch
-Patch9:		%{name}-ident.patch
+#Patch6:	%{name}-size-check-before-proxy.patch
+#Patch7:	%{name}-log-proxy-rejects.patch
+Patch8:		%{name}-ident.patch
 URL:		http://www.postfix.org/
 BuildRequires:	awk
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
@@ -60,7 +59,9 @@ BuildRequires:	grep
 BuildRequires:	pcre-devel
 %{?with_pgsql:BuildRequires:	postgresql-devel}
 BuildRequires:	rpmbuild(macros) >= 1.268
+BuildRequires:	sed >= 4.0
 %{?with_cdb:BuildRequires:	tinycdb-devel}
+%{?with_mysql:BuildRequires:	zlib-devel}
 Requires(post):	/bin/hostname
 Requires(post,postun):	/sbin/ldconfig
 Requires(post,preun):	/sbin/chkconfig
@@ -210,17 +211,17 @@ Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 
 %prep
 %setup -q
-%{?with_vda:zcat %{SOURCE7} | patch -p1 -s}
+#%{?with_vda:zcat %{SOURCE7} | patch -p1 -s}
 %patch0 -p1
-%patch1 -p1
+%patch1 -p0
 %patch2 -p1
 %patch3 -p1
 %{?with_hir:%patch4 -p0}
 #%{?with_polish:%patch5 -p1}
-%patch6 -p1
-%patch7 -p1
+#%patch6 -p1
+#%patch7 -p1 --obsolete ?
 %patch8 -p1
-%patch9 -p1
+sed -i '/scache_clnt_create/s/server/var_scache_service/' src/global/scache_clnt.c
 
 %build
 %{__make} -f Makefile.init makefiles
@@ -232,13 +233,13 @@ Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 	%{!?with_mysql:MYSQLSO=""} \
 	%{!?with_pgsql:PGSQLSO=""} \
 	CCARGS="%{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL -I/usr/include/postgresql} %{?with_ssl:-DUSE_TLS -I/usr/include/openssl} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB} -DHAVE_GETIFADDRS" \
-	AUXLIBS="-ldb -lresolv %{?with_sasl:-lsasl} %{?with_ssl:-lssl -lcrypto} %{?with_cdb:-lcdb}"
+	AUXLIBS="-ldb -lresolv %{?with_sasl:-lsasl} %{?with_ssl:-lssl -lcrypto} %{?with_cdb:-lcdb} -lpcre %{?with_ldap:-lldap -llber} %{?with_pgsql:-lpq} %{?with_mysql:-lmysqlclient -lz}"
 
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/{cron.daily,rc.d/init.d,sysconfig,pam.d} \
 	$RPM_BUILD_ROOT%{_sysconfdir}/{mail,sasl} \
-	$RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,/usr/lib}\
+	$RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,%{_prefix}/lib}\
 	$RPM_BUILD_ROOT{%{_includedir}/postfix,%{_mandir}/man{1,5,8}} \
 	$RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public}
 
@@ -267,16 +268,16 @@ install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/sasl/smtpd.conf
 install %{SOURCE6} $RPM_BUILD_ROOT/etc/pam.d/smtp
 install auxiliary/rmail/rmail $RPM_BUILD_ROOT%{_bindir}/rmail
 
-ln -sf /usr/sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
-ln -sf /usr/sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/newaliases
-ln -sf /usr/sbin/sendmail $RPM_BUILD_ROOT/usr/lib/sendmail
+ln -sf %{_sbindir}/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
+ln -sf %{_sbindir}/sendmail $RPM_BUILD_ROOT%{_bindir}/newaliases
+ln -sf %{_sbindir}/sendmail $RPM_BUILD_ROOT/usr/lib/sendmail
 
 touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 	{aliases,access,canonical,relocated,transport,virtual}{,.db}
 
 > $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
-rm -rf $RPM_BUILD_ROOT/etc/mail/makedefs.out $RPM_BUILD_ROOT/usr/share/man/cat*
+rm -rf $RPM_BUILD_ROOT%{_sysconfdir}/mail/makedefs.out $RPM_BUILD_ROOT%{_mandir}/cat*
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -288,13 +289,13 @@ rm -rf $RPM_BUILD_ROOT
 
 %post
 /sbin/ldconfig
-if ! grep -q "^postmaster:" /etc/mail/aliases; then
-	echo "Adding Entry for postmaster in /etc/mail/aliases" >&2
-	echo "postmaster:	root" >>/etc/mail/aliases
+if ! grep -q "^postmaster:" %{_sysconfdir}/mail/aliases; then
+echo "Adding Entry for postmaster in %{_sysconfdir}/mail/aliases" >&2
+echo "postmaster: root" >>%{_sysconfdir}/mail/aliases
 fi
 if [ "$1" = "1" ]; then
 	# only on installation, not upgrade
-	if ! grep -q "^myhostname" /etc/mail/main.cf; then
+if ! grep -q "^myhostname" %{_sysconfdir}/mail/main.cf; then
 		postconf -e myhostname=`/bin/hostname -f`
 	fi
 else
