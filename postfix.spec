@@ -22,7 +22,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.3.0
-Release:	0.1
+Release:	0.2
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
@@ -40,19 +40,20 @@ Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
 Patch3:		%{name}-master.cf_cyrus.patch
-# from http:	//akson.sgh.waw.pl/~chopin/unix/postfix-2.1.5-header_if_reject.diff
+# from http://akson.sgh.waw.pl/~chopin/unix/postfix-2.1.5-header_if_reject.diff
 Patch4:		%{name}-header_if_reject.patch
 #Patch5:	%{name}-pl.patch
 #Patch6:	%{name}-size-check-before-proxy.patch
 #Patch7:	%{name}-log-proxy-rejects.patch
 Patch8:		%{name}-ident.patch
+Patch9:		%{name}-lib64.patch
+Patch10:	%{name}-conf.patch
+Patch11:	%{name}-dictname.patch
 URL:		http://www.postfix.org/
-BuildRequires:	awk
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db-devel
 # getifaddrs() with IPv6 support
 BuildRequires:	glibc-devel >= 6:2.3.4
-BuildRequires:	grep
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.3.0}
 %{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7d}
@@ -222,6 +223,11 @@ Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 #%patch7 -p1 --obsolete ?
 %patch8 -p1
 sed -i '/scache_clnt_create/s/server/var_scache_service/' src/global/scache_clnt.c
+%if "%{_lib}" = "lib64"
+%patch9 -p1
+%endif
+%patch10 -p1
+%patch11 -p1
 
 %build
 %{__make} -f Makefile.init makefiles
