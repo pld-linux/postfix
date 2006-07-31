@@ -1,3 +1,6 @@
+# TODO:
+# - check/fix 'polish' bcond
+# - add http://www.aurore.net/projects/postfix_memcached/
 #
 # Conditional build:
 %bcond_without	ldap	# without LDAP map module
@@ -9,9 +12,6 @@
 %bcond_with	vda	# with VDA patch
 %bcond_with	hir	# with Beeth's header_if_reject patch
 #%bcond_with	polish	# with double English+Polish messages
-#
-# TODO:
-#	- check/fix 'polish' bcond
 #
 Summary:	Postfix Mail Transport Agent
 Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
