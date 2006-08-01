@@ -21,21 +21,22 @@ Summary(pl):	Serwer SMTP Postfix
 Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
-Version:	2.3.0
-Release:	0.2
+Version:	2.3.2
+%define		vda_ver 2.3.1
+Release:	0.1
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	72a714e0cc8a5fdbe770359ae965e09b
+# Source0-md5:	b1e482eea6a340041b8a637e62b15e3c
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
 Source4:	%{name}.sysconfig
 Source5:	%{name}.sasl
 Source6:	%{name}.pamd
-Source7:	http://web.onda.com.br/nadal/postfix/VDA/%{name}-%{version}-vda.patch.gz
-# Source7-md5:	e29d9db6641b22f788d496912e045992
+Source7:	http://web.onda.com.br/nadal/postfix/VDA/%{name}-%{vda_ver}-vda.patch.gz
+# Source7-md5:	fc7c1676ceecbfb414353af1dafe11de
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
@@ -223,7 +224,7 @@ Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 #%patch7 -p1 --obsolete ?
 %patch8 -p1
 sed -i '/scache_clnt_create/s/server/var_scache_service/' src/global/scache_clnt.c
-%if "%{_lib}" = "lib64"
+%if "%{_lib}" == "lib64"
 %patch9 -p1
 %endif
 %patch10 -p1
