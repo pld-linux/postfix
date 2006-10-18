@@ -74,11 +74,9 @@ case "$1" in
   reload|force-reload)
 	if [ -f /var/lock/subsys/postfix ]; then
 		msg_reloading Postfix
-		busy
-		/usr/sbin/postfix reload
+		daemon /usr/sbin/postfix reload
 		RETVAL=$?
 		[ $RETVAL -ne 0 ] && RETVAL=7
-		[ $RETVAL -eq 0 ] && ok || died
 	else
 		msg_not_running Postfix
 		exit 7
