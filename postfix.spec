@@ -22,7 +22,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.2.5
-Release:	8
+Release:	9
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
@@ -231,7 +231,7 @@ Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 %{__make} tidy
 %{__make} \
 	DEBUG="" \
-	OPT="%{rpmcflags}" \
+	OPT="%{rpmcflags}  -D_FILE_OFFSET_BITS=64" \
 	%{!?with_ldap:LDAPSO=""} \
 	%{!?with_mysql:MYSQLSO=""} \
 	%{!?with_pgsql:PGSQLSO=""} \
