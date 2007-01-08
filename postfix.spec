@@ -235,7 +235,7 @@ sed -i '/scache_clnt_create/s/server/var_scache_service/' src/global/scache_clnt
 %{__make} tidy
 %{__make} \
 	DEBUG="" \
-	OPT="%{rpmcflags}" \
+	OPT="%{rpmcflags} -D_FILE_OFFSET_BITS=64" \
 	%{!?with_ldap:LDAPSO=""} \
 	%{!?with_mysql:MYSQLSO=""} \
 	%{!?with_pgsql:PGSQLSO=""} \
