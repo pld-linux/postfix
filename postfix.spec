@@ -154,7 +154,6 @@ popísané kroky potrebné pred a po in¹talácii Postfixu.
 Summary:	Postfix loadable modules development package
 Summary(pl):	Pakiet dla programistów ³adowanych modu³ów do postfiksa
 Group:		Development/Libraries
-Provides:	/usr/lib/libmilter.a
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 
 %description devel
