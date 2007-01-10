@@ -23,7 +23,7 @@ Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.3.6
 %define		vda_ver 2.3.1
-Release:	0.1
+Release:	1
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
@@ -57,7 +57,7 @@ BuildRequires:	db-devel
 BuildRequires:	glibc-devel >= 6:2.3.4
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.3.0}
-%{?with_ssl:BuildRequires:	openssl-devel >= 0.9.8b}
+#%{?with_ssl:BuildRequires:	openssl-devel >= 0.9.8b}
 BuildRequires:	pcre-devel
 %{?with_pgsql:BuildRequires:	postgresql-devel}
 BuildRequires:	rpmbuild(macros) >= 1.268
@@ -265,7 +265,6 @@ for f in dns global master util ; do
 done
 install lib/dict*.so $RPM_BUILD_ROOT%{_libdir}/postfix
 install include/*.h $RPM_BUILD_ROOT%{_includedir}/postfix
-install lib/libmilter.a $RPM_BUILD_ROOT%{_libdir}
 
 (cd man; tar cf - .) | (cd $RPM_BUILD_ROOT%{_mandir}; tar xf -)
 
@@ -393,7 +392,6 @@ fi
 %files devel
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libpostfix-*.so
-%{_libdir}/libmilter.a
 %{_includedir}/postfix
 
 %if %{with ldap}
