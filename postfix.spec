@@ -154,6 +154,7 @@ popísané kroky potrebné pred a po in¹talácii Postfixu.
 Summary:	Postfix loadable modules development package
 Summary(pl):	Pakiet dla programistów ³adowanych modu³ów do postfiksa
 Group:		Development/Libraries
+Provides:	/usr/lib/libmilter.a
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 
 %description devel
@@ -264,6 +265,7 @@ for f in dns global master util ; do
 done
 install lib/dict*.so $RPM_BUILD_ROOT%{_libdir}/postfix
 install include/*.h $RPM_BUILD_ROOT%{_includedir}/postfix
+install lib/libmilter.a $RPM_BUILD_ROOT%{_libdir}
 
 (cd man; tar cf - .) | (cd $RPM_BUILD_ROOT%{_mandir}; tar xf -)
 
@@ -391,6 +393,7 @@ fi
 %files devel
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libpostfix-*.so
+%{_libdir}/libmilter.a
 %{_includedir}/postfix
 
 %if %{with ldap}
