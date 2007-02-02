@@ -52,7 +52,7 @@ Patch10:	%{name}-conf.patch
 Patch11:	%{name}-dictname.patch
 URL:		http://www.postfix.org/
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
-BuildRequires:	db4.5-devel
+BuildRequires:	db-devel
 # getifaddrs() with IPv6 support
 BuildRequires:	glibc-devel >= 6:2.3.4
 %{?with_mysql:BuildRequires:	mysql-devel}
