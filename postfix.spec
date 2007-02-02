@@ -6,7 +6,7 @@
 %bcond_without	sasl	# without SMTP AUTH support
 %bcond_without	ssl	# without SSL/TLS support
 %bcond_without	cdb	# without cdb map support
-%bcond_with	vda	# with VDA patch
+%bcond_without	vda	# with VDA patch
 %bcond_with	hir	# with Beeth's header_if_reject patch
 #%bcond_with	polish	# with double English+Polish messages
 #
@@ -22,10 +22,10 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.2.5
-Release:	4.1
+Release:	10
 Epoch:		2
-Group:		Networking/Daemons
 License:	distributable
+Group:		Networking/Daemons
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
 # Source0-md5:	9c13d58494c64012bfd8ab0d6967305c
 Source1:	%{name}.aliases
@@ -59,7 +59,7 @@ BuildRequires:	grep
 %{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7d}
 BuildRequires:	pcre-devel
 %{?with_pgsql:BuildRequires:	postgresql-devel}
-BuildRequires:	rpmbuild(macros) >= 1.202
+BuildRequires:	rpmbuild(macros) >= 1.268
 %{?with_cdb:BuildRequires:	tinycdb-devel}
 Requires(post):	/bin/hostname
 Requires(post,postun):	/sbin/ldconfig
@@ -231,7 +231,7 @@ Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 %{__make} tidy
 %{__make} \
 	DEBUG="" \
-	OPT="%{rpmcflags}" \
+	OPT="%{rpmcflags}  -D_FILE_OFFSET_BITS=64" \
 	%{!?with_ldap:LDAPSO=""} \
 	%{!?with_mysql:MYSQLSO=""} \
 	%{!?with_pgsql:PGSQLSO=""} \
@@ -307,17 +307,11 @@ fi
 
 newaliases
 /sbin/chkconfig --add postfix
-if [ -f /var/lock/subsys/postfix ]; then
-	/etc/rc.d/init.d/postfix restart >&2
-else
-	echo "Run \"/etc/rc.d/init.d/postfix start\" to start postfix daemon." >&2
-fi
+%service postfix restart "postfix daemon"
 
 %preun
 if [ "$1" = "0" ]; then
-	if [ -f /var/lock/subsys/postfix ]; then
-		/etc/rc.d/init.d/postfix stop >&2
-	fi
+	%service postfix stop
 	/sbin/chkconfig --del postfix
 fi
 
