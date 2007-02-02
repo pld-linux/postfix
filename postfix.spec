@@ -9,7 +9,7 @@
 %bcond_without	sasl	# without SMTP AUTH support
 %bcond_without	ssl	# without SSL/TLS support
 %bcond_without	cdb	# without cdb map support
-%bcond_with	vda	# with VDA patch
+%bcond_without	vda	# with VDA patch
 %bcond_with	hir	# with Beeth's header_if_reject patch
 #%bcond_with	polish	# with double English+Polish messages
 #
@@ -23,7 +23,7 @@ Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.3.6
 %define		vda_ver 2.3.1
-Release:	1
+Release:	2
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
@@ -52,7 +52,7 @@ Patch10:	%{name}-conf.patch
 Patch11:	%{name}-dictname.patch
 URL:		http://www.postfix.org/
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
-BuildRequires:	db-devel
+BuildRequires:	db4.5-devel
 # getifaddrs() with IPv6 support
 BuildRequires:	glibc-devel >= 6:2.3.4
 %{?with_mysql:BuildRequires:	mysql-devel}
