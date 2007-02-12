@@ -14,12 +14,12 @@
 #%bcond_with	polish	# with double English+Polish messages
 #
 Summary:	Postfix Mail Transport Agent
-Summary(cs):	Postfix - program pro pøepravu po¹ty (MTA)
-Summary(es):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
-Summary(fr):	Agent de transport de courrier Postfix
-Summary(pl):	Serwer SMTP Postfix
-Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
-Summary(sk):	Agent prenosu po¹ty Postfix
+Summary(cs.UTF-8):   Postfix - program pro pÅ™epravu poÅ¡ty (MTA)
+Summary(es.UTF-8):   Postfix - Un MTA (Mail Transport Agent) de alto desempeÃ±o
+Summary(fr.UTF-8):   Agent de transport de courrier Postfix
+Summary(pl.UTF-8):   Serwer SMTP Postfix
+Summary(pt_BR.UTF-8):   Postfix - Um MTA (Mail Transport Agent) de alto desempenho
+Summary(sk.UTF-8):   Agent prenosu poÅ¡ty Postfix
 Name:		postfix
 Version:	2.3.6
 %define		vda_ver 2.3.1
@@ -103,19 +103,19 @@ Sendmail program. Postfix attempts to be fast, easy to administer, and
 hopefully secure, while at the same time being sendmail compatible
 enough to not upset your users. This version has IPv6 support.
 
-%description -l es
+%description -l es.UTF-8
 Postfix es una alternativa para el mundialmente utilizado sendmail. Si
-desea tener un servidor SMTP *rápido*, debe instalar este paquete.
+desea tener un servidor SMTP *rÃ¡pido*, debe instalar este paquete.
 
-%description -l fr
-Postfix (voir http://www.postfix.org/) se veut une alternative à
+%description -l fr.UTF-8
+Postfix (voir http://www.postfix.org/) se veut une alternative Ã 
 sendmail, responsable de l'acheminement de 70% des courriers
-électroniques sur Internet. IBM en a suppotré le développement, mais
-ne contrôle pas son évolution. Le but est d'installer Postfix sur le
-plus grand nombre de systèmes possible. Dans cette optique, il a été
-écrit pour être totalement sous le contrôle de l'utilisateur.
+Ã©lectroniques sur Internet. IBM en a suppotrÃ© le dÃ©veloppement, mais
+ne contrÃ´le pas son Ã©volution. Le but est d'installer Postfix sur le
+plus grand nombre de systÃ¨mes possible. Dans cette optique, il a Ã©tÃ©
+Ã©crit pour Ãªtre totalement sous le contrÃ´le de l'utilisateur.
 
-%description -l it
+%description -l it.UTF-8
 Postfix (http://www.postfix.org/) e' un'alternativa al programma
 sendmail utilizzato per la gestione del 70 per cento della posta
 Internet.
@@ -127,44 +127,44 @@ Consultate la pagine web http://www.moongroup.com/how-to.phtml nella
 quale troverete le indicazioni per una corretta installazione e
 configurazione di questo programma.
 
-%description -l pl
-Postfix jest prób± dostarczenia alternatywnego MTA w stosunku do
-szeroko u¿ywanego sendmaila. Postfix w zamierzeniu ma byæ szybki,
-³atwy w administrowaniu, bezpieczny oraz ma byæ na tyle kompatybilny z
-sendmailem by nie denerwowaæ u¿ytkowników. Ta wersja obs³uguje IPv6.
+%description -l pl.UTF-8
+Postfix jest prÃ³bÄ… dostarczenia alternatywnego MTA w stosunku do
+szeroko uÅ¼ywanego sendmaila. Postfix w zamierzeniu ma byÄ‡ szybki,
+Å‚atwy w administrowaniu, bezpieczny oraz ma byÄ‡ na tyle kompatybilny z
+sendmailem by nie denerwowaÄ‡ uÅ¼ytkownikÃ³w. Ta wersja obsÅ‚uguje IPv6.
 
-%description -l pt_BR
-O Postfix é uma alternativa para o mundialmente utilizado sendmail. Se
-você deseja um servidor SMTP *rápido*, instale este pacote.
+%description -l pt_BR.UTF-8
+O Postfix Ã© uma alternativa para o mundialmente utilizado sendmail. Se
+vocÃª deseja um servidor SMTP *rÃ¡pido*, instale este pacote.
 
-%description -l sk
-Postfix (pozri http://www.postfix.org/) má za cieµ by» alternatívou k
-¹iroko roz¹írenému programu sendmail, zodpovednému za 70% v¹etkej
-elektronickej po¹ty doruèenej na Internete.
+%description -l sk.UTF-8
+Postfix (pozri http://www.postfix.org/) mÃ¡ za cieÄ¾ byÅ¥ alternatÃ­vou k
+Å¡iroko rozÅ¡Ã­renÃ©mu programu sendmail, zodpovednÃ©mu za 70% vÅ¡etkej
+elektronickej poÅ¡ty doruÄenej na Internete.
 
-Aj keï IBM podporovala vývoj Postfixu, zdr¾iava sa vplyvu na jeho
-vývoj. Cieµom je in¹talácia Postfixu na èo najväè¹om poète systémov.
-Do tohoto momentu je softvér poskytovaný bez ovplyvòovania, tak¾e sa
-mô¾e vyvíja» podµa jeho pou¾ívateµov.
+Aj keÄ IBM podporovala vÃ½voj Postfixu, zdrÅ¾iava sa vplyvu na jeho
+vÃ½voj. CieÄ¾om je inÅ¡talÃ¡cia Postfixu na Äo najvÃ¤ÄÅ¡om poÄte systÃ©mov.
+Do tohoto momentu je softvÃ©r poskytovanÃ½ bez ovplyvÅˆovania, takÅ¾e sa
+mÃ´Å¾e vyvÃ­jaÅ¥ podÄ¾a jeho pouÅ¾Ã­vateÄ¾ov.
 
-Urèite si preèítajte http://www.moongroup.com/how-to.phtml, kde sú
-popísané kroky potrebné pred a po in¹talácii Postfixu.
+UrÄite si preÄÃ­tajte http://www.moongroup.com/how-to.phtml, kde sÃº
+popÃ­sanÃ© kroky potrebnÃ© pred a po inÅ¡talÃ¡cii Postfixu.
 
 %package devel
 Summary:	Postfix loadable modules development package
-Summary(pl):	Pakiet dla programistów ³adowanych modu³ów do postfiksa
+Summary(pl.UTF-8):   Pakiet dla programistÃ³w Å‚adowanych moduÅ‚Ã³w do postfiksa
 Group:		Development/Libraries
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 
 %description devel
 Header files to build additional map types for Postfix.
 
-%description devel -l pl
-Pliki nag³ówkowe do tworzenia dodatkowych typów map dla Postfiksa.
+%description devel -l pl.UTF-8
+Pliki nagÅ‚Ã³wkowe do tworzenia dodatkowych typÃ³w map dla Postfiksa.
 
 %package dict-ldap
 Summary:	LDAP map support for Postfix
-Summary(pl):	Obs³uga map LDAP dla Postfiksa
+Summary(pl.UTF-8):   ObsÅ‚uga map LDAP dla Postfiksa
 Group:		Networking/Daemons
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 Requires:	openldap >= 2.3.0
@@ -172,44 +172,44 @@ Requires:	openldap >= 2.3.0
 %description dict-ldap
 This package provides support for LDAP maps in Postfix.
 
-%description dict-ldap -l pl
-Ten pakiet dodaje obs³ugê map LDAP do Postfiksa.
+%description dict-ldap -l pl.UTF-8
+Ten pakiet dodaje obsÅ‚ugÄ™ map LDAP do Postfiksa.
 
 %package dict-mysql
 Summary:	MySQL map support for Postfix
-Summary(pl):	Obs³uga map MySQL dla Postfiksa
+Summary(pl.UTF-8):   ObsÅ‚uga map MySQL dla Postfiksa
 Group:		Networking/Daemons
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 
 %description dict-mysql
 This package provides support for MySQL maps in Postfix.
 
-%description dict-mysql -l pl
-Ten pakiet dodaje obs³ugê map MySQL do Postfiksa.
+%description dict-mysql -l pl.UTF-8
+Ten pakiet dodaje obsÅ‚ugÄ™ map MySQL do Postfiksa.
 
 %package dict-pcre
 Summary:	PCRE map support for Postfix
-Summary(pl):	Obs³uga map PCRE dla Postfiksa
+Summary(pl.UTF-8):   ObsÅ‚uga map PCRE dla Postfiksa
 Group:		Networking/Daemons
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 
 %description dict-pcre
 This package provides support for PCRE maps in Postfix.
 
-%description dict-pcre -l pl
-Ten pakiet dodaje obs³ugê map PCRE do Postfiksa.
+%description dict-pcre -l pl.UTF-8
+Ten pakiet dodaje obsÅ‚ugÄ™ map PCRE do Postfiksa.
 
 %package dict-pgsql
 Summary:	PostgreSQL map support for Postfix
-Summary(pl):	Obs³uga map PostgreSQL dla Postfiksa
+Summary(pl.UTF-8):   ObsÅ‚uga map PostgreSQL dla Postfiksa
 Group:		Networking/Daemons
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 
 %description dict-pgsql
 This package provides support for PostgreSQL maps in Postfix.
 
-%description dict-pgsql -l pl
-Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
+%description dict-pgsql -l pl.UTF-8
+Ten pakiet dodaje obsÅ‚ugÄ™ map PostgreSQL do Postfiksa.
 
 %prep
 %setup -q
