@@ -11,6 +11,7 @@
 %bcond_without	cdb	# without cdb map support
 %bcond_without	vda	# with VDA patch
 %bcond_with	hir	# with Beeth's header_if_reject patch
+%bcond_with	tcp	# with unofficial tcp: lookup table
 #%bcond_with	polish	# with double English+Polish messages
 #
 Summary:	Postfix Mail Transport Agent
@@ -229,6 +230,10 @@ sed -i '/scache_clnt_create/s/server/var_scache_service/' src/global/scache_clnt
 %endif
 %patch10 -p1
 %patch11 -p1
+
+%if %{with tcp}
+sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
+%endif
 
 %build
 %{__make} -f Makefile.init makefiles
