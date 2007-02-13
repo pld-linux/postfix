@@ -15,12 +15,12 @@
 #%bcond_with	polish	# with double English+Polish messages
 #
 Summary:	Postfix Mail Transport Agent
-Summary(cs.UTF-8):   Postfix - program pro přepravu pošty (MTA)
-Summary(es.UTF-8):   Postfix - Un MTA (Mail Transport Agent) de alto desempeño
-Summary(fr.UTF-8):   Agent de transport de courrier Postfix
-Summary(pl.UTF-8):   Serwer SMTP Postfix
-Summary(pt_BR.UTF-8):   Postfix - Um MTA (Mail Transport Agent) de alto desempenho
-Summary(sk.UTF-8):   Agent prenosu pošty Postfix
+Summary(cs.UTF-8):	Postfix - program pro přepravu pošty (MTA)
+Summary(es.UTF-8):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
+Summary(fr.UTF-8):	Agent de transport de courrier Postfix
+Summary(pl.UTF-8):	Serwer SMTP Postfix
+Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
+Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	2.3.6
 %define		vda_ver 2.3.1
@@ -153,7 +153,7 @@ popísané kroky potrebné pred a po inštalácii Postfixu.
 
 %package devel
 Summary:	Postfix loadable modules development package
-Summary(pl.UTF-8):   Pakiet dla programistów ładowanych modułów do postfiksa
+Summary(pl.UTF-8):	Pakiet dla programistów ładowanych modułów do postfiksa
 Group:		Development/Libraries
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 
@@ -165,7 +165,7 @@ Pliki nagłówkowe do tworzenia dodatkowych typów map dla Postfiksa.
 
 %package dict-ldap
 Summary:	LDAP map support for Postfix
-Summary(pl.UTF-8):   Obsługa map LDAP dla Postfiksa
+Summary(pl.UTF-8):	Obsługa map LDAP dla Postfiksa
 Group:		Networking/Daemons
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 Requires:	openldap >= 2.3.0
@@ -178,7 +178,7 @@ Ten pakiet dodaje obsługę map LDAP do Postfiksa.
 
 %package dict-mysql
 Summary:	MySQL map support for Postfix
-Summary(pl.UTF-8):   Obsługa map MySQL dla Postfiksa
+Summary(pl.UTF-8):	Obsługa map MySQL dla Postfiksa
 Group:		Networking/Daemons
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 
@@ -190,7 +190,7 @@ Ten pakiet dodaje obsługę map MySQL do Postfiksa.
 
 %package dict-pcre
 Summary:	PCRE map support for Postfix
-Summary(pl.UTF-8):   Obsługa map PCRE dla Postfiksa
+Summary(pl.UTF-8):	Obsługa map PCRE dla Postfiksa
 Group:		Networking/Daemons
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 
@@ -202,7 +202,7 @@ Ten pakiet dodaje obsługę map PCRE do Postfiksa.
 
 %package dict-pgsql
 Summary:	PostgreSQL map support for Postfix
-Summary(pl.UTF-8):   Obsługa map PostgreSQL dla Postfiksa
+Summary(pl.UTF-8):	Obsługa map PostgreSQL dla Postfiksa
 Group:		Networking/Daemons
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 
