@@ -24,7 +24,7 @@ Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	2.3.6
 %define		vda_ver 2.3.1
-Release:	2
+Release:	3
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
@@ -287,6 +287,8 @@ ln -sf %{_sbindir}/sendmail $RPM_BUILD_ROOT/usr/lib/sendmail
 touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 	{aliases,access,canonical,relocated,transport,virtual}{,.db}
 
+touch $RPM_BUILD_ROOT/etc/security/blacklist.smtp
+
 > $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
 rm -rf $RPM_BUILD_ROOT%{_sysconfdir}/mail/makedefs.out $RPM_BUILD_ROOT%{_mandir}/cat*
@@ -359,6 +361,7 @@ fi
 %attr(754,root,root) /etc/rc.d/init.d/postfix
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/postfix
 %config(noreplace) %verify(not md5 mtime size) /etc/pam.d/smtp
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/security/blacklist.smtp
 %{?with_sasl:%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/sasl/smtpd.conf}
 %attr(755,root,root) %{_libdir}/libpostfix-*.so.*
 %attr(755,root,root) %{_bindir}/*
