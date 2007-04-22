@@ -6,7 +6,7 @@
 %bcond_without	sasl	# without SMTP AUTH support
 %bcond_without	ssl	# without SSL/TLS support
 %bcond_without	cdb	# without cdb map support
-%bcond_without	vda	# with VDA patch
+%bcond_with	vda	# with VDA patch
 %bcond_with	hir	# with Beeth's header_if_reject patch
 #%bcond_with	polish	# with double English+Polish messages
 #
@@ -22,7 +22,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.2.5
-Release:	10
+Release:	11
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
