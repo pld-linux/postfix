@@ -22,7 +22,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.2.5
-Release:	11
+Release:	12
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
@@ -270,6 +270,7 @@ install %{SOURCE4} $RPM_BUILD_ROOT/etc/sysconfig/postfix
 install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/sasl/smtpd.conf
 install %{SOURCE6} $RPM_BUILD_ROOT/etc/pam.d/smtp
 install auxiliary/rmail/rmail $RPM_BUILD_ROOT%{_bindir}/rmail
+install auxiliary/qshape/qshape.pl $RPM_BUILD_ROOT%{_bindir}/qshape
 
 ln -sf /usr/sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
 ln -sf /usr/sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/newaliases
