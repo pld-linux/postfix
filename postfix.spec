@@ -24,7 +24,7 @@ Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	2.3.6
 %define		vda_ver 2.3.1
-Release:	4
+Release:	5
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
@@ -280,6 +280,7 @@ install %{SOURCE4} $RPM_BUILD_ROOT/etc/sysconfig/postfix
 install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/sasl/smtpd.conf
 install %{SOURCE6} $RPM_BUILD_ROOT/etc/pam.d/smtp
 install auxiliary/rmail/rmail $RPM_BUILD_ROOT%{_bindir}/rmail
+install auxiliary/qshape/qshape.pl $RPM_BUILD_ROOT%{_bindir}/qshape
 
 ln -sf %{_sbindir}/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
 ln -sf %{_sbindir}/sendmail $RPM_BUILD_ROOT%{_bindir}/newaliases
