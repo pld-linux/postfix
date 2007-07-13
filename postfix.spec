@@ -22,7 +22,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.2.5
-Release:	12
+Release:	13
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
@@ -79,6 +79,7 @@ Requires:	sed
 Provides:	group(postfix)
 Provides:	smtpdaemon
 Provides:	user(postfix)
+Provides:	/usr/lib/sendmail
 Obsoletes:	courier
 Obsoletes:	exim
 Obsoletes:	masqmail
