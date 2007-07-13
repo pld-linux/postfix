@@ -24,7 +24,7 @@ Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	2.3.6
 %define		vda_ver 2.3.1
-Release:	6
+Release:	7
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
@@ -84,7 +84,6 @@ Suggests:	cyrus-sasl-saslauthd
 Provides:	group(postfix)
 Provides:	smtpdaemon
 Provides:	user(postfix)
-Provides:	/usr/lib/sendmail
 Obsoletes:	courier
 Obsoletes:	exim
 Obsoletes:	masqmail
