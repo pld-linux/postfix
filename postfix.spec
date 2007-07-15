@@ -79,7 +79,6 @@ Requires:	sed
 Provides:	group(postfix)
 Provides:	smtpdaemon
 Provides:	user(postfix)
-Provides:	/usr/lib/sendmail
 Obsoletes:	courier
 Obsoletes:	exim
 Obsoletes:	masqmail
