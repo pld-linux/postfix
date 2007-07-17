@@ -22,10 +22,10 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.2.5
-Release:	4.1
+Release:	14
 Epoch:		2
-Group:		Networking/Daemons
 License:	distributable
+Group:		Networking/Daemons
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
 # Source0-md5:	9c13d58494c64012bfd8ab0d6967305c
 Source1:	%{name}.aliases
@@ -48,18 +48,16 @@ Patch7:		%{name}-size-check-before-proxy.patch
 Patch8:		%{name}-log-proxy-rejects.patch
 Patch9:		%{name}-ident.patch
 URL:		http://www.postfix.org/
-BuildRequires:	awk
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db-devel
 # getifaddrs() with IPv6 support
 BuildRequires:	glibc-devel >= 6:2.3.4
-BuildRequires:	grep
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.3.0}
 %{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7d}
 BuildRequires:	pcre-devel
 %{?with_pgsql:BuildRequires:	postgresql-devel}
-BuildRequires:	rpmbuild(macros) >= 1.202
+BuildRequires:	rpmbuild(macros) >= 1.268
 %{?with_cdb:BuildRequires:	tinycdb-devel}
 Requires(post):	/bin/hostname
 Requires(post,postun):	/sbin/ldconfig
@@ -79,6 +77,7 @@ Requires:	sed
 Provides:	group(postfix)
 Provides:	smtpdaemon
 Provides:	user(postfix)
+Obsoletes:	/usr/lib/sendmail
 Obsoletes:	courier
 Obsoletes:	exim
 Obsoletes:	masqmail
@@ -231,7 +230,7 @@ Ten pakiet dodaje obs³ugê map PostgreSQL do Postfiksa.
 %{__make} tidy
 %{__make} \
 	DEBUG="" \
-	OPT="%{rpmcflags}" \
+	OPT="%{rpmcflags}  -D_FILE_OFFSET_BITS=64" \
 	%{!?with_ldap:LDAPSO=""} \
 	%{!?with_mysql:MYSQLSO=""} \
 	%{!?with_pgsql:PGSQLSO=""} \
@@ -270,6 +269,7 @@ install %{SOURCE4} $RPM_BUILD_ROOT/etc/sysconfig/postfix
 install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/sasl/smtpd.conf
 install %{SOURCE6} $RPM_BUILD_ROOT/etc/pam.d/smtp
 install auxiliary/rmail/rmail $RPM_BUILD_ROOT%{_bindir}/rmail
+install auxiliary/qshape/qshape.pl $RPM_BUILD_ROOT%{_bindir}/qshape
 
 ln -sf /usr/sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
 ln -sf /usr/sbin/sendmail $RPM_BUILD_ROOT%{_bindir}/newaliases
@@ -307,17 +307,11 @@ fi
 
 newaliases
 /sbin/chkconfig --add postfix
-if [ -f /var/lock/subsys/postfix ]; then
-	/etc/rc.d/init.d/postfix restart >&2
-else
-	echo "Run \"/etc/rc.d/init.d/postfix start\" to start postfix daemon." >&2
-fi
+%service postfix restart "postfix daemon"
 
 %preun
 if [ "$1" = "0" ]; then
-	if [ -f /var/lock/subsys/postfix ]; then
-		/etc/rc.d/init.d/postfix stop >&2
-	fi
+	%service postfix stop
 	/sbin/chkconfig --del postfix
 fi
 
