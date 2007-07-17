@@ -22,7 +22,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.2.5
-Release:	13
+Release:	14
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
@@ -48,12 +48,10 @@ Patch7:		%{name}-size-check-before-proxy.patch
 Patch8:		%{name}-log-proxy-rejects.patch
 Patch9:		%{name}-ident.patch
 URL:		http://www.postfix.org/
-BuildRequires:	awk
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db-devel
 # getifaddrs() with IPv6 support
 BuildRequires:	glibc-devel >= 6:2.3.4
-BuildRequires:	grep
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.3.0}
 %{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7d}
@@ -79,6 +77,7 @@ Requires:	sed
 Provides:	group(postfix)
 Provides:	smtpdaemon
 Provides:	user(postfix)
+Obsoletes:	/usr/lib/sendmail
 Obsoletes:	courier
 Obsoletes:	exim
 Obsoletes:	masqmail
