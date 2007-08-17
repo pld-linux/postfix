@@ -24,7 +24,7 @@ Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	2.3.6
 %define		vda_ver 2.3.1
-Release:	8
+Release:	9
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
@@ -201,6 +201,18 @@ This package provides support for PostgreSQL maps in Postfix.
 %description dict-pgsql -l pl.UTF-8
 Ten pakiet dodaje obsługę map PostgreSQL do Postfiksa.
 
+%package qshape
+Summary:	qshape - Print Postfix queue domain and age distribution
+Group:		Networking/Daemons
+Requires:	%{name} = %{epoch}:%{version}-%{release}
+
+%description qshape
+The qshape program helps the administrator understand the Postfix
+queue message distribution in time and by sender domain or recipient
+domain. The program needs read access to the queue directories and
+queue files, so it must run as the superuser or the mail_owner
+specified in main.cf (typically postfix).
+
 %prep
 %setup -q
 %{?with_vda:zcat %{SOURCE7} | patch -p1 -s}
@@ -354,7 +366,7 @@ fi
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/security/blacklist.smtp
 %{?with_sasl:%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/sasl/smtpd.conf}
 %attr(755,root,root) %{_libdir}/libpostfix-*.so.*
-%attr(755,root,root) %{_bindir}/*
+%attr(755,root,root) %{_bindir}/rmail
 %attr(755,root,root) %{_sbindir}/s*
 %attr(755,root,root) %{_sbindir}/postfix
 %attr(755,root,root) %{_sbindir}/postalias
@@ -412,3 +424,7 @@ fi
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_pgsql.so
 %endif
+
+%files qshape
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_bindir}/qshape
