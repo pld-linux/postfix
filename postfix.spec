@@ -22,7 +22,7 @@ Summary(pt_BR):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk):	Agent prenosu po¹ty Postfix
 Name:		postfix
 Version:	2.2.5
-Release:	15
+Release:	16
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
@@ -364,6 +364,8 @@ fi
 %config(noreplace) %verify(not md5 mtime size) /etc/pam.d/smtp
 %{?with_sasl:%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/sasl/smtpd.conf}
 %attr(755,root,root) %{_libdir}/libpostfix-*.so.*
+%attr(755,root,root) %{_bindir}/newaliases
+%attr(755,root,root) %{_bindir}/mailq
 %attr(755,root,root) %{_bindir}/rmail
 %attr(755,root,root) %{_sbindir}/s*
 %attr(755,root,root) %{_sbindir}/postfix
