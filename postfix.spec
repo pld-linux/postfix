@@ -24,7 +24,7 @@ Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	2.3.6
 %define		vda_ver 2.3.1
-Release:	2
+Release:	1
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
@@ -58,7 +58,7 @@ BuildRequires:	db-devel
 BuildRequires:	glibc-devel >= 6:2.3.4
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.3.0}
-%{?with_ssl:BuildRequires:	openssl-devel >= 0.9.8b}
+%{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7l}
 BuildRequires:	pcre-devel
 %{?with_pgsql:BuildRequires:	postgresql-devel}
 BuildRequires:	rpmbuild(macros) >= 1.268
@@ -80,22 +80,11 @@ Requires:	findutils
 Requires:	rc-scripts
 Requires:	sed
 %{?with_cdb:Requires:tinycdb}
+Suggests:	cyrus-sasl-saslauthd
 Provides:	group(postfix)
 Provides:	smtpdaemon
 Provides:	user(postfix)
-Obsoletes:	courier
-Obsoletes:	exim
-Obsoletes:	masqmail
-Obsoletes:	nullmailer
-Obsoletes:	omta
-Obsoletes:	qmail
-Obsoletes:	sendmail
-Obsoletes:	sendmail-cf
-Obsoletes:	sendmail-doc
-Obsoletes:	smail
 Obsoletes:	smtpdaemon
-Obsoletes:	ssmtp
-Obsoletes:	zmailer
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -212,6 +201,18 @@ This package provides support for PostgreSQL maps in Postfix.
 %description dict-pgsql -l pl.UTF-8
 Ten pakiet dodaje obsługę map PostgreSQL do Postfiksa.
 
+%package qshape
+Summary:	qshape - Print Postfix queue domain and age distribution
+Group:		Networking/Daemons
+Requires:	%{name} = %{epoch}:%{version}-%{release}
+
+%description qshape
+The qshape program helps the administrator understand the Postfix
+queue message distribution in time and by sender domain or recipient
+domain. The program needs read access to the queue directories and
+queue files, so it must run as the superuser or the mail_owner
+specified in main.cf (typically postfix).
+
 %prep
 %setup -q
 %{?with_vda:zcat %{SOURCE7} | patch -p1 -s}
@@ -249,7 +250,7 @@ sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT/etc/{cron.daily,rc.d/init.d,sysconfig,pam.d} \
+install -d $RPM_BUILD_ROOT/etc/{cron.daily,rc.d/init.d,sysconfig,pam.d,security} \
 	$RPM_BUILD_ROOT%{_sysconfdir}/{mail,sasl} \
 	$RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,%{_prefix}/lib}\
 	$RPM_BUILD_ROOT{%{_includedir}/postfix,%{_mandir}/man{1,5,8}} \
@@ -279,6 +280,7 @@ install %{SOURCE4} $RPM_BUILD_ROOT/etc/sysconfig/postfix
 install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/sasl/smtpd.conf
 install %{SOURCE6} $RPM_BUILD_ROOT/etc/pam.d/smtp
 install auxiliary/rmail/rmail $RPM_BUILD_ROOT%{_bindir}/rmail
+install auxiliary/qshape/qshape.pl $RPM_BUILD_ROOT%{_bindir}/qshape
 
 ln -sf %{_sbindir}/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
 ln -sf %{_sbindir}/sendmail $RPM_BUILD_ROOT%{_bindir}/newaliases
@@ -286,6 +288,8 @@ ln -sf %{_sbindir}/sendmail $RPM_BUILD_ROOT/usr/lib/sendmail
 
 touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 	{aliases,access,canonical,relocated,transport,virtual}{,.db}
+
+touch $RPM_BUILD_ROOT/etc/security/blacklist.smtp
 
 > $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
@@ -359,9 +363,10 @@ fi
 %attr(754,root,root) /etc/rc.d/init.d/postfix
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/postfix
 %config(noreplace) %verify(not md5 mtime size) /etc/pam.d/smtp
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/security/blacklist.smtp
 %{?with_sasl:%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/sasl/smtpd.conf}
 %attr(755,root,root) %{_libdir}/libpostfix-*.so.*
-%attr(755,root,root) %{_bindir}/*
+%attr(755,root,root) %{_bindir}/rmail
 %attr(755,root,root) %{_sbindir}/s*
 %attr(755,root,root) %{_sbindir}/postfix
 %attr(755,root,root) %{_sbindir}/postalias
@@ -419,3 +424,7 @@ fi
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_pgsql.so
 %endif
+
+%files qshape
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_bindir}/qshape
