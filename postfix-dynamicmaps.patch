@@ -628,14 +628,25 @@ diff -dur postfix-2.1.3.orig/src/global/mail_dict.c postfix-2.1.3/src/global/mai
      get_mail_conf_int_table(other_int_defaults);
      get_mail_conf_bool_table(bool_defaults);
      get_mail_conf_time_table(time_defaults);
---- postfix-2.3-RC9/src/util/Makefile.in.orig	2006-07-09 19:45:23.000000000 +0200
-+++ postfix-2.3-RC9/src/util/Makefile.in	2006-07-11 19:49:15.792586056 +0200
+--- postfix-2.3.0/src/global/Makefile.in	2006-07-17 03:28:25.732653648 +0200
++++ postfix-2.3.0/src/global/Makefile.in-new	2006-07-17 03:29:31.805609032 +0200
+@@ -32,7 +32,7 @@
+ 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
+ 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
+ 	defer.o deliver_completed.o deliver_flock.o deliver_pass.o \
+-	deliver_request.o dict_ldap.o dict_mysql.o dict_pgsql.o \
++	deliver_request.o \
+ 	dict_proxy.o domain_list.o dot_lockfile.o dot_lockfile_as.o \
+ 	dsb_scan.o dsn.o dsn_buf.o dsn_mask.o dsn_print.o dsn_util.o \
+ 	ehlo_mask.o ext_prop.o file_id.o flush_clnt.o header_opts.o \
+--- postfix-2.3.12/src/util/Makefile.in.orig	2007-07-31 01:18:35.000000000 +0200
++++ postfix-2.3.12/src/util/Makefile.in	2007-08-26 17:34:55.300706718 +0200
 @@ -30,14 +30,14 @@
  	username.c valid_hostname.c vbuf.c vbuf_print.c vstream.c \
  	vstream_popen.c vstring.c vstring_vstream.c watchdog.c writable.c \
  	write_buf.c write_wait.c sane_basename.c format_tv.c allspace.c \
--	allascii.c load_file.c
-+	allascii.c load_file.c load_lib.c
+-	allascii.c load_file.c vstream_tweak.c
++	allascii.c load_file.c vstream_tweak.c load_lib.c
  OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
  	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
  	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -651,8 +662,8 @@ diff -dur postfix-2.1.3.orig/src/global/mail_dict.c postfix-2.1.3/src/global/mai
  	username.o valid_hostname.o vbuf.o vbuf_print.o vstream.o \
  	vstream_popen.o vstring.o vstring_vstream.o watchdog.o writable.o \
  	write_buf.o write_wait.o sane_basename.o format_tv.o allspace.o \
--	allascii.o load_file.o
-+	allascii.o load_file.o load_lib.o
+-	allascii.o load_file.o vstream_tweak.o
++	allascii.o load_file.o vstream_tweak.o load_lib.o 
  HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
  	chroot_uid.h cidr_match.h clean_env.h connect.h ctable.h dict.h \
  	dict_cdb.h dict_cidr.h dict_db.h dict_dbm.h dict_env.h dict_ht.h \
@@ -717,14 +728,3 @@ diff -dur postfix-2.1.3.orig/src/global/mail_dict.c postfix-2.1.3/src/global/mai
  	rm -rf printfck
  
  tidy:	clean
---- postfix-2.3.0/src/global/Makefile.in	2006-07-17 03:28:25.732653648 +0200
-+++ postfix-2.3.0/src/global/Makefile.in-new	2006-07-17 03:29:31.805609032 +0200
-@@ -32,7 +32,7 @@
- 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
- 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
- 	defer.o deliver_completed.o deliver_flock.o deliver_pass.o \
--	deliver_request.o dict_ldap.o dict_mysql.o dict_pgsql.o \
-+	deliver_request.o \
- 	dict_proxy.o domain_list.o dot_lockfile.o dot_lockfile_as.o \
- 	dsb_scan.o dsn.o dsn_buf.o dsn_mask.o dsn_print.o dsn_util.o \
- 	ehlo_mask.o ext_prop.o file_id.o flush_clnt.o header_opts.o \
