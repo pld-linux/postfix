@@ -203,6 +203,7 @@ Ten pakiet dodaje obsługę map PostgreSQL do Postfiksa.
 
 %package qshape
 Summary:	qshape - Print Postfix queue domain and age distribution
+Summary(pl.UTF-8):	qshape - wypisywanie rozkładu domen i wieku z kolejki Postfiksa
 Group:		Networking/Daemons
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 
@@ -212,6 +213,14 @@ queue message distribution in time and by sender domain or recipient
 domain. The program needs read access to the queue directories and
 queue files, so it must run as the superuser or the mail_owner
 specified in main.cf (typically postfix).
+
+%description qshape -l pl.UTF-8
+Program qshape pomaga administratorowi zrozumieć rozkład kolejki
+wiadomości Postfiksa w czasie i w zależności od domeny nadawcy lub
+adresata. Program wymaga prawa odczytu do katalogów kolejki i plików
+kolejki, więc musi być uruchamiany przez superużytkownika lub
+użytkownika mail_owner podanego w main.cf (zwykle nazywającego się
+postfix).
 
 %prep
 %setup -q
