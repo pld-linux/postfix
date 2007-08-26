@@ -80,7 +80,6 @@ Requires:	findutils
 Requires:	rc-scripts
 Requires:	sed
 %{?with_cdb:Requires:tinycdb}
-Suggests:	cyrus-sasl-saslauthd
 Provides:	group(postfix)
 Provides:	smtpdaemon
 Provides:	user(postfix)
