@@ -24,7 +24,7 @@ Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	2.3.12
 %define		vda_ver 2.3.1
-Release:	1
+Release:	2
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
@@ -80,6 +80,7 @@ Requires:	findutils
 Requires:	rc-scripts
 Requires:	sed
 %{?with_cdb:Requires:tinycdb}
+Suggests:	cyrus-sasl-saslauthd
 Provides:	group(postfix)
 Provides:	smtpdaemon
 Provides:	user(postfix)
