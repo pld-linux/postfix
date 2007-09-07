@@ -260,6 +260,8 @@ rm -f {html,man}/Makefile.in conf/{LICENSE,main.cf.default}
 
 install bin/* $RPM_BUILD_ROOT%{_sbindir}
 install libexec/* $RPM_BUILD_ROOT%{_libdir}/postfix
+ln $RPM_BUILD_ROOT%{_libdir}/postfix/smtp $RPM_BUILD_ROOT%{_libdir}/postfix/lmtp
+ln $RPM_BUILD_ROOT%{_libdir}/postfix/qmgr $RPM_BUILD_ROOT%{_libdir}/postfix/nqmgr
 install conf/* $RPM_BUILD_ROOT%{_sysconfdir}/mail
 sed -e's,^daemon_directory = .*,daemon_directory = %{_libdir}/postfix,' \
 	conf/main.cf > $RPM_BUILD_ROOT%{_sysconfdir}/mail/main.cf
@@ -271,7 +273,7 @@ done
 install lib/dict*.so $RPM_BUILD_ROOT%{_libdir}/postfix
 install include/*.h $RPM_BUILD_ROOT%{_includedir}/postfix
 
-(cd man; tar cf - .) | (cd $RPM_BUILD_ROOT%{_mandir}; tar xf -)
+tar cf - -C man . | tar xf - -C $RPM_BUILD_ROOT%{_mandir}
 
 install %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/mail/aliases
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.daily/postfix
@@ -285,7 +287,6 @@ install auxiliary/qshape/qshape.pl $RPM_BUILD_ROOT%{_bindir}/qshape
 ln -sf %{_sbindir}/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
 ln -sf %{_sbindir}/sendmail $RPM_BUILD_ROOT%{_bindir}/newaliases
 ln -sf %{_sbindir}/sendmail $RPM_BUILD_ROOT/usr/lib/sendmail
-ln -sf smtp $RPM_BUILD_ROOT%{_libdir}/postfix/lmtp
 
 touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 	{aliases,access,canonical,relocated,transport,virtual}{,.db}
@@ -367,8 +368,8 @@ fi
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/security/blacklist.smtp
 %{?with_sasl:%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/sasl/smtpd.conf}
 %attr(755,root,root) %{_libdir}/libpostfix-*.so.*
-%attr(755,root,root) %{_bindir}/newaliases
 %attr(755,root,root) %{_bindir}/mailq
+%attr(755,root,root) %{_bindir}/newaliases
 %attr(755,root,root) %{_bindir}/rmail
 %attr(755,root,root) %{_sbindir}/s*
 %attr(755,root,root) %{_sbindir}/postfix
