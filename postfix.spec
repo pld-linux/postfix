@@ -23,8 +23,8 @@ Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	2.3.12
-%define		vda_ver 2.3.1
-Release:	1
+%define		vda_ver 2.3.3
+Release:	2
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
@@ -37,7 +37,7 @@ Source4:	%{name}.sysconfig
 Source5:	%{name}.sasl
 Source6:	%{name}.pamd
 Source7:	http://web.onda.com.br/nadal/postfix/VDA/%{name}-%{vda_ver}-vda.patch.gz
-# Source7-md5:	fc7c1676ceecbfb414353af1dafe11de
+# Source7-md5:	3506ab432360766b6a2708042b29943a
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
