@@ -285,7 +285,7 @@ install auxiliary/qshape/qshape.pl $RPM_BUILD_ROOT%{_bindir}/qshape
 ln -sf %{_sbindir}/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
 ln -sf %{_sbindir}/sendmail $RPM_BUILD_ROOT%{_bindir}/newaliases
 ln -sf %{_sbindir}/sendmail $RPM_BUILD_ROOT/usr/lib/sendmail
-ln -sf %{_libdir}/postfix/smtp $RPM_BUILD_ROOT%{_libdir}/postfix/lmtp
+ln -sf smtp $RPM_BUILD_ROOT%{_libdir}/postfix/lmtp
 
 touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 	{aliases,access,canonical,relocated,transport,virtual}{,.db}
