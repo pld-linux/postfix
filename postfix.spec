@@ -23,8 +23,8 @@ Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	2.3.12
-%define		vda_ver 2.3.1
-Release:	1
+%define		vda_ver 2.3.3
+Release:	3
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
@@ -37,7 +37,7 @@ Source4:	%{name}.sysconfig
 Source5:	%{name}.sasl
 Source6:	%{name}.pamd
 Source7:	http://web.onda.com.br/nadal/postfix/VDA/%{name}-%{vda_ver}-vda.patch.gz
-# Source7-md5:	fc7c1676ceecbfb414353af1dafe11de
+# Source7-md5:	3506ab432360766b6a2708042b29943a
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
@@ -58,7 +58,7 @@ BuildRequires:	db-devel
 BuildRequires:	glibc-devel >= 6:2.3.4
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.3.0}
-%{?with_ssl:BuildRequires:	openssl-devel >= 0.9.8b}
+%{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7l}
 BuildRequires:	pcre-devel
 %{?with_pgsql:BuildRequires:	postgresql-devel}
 BuildRequires:	rpmbuild(macros) >= 1.268
@@ -203,7 +203,6 @@ Ten pakiet dodaje obsługę map PostgreSQL do Postfiksa.
 
 %package qshape
 Summary:	qshape - Print Postfix queue domain and age distribution
-Summary(pl.UTF-8):	qshape - wypisywanie rozkładu domen i wieku z kolejki Postfiksa
 Group:		Networking/Daemons
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 
@@ -213,14 +212,6 @@ queue message distribution in time and by sender domain or recipient
 domain. The program needs read access to the queue directories and
 queue files, so it must run as the superuser or the mail_owner
 specified in main.cf (typically postfix).
-
-%description qshape -l pl.UTF-8
-Program qshape pomaga administratorowi zrozumieć rozkład kolejki
-wiadomości Postfiksa w czasie i w zależności od domeny nadawcy lub
-adresata. Program wymaga prawa odczytu do katalogów kolejki i plików
-kolejki, więc musi być uruchamiany przez superużytkownika lub
-użytkownika mail_owner podanego w main.cf (zwykle nazywającego się
-postfix).
 
 %prep
 %setup -q
@@ -294,6 +285,7 @@ install auxiliary/qshape/qshape.pl $RPM_BUILD_ROOT%{_bindir}/qshape
 ln -sf %{_sbindir}/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
 ln -sf %{_sbindir}/sendmail $RPM_BUILD_ROOT%{_bindir}/newaliases
 ln -sf %{_sbindir}/sendmail $RPM_BUILD_ROOT/usr/lib/sendmail
+ln -sf %{_libdir}/postfix/smtp $RPM_BUILD_ROOT%{_libdir}/postfix/lmtp
 
 touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
 	{aliases,access,canonical,relocated,transport,virtual}{,.db}
@@ -375,6 +367,8 @@ fi
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/security/blacklist.smtp
 %{?with_sasl:%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/sasl/smtpd.conf}
 %attr(755,root,root) %{_libdir}/libpostfix-*.so.*
+%attr(755,root,root) %{_bindir}/newaliases
+%attr(755,root,root) %{_bindir}/mailq
 %attr(755,root,root) %{_bindir}/rmail
 %attr(755,root,root) %{_sbindir}/s*
 %attr(755,root,root) %{_sbindir}/postfix
