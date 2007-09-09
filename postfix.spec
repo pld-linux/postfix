@@ -203,6 +203,7 @@ Ten pakiet dodaje obsługę map PostgreSQL do Postfiksa.
 
 %package qshape
 Summary:	qshape - Print Postfix queue domain and age distribution
+Summary(pl.UTF-8):	qshape - wypisywanie rozkładu domen i wieku z kolejki Postfiksa
 Group:		Networking/Daemons
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 
@@ -212,6 +213,14 @@ queue message distribution in time and by sender domain or recipient
 domain. The program needs read access to the queue directories and
 queue files, so it must run as the superuser or the mail_owner
 specified in main.cf (typically postfix).
+
+%description qshape -l pl.UTF-8
+Program qshape pomaga administratorowi zrozumieć rozkład kolejki
+wiadomości Postfiksa w czasie i w zależności od domeny nadawcy lub
+adresata. Program wymaga prawa odczytu do katalogów kolejki i plików
+kolejki, więc musi być uruchamiany przez superużytkownika lub
+użytkownika mail_owner podanego w main.cf (zwykle nazywającego się
+postfix).
 
 %prep
 %setup -q
@@ -256,11 +265,11 @@ sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/{cron.daily,rc.d/init.d,sysconfig,pam.d,security} \
 	$RPM_BUILD_ROOT%{_sysconfdir}/{mail,sasl} \
-	$RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,%{_prefix}/lib}\
-	$RPM_BUILD_ROOT{%{_includedir}/postfix,%{_mandir}/man{1,5,8}} \
+	$RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,/usr/lib}\
+	$RPM_BUILD_ROOT{%{_includedir}/postfix,%{_mandir}} \
 	$RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public}
 
-rm -f {html,man}/Makefile.in conf/{LICENSE,main.cf.default}
+rm -f html/Makefile.in conf/{LICENSE,main.cf.default}
 
 install bin/* $RPM_BUILD_ROOT%{_sbindir}
 install libexec/* $RPM_BUILD_ROOT%{_libdir}/postfix
@@ -277,7 +286,7 @@ done
 install lib/dict*.so $RPM_BUILD_ROOT%{_libdir}/postfix
 install include/*.h $RPM_BUILD_ROOT%{_includedir}/postfix
 
-tar cf - -C man . | tar xf - -C $RPM_BUILD_ROOT%{_mandir}
+cp -a man/man* $RPM_BUILD_ROOT%{_mandir}
 
 install %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/mail/aliases
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.daily/postfix
@@ -299,7 +308,7 @@ touch $RPM_BUILD_ROOT/etc/security/blacklist.smtp
 
 > $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
-rm -rf $RPM_BUILD_ROOT%{_sysconfdir}/mail/makedefs.out $RPM_BUILD_ROOT%{_mandir}/cat*
+rm -rf $RPM_BUILD_ROOT%{_sysconfdir}/mail/makedefs.out
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -351,7 +360,6 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/aliases
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/canonical
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/generic
-#%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/pcre_table
 #%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/regexp_table
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/relocated
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/transport
@@ -404,7 +412,29 @@ fi
 %attr(710,postfix,maildrop) %dir %{_var}/spool/postfix/public
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/saved
 %attr(644,postfix,root) %{_var}/spool/postfix/.nofinger
-%{_mandir}/man*/*
+%{_mandir}/man1/mailq.1*
+%{_mandir}/man1/newaliases.1*
+%{_mandir}/man1/post*.1*
+%{_mandir}/man1/qmqp-*.1*
+%{_mandir}/man1/sendmail.1*
+%{_mandir}/man1/smtp-*.1*
+%{_mandir}/man5/access.5*
+%{_mandir}/man5/aliases.5*
+%{_mandir}/man5/body_checks.5*
+%{_mandir}/man5/bounce.5*
+%{_mandir}/man5/canonical.5*
+%{_mandir}/man5/cidr_table.5*
+%{_mandir}/man5/generic.5*
+%{_mandir}/man5/header_checks.5*
+%{_mandir}/man5/master.5*
+%{_mandir}/man5/nisplus_table.5*
+%{_mandir}/man5/postconf.5*
+%{_mandir}/man5/regexp_table.5*
+%{_mandir}/man5/relocated.5*
+%{_mandir}/man5/tcp_table.5*
+%{_mandir}/man5/transport.5*
+%{_mandir}/man5/virtual.5*
+%{_mandir}/man8/*.8*
 
 %files devel
 %defattr(644,root,root,755)
@@ -415,24 +445,30 @@ fi
 %files dict-ldap
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_ldap.so
+%{_mandir}/man5/ldap_table.5*
 %endif
 
 %if %{with mysql}
 %files dict-mysql
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_mysql.so
+%{_mandir}/man5/mysql_table.5*
 %endif
 
 %files dict-pcre
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_pcre.so
+#%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/pcre_table
+%{_mandir}/man5/pcre_table.5*
 
 %if %{with pgsql}
 %files dict-pgsql
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_pgsql.so
+%{_mandir}/man5/pgsql_table.5*
 %endif
 
 %files qshape
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/qshape
+%{_mandir}/man1/qshape.1*
