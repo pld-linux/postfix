@@ -248,7 +248,7 @@ sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
 %build
 %{__make} -f Makefile.init makefiles
 %{__make} tidy
-%{__make} \
+%{__make} -j1 \
 	CC="%{__cc}" \
 	DEBUG="" \
 	OPT="%{rpmcflags} -D_FILE_OFFSET_BITS=64" \
