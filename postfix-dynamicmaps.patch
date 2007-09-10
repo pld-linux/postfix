@@ -493,41 +493,6 @@ diff -durN postfix-2.1.3.orig/src/util/load_lib.h postfix-2.1.3/src/util/load_li
 +/*--*/
 +
 +#endif
-diff -durN postfix-2.1.3.orig/src/util/sys_defs.h postfix-2.1.3/src/util/sys_defs.h
---- postfix-2.1.3.orig/src/util/sys_defs.h	2004-06-22 15:38:57.190461088 +0200
-+++ postfix-2.1.3/src/util/sys_defs.h	2004-06-22 15:39:24.255859620 +0200
-@@ -560,6 +560,7 @@
- #define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT
- #define PREPEND_PLUS_TO_OPTSTRING
- #define HAS_POSIX_REGEXP
-+#define HAS_DLOPEN
- #define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
- #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
- #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
-@@ -596,6 +597,7 @@
- #define UNIX_DOMAIN_CONNECT_BLOCKS_FOR_ACCEPT	/* unverified */
- #define PREPEND_PLUS_TO_OPTSTRING
- #define HAS_POSIX_REGEXP
-+#define HAS_DLOPEN
- #define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
- #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
- #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
-@@ -638,6 +640,7 @@
- #define USE_STATFS
- #define STATFS_IN_SYS_VFS_H
- #define HAS_POSIX_REGEXP
-+#define HAS_SHL_LOAD
- #define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
- #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
- #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
-@@ -673,6 +676,7 @@
- #define USE_STATFS
- #define STATFS_IN_SYS_VFS_H
- #define HAS_POSIX_REGEXP
-+#define HAS_SHL_LOAD
- #define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
- #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
- #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
 diff -dur postfix-2.1.3.orig/src/global/mail_dict.c postfix-2.1.3/src/global/mail_dict.c
 --- postfix-2.1.3.orig/src/global/mail_dict.c	2004-01-04 19:53:27.000000000 +0100
 +++ postfix-2.1.3/src/global/mail_dict.c	2004-06-22 15:47:45.259202712 +0200
@@ -645,8 +610,8 @@ diff -dur postfix-2.1.3.orig/src/global/mail_dict.c postfix-2.1.3/src/global/mai
  	username.c valid_hostname.c vbuf.c vbuf_print.c vstream.c \
  	vstream_popen.c vstring.c vstring_vstream.c watchdog.c writable.c \
  	write_buf.c write_wait.c sane_basename.c format_tv.c allspace.c \
--	allascii.c load_file.c vstream_tweak.c
-+	allascii.c load_file.c vstream_tweak.c load_lib.c
+-	allascii.c load_file.c killme_after.c vstream_tweak.c
++	allascii.c load_file.c killme_after.c vstream_tweak.c load_lib.c
  OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
  	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
  	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -662,8 +627,8 @@ diff -dur postfix-2.1.3.orig/src/global/mail_dict.c postfix-2.1.3/src/global/mai
  	username.o valid_hostname.o vbuf.o vbuf_print.o vstream.o \
  	vstream_popen.o vstring.o vstring_vstream.o watchdog.o writable.o \
  	write_buf.o write_wait.o sane_basename.o format_tv.o allspace.o \
--	allascii.o load_file.o vstream_tweak.o
-+	allascii.o load_file.o vstream_tweak.o load_lib.o 
+-	allascii.o load_file.o killme_after.o vstream_tweak.o
++	allascii.o load_file.o killme_after.o vstream_tweak.o load_lib.o
  HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
  	chroot_uid.h cidr_match.h clean_env.h connect.h ctable.h dict.h \
  	dict_cdb.h dict_cidr.h dict_db.h dict_dbm.h dict_env.h dict_ht.h \
@@ -671,8 +636,8 @@ diff -dur postfix-2.1.3.orig/src/global/mail_dict.c postfix-2.1.3/src/global/mai
  	sigdelay.h sock_addr.h spawn_command.h split_at.h stat_as.h \
  	stringops.h sys_defs.h timed_connect.h timed_wait.h trigger.h \
  	username.h valid_hostname.h vbuf.h vbuf_print.h vstream.h vstring.h \
--	vstring_vstream.h watchdog.h format_tv.h load_file.h
-+	vstring_vstream.h watchdog.h format_tv.h load_file.h load_lib.h
+-	vstring_vstream.h watchdog.h format_tv.h load_file.h killme_after.h
++	vstring_vstream.h watchdog.h format_tv.h load_file.h killme_after.h load_lib.h
  TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
  	stream_test.c dup2_pass_on_exec.c
  DEFS	= -I. -D$(SYSTYPE)

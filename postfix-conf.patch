@@ -3,15 +3,18 @@
 @@ -55,7 +55,7 @@
  # Also specify in main.cf: maildrop_destination_recipient_limit=1
  #
- maildrop  unix  -       n       n       -       -       pipe
--  flags=DRhu user=vmail argv=/usr/local/bin/maildrop -d ${recipient}
-+  flags=DRhu user=vmail argv=/usr/bin/maildrop -d ${recipient}
+ #maildrop  unix  -       n       n       -       -       pipe
+-#  flags=DRhu user=vmail argv=/usr/local/bin/maildrop -d ${recipient}
++#  flags=DRhu user=vmail argv=/usr/bin/maildrop -d ${recipient}
  #
- # The Cyrus deliver program has changed incompatibly, multiple times.
+ # ====================================================================
  #
-@@ -76,4 +76,4 @@
- ifmail    unix  -       n       n       -       -       pipe
-   flags=F user=ftn argv=/usr/lib/ifmail/ifmail -r $nexthop ($recipient)
- bsmtp     unix  -       n       n       -       -       pipe
--  flags=Fq. user=foo argv=/usr/local/sbin/bsmtp -f $sender $nexthop $recipient
-+  flags=Fq. user=foo argv=/usr/sbin/bsmtp -f $sender $nexthop $recipient
+@@ -76,7 +76,7 @@
+ #  flags=F user=ftn argv=/usr/lib/ifmail/ifmail -r $nexthop ($recipient)
+ #
+ #bsmtp     unix  -       n       n       -       -       pipe
+-#  flags=Fq. user=bsmtp argv=/usr/local/sbin/bsmtp -f $sender $nexthop $recipient
++#  flags=Fq. user=bsmtp argv=/usr/sbin/bsmtp -f $sender $nexthop $recipient
+ #
+ #scalemail-backend unix -       n       n       -       2       pipe
+ #  flags=R user=scalemail argv=/usr/lib/scalemail/bin/scalemail-store
