@@ -24,7 +24,7 @@ Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	2.3.12
 %define		vda_ver 2.3.7
-Release:	7
+Release:	8
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
