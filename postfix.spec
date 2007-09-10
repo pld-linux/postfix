@@ -1,6 +1,5 @@
 # TODO:
 # - check/fix 'polish' bcond
-# - add http://www.aurore.net/projects/postfix_memcached/
 #
 # Conditional build:
 %bcond_without	ldap	# without LDAP map module
@@ -22,22 +21,22 @@ Summary(pl.UTF-8):	Serwer SMTP Postfix
 Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
-Version:	2.3.12
-%define		vda_ver 2.3.3
-Release:	3
+Version:	2.4.5
+%define		vda_ver 2.4.5
+Release:	0.1
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	54aa9e61cc640d2515d965b30cf73e37
+# Source0-md5:	ceba0cde05d12baa0ba2ed69fbb96b42
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
 Source4:	%{name}.sysconfig
 Source5:	%{name}.sasl
 Source6:	%{name}.pamd
-Source7:	http://web.onda.com.br/nadal/postfix/VDA/%{name}-%{vda_ver}-vda.patch.gz
-# Source7-md5:	3506ab432360766b6a2708042b29943a
+Source7:	http://vda.sourceforge.net/VDA/%{name}-%{vda_ver}-vda-ng.patch.gz
+# Source7-md5:	35fa62c93091d42ab02f67d0614d7086
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
@@ -225,6 +224,9 @@ postfix).
 %prep
 %setup -q
 %{?with_vda:zcat %{SOURCE7} | patch -p1 -s}
+
+find -type f | xargs sed -i -e 's|/etc/postfix|/etc/mail|g'
+
 %patch0 -p1
 %patch1 -p0
 %patch2 -p1
