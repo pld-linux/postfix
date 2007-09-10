@@ -9,7 +9,7 @@
 %bcond_without	sasl	# without SMTP AUTH support
 %bcond_without	ssl	# without SSL/TLS support
 %bcond_without	cdb	# without cdb map support
-%bcond_without	vda	# with VDA patch
+%bcond_without	vda	# without VDA patch
 %bcond_with	hir	# with Beeth's header_if_reject patch
 %bcond_with	tcp	# with unofficial tcp: lookup table
 #%bcond_with	polish	# with double English+Polish messages
@@ -23,8 +23,8 @@ Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	2.3.12
-%define		vda_ver 2.3.1
-Release:	1
+%define		vda_ver 2.3.7
+Release:	6
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
@@ -36,8 +36,9 @@ Source3:	%{name}.init
 Source4:	%{name}.sysconfig
 Source5:	%{name}.sasl
 Source6:	%{name}.pamd
-Source7:	http://web.onda.com.br/nadal/postfix/VDA/%{name}-%{vda_ver}-vda.patch.gz
-# Source7-md5:	fc7c1676ceecbfb414353af1dafe11de
+Source7:	http://vda.sourceforge.net/VDA/%{name}-%{vda_ver}-vda.patch.gz
+# Source7-md5:	93ad21258bcde55f39792b5b753aed4b
+#Source8:	%{name}-bounce.cf.pl
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
@@ -58,7 +59,7 @@ BuildRequires:	db-devel
 BuildRequires:	glibc-devel >= 6:2.3.4
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.3.0}
-%{?with_ssl:BuildRequires:	openssl-devel >= 0.9.8b}
+%{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7l}
 BuildRequires:	pcre-devel
 %{?with_pgsql:BuildRequires:	postgresql-devel}
 BuildRequires:	rpmbuild(macros) >= 1.268
@@ -248,27 +249,29 @@ sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
 %build
 %{__make} -f Makefile.init makefiles
 %{__make} tidy
-%{__make} \
+%{__make} -j1 \
 	DEBUG="" \
 	OPT="%{rpmcflags} -D_FILE_OFFSET_BITS=64" \
 	%{!?with_ldap:LDAPSO=""} \
 	%{!?with_mysql:MYSQLSO=""} \
 	%{!?with_pgsql:PGSQLSO=""} \
 	CCARGS="%{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL -I/usr/include/postgresql} %{?with_ssl:-DUSE_TLS -I/usr/include/openssl} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB} -DHAVE_GETIFADDRS" \
-	AUXLIBS="-ldb -lresolv %{?with_sasl:-lsasl} %{?with_ssl:-lssl -lcrypto} %{?with_cdb:-lcdb} -lpcre %{?with_ldap:-lldap -llber} %{?with_pgsql:-lpq} %{?with_mysql:-lmysqlclient -lz}"
+	AUXLIBS="-ldb -lresolv %{?with_sasl:-lsasl} %{?with_ssl:-lssl -lcrypto} %{?with_cdb:-lcdb} -lpcre"
 
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/{cron.daily,rc.d/init.d,sysconfig,pam.d,security} \
 	$RPM_BUILD_ROOT%{_sysconfdir}/{mail,sasl} \
-	$RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,%{_prefix}/lib}\
-	$RPM_BUILD_ROOT{%{_includedir}/postfix,%{_mandir}/man{1,5,8}} \
+	$RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,/usr/lib}\
+	$RPM_BUILD_ROOT{%{_includedir}/postfix,%{_mandir}} \
 	$RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public}
 
-rm -f {html,man}/Makefile.in conf/{LICENSE,main.cf.default}
+rm -f html/Makefile.in conf/{LICENSE,main.cf.default}
 
 install bin/* $RPM_BUILD_ROOT%{_sbindir}
 install libexec/* $RPM_BUILD_ROOT%{_libdir}/postfix
+ln $RPM_BUILD_ROOT%{_libdir}/postfix/smtp $RPM_BUILD_ROOT%{_libdir}/postfix/lmtp
+ln $RPM_BUILD_ROOT%{_libdir}/postfix/qmgr $RPM_BUILD_ROOT%{_libdir}/postfix/nqmgr
 install conf/* $RPM_BUILD_ROOT%{_sysconfdir}/mail
 sed -e's,^daemon_directory = .*,daemon_directory = %{_libdir}/postfix,' \
 	conf/main.cf > $RPM_BUILD_ROOT%{_sysconfdir}/mail/main.cf
@@ -280,7 +283,7 @@ done
 install lib/dict*.so $RPM_BUILD_ROOT%{_libdir}/postfix
 install include/*.h $RPM_BUILD_ROOT%{_includedir}/postfix
 
-(cd man; tar cf - .) | (cd $RPM_BUILD_ROOT%{_mandir}; tar xf -)
+cp -a man/man* $RPM_BUILD_ROOT%{_mandir}
 
 install %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/mail/aliases
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.daily/postfix
@@ -288,6 +291,7 @@ install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/postfix
 install %{SOURCE4} $RPM_BUILD_ROOT/etc/sysconfig/postfix
 install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/sasl/smtpd.conf
 install %{SOURCE6} $RPM_BUILD_ROOT/etc/pam.d/smtp
+#install %{SOURCE8} $RPM_BUILD_ROOT%{_sysconfdir}/mail/bounce.cf.pl
 install auxiliary/rmail/rmail $RPM_BUILD_ROOT%{_bindir}/rmail
 install auxiliary/qshape/qshape.pl $RPM_BUILD_ROOT%{_bindir}/qshape
 
@@ -302,7 +306,7 @@ touch $RPM_BUILD_ROOT/etc/security/blacklist.smtp
 
 > $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
-rm -rf $RPM_BUILD_ROOT%{_sysconfdir}/mail/makedefs.out $RPM_BUILD_ROOT%{_mandir}/cat*
+rm -rf $RPM_BUILD_ROOT%{_sysconfdir}/mail/makedefs.out
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -352,9 +356,10 @@ fi
 %doc examples/smtpd-policy
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/access
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/aliases
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/bounce.cf.default
+#%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/bounce.cf.pl
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/canonical
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/generic
-#%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/pcre_table
 #%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/regexp_table
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/relocated
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/transport
@@ -375,6 +380,8 @@ fi
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/security/blacklist.smtp
 %{?with_sasl:%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/sasl/smtpd.conf}
 %attr(755,root,root) %{_libdir}/libpostfix-*.so.*
+%attr(755,root,root) %{_bindir}/mailq
+%attr(755,root,root) %{_bindir}/newaliases
 %attr(755,root,root) %{_bindir}/rmail
 %attr(755,root,root) %{_sbindir}/s*
 %attr(755,root,root) %{_sbindir}/postfix
@@ -405,7 +412,29 @@ fi
 %attr(710,postfix,maildrop) %dir %{_var}/spool/postfix/public
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/saved
 %attr(644,postfix,root) %{_var}/spool/postfix/.nofinger
-%{_mandir}/man*/*
+%{_mandir}/man1/mailq.1*
+%{_mandir}/man1/newaliases.1*
+%{_mandir}/man1/post*.1*
+%{_mandir}/man1/qmqp-*.1*
+%{_mandir}/man1/sendmail.1*
+%{_mandir}/man1/smtp-*.1*
+%{_mandir}/man5/access.5*
+%{_mandir}/man5/aliases.5*
+%{_mandir}/man5/body_checks.5*
+%{_mandir}/man5/bounce.5*
+%{_mandir}/man5/canonical.5*
+%{_mandir}/man5/cidr_table.5*
+%{_mandir}/man5/generic.5*
+%{_mandir}/man5/header_checks.5*
+%{_mandir}/man5/master.5*
+%{_mandir}/man5/nisplus_table.5*
+%{_mandir}/man5/postconf.5*
+%{_mandir}/man5/regexp_table.5*
+%{_mandir}/man5/relocated.5*
+%{_mandir}/man5/tcp_table.5*
+%{_mandir}/man5/transport.5*
+%{_mandir}/man5/virtual.5*
+%{_mandir}/man8/*.8*
 
 %files devel
 %defattr(644,root,root,755)
@@ -416,24 +445,30 @@ fi
 %files dict-ldap
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_ldap.so
+%{_mandir}/man5/ldap_table.5*
 %endif
 
 %if %{with mysql}
 %files dict-mysql
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_mysql.so
+%{_mandir}/man5/mysql_table.5*
 %endif
 
 %files dict-pcre
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_pcre.so
+#%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/pcre_table
+%{_mandir}/man5/pcre_table.5*
 
 %if %{with pgsql}
 %files dict-pgsql
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_pgsql.so
+%{_mandir}/man5/pgsql_table.5*
 %endif
 
 %files qshape
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/qshape
+%{_mandir}/man1/qshape.1*
