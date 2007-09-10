@@ -38,7 +38,7 @@ Source5:	%{name}.sasl
 Source6:	%{name}.pamd
 Source7:	http://vda.sourceforge.net/VDA/%{name}-%{vda_ver}-vda.patch.gz
 # Source7-md5:	93ad21258bcde55f39792b5b753aed4b
-#Source8:	%{name}-bounce.cf.pl
+Source8:	%{name}-bounce.cf.pl
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
@@ -293,7 +293,7 @@ install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/postfix
 install %{SOURCE4} $RPM_BUILD_ROOT/etc/sysconfig/postfix
 install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/sasl/smtpd.conf
 install %{SOURCE6} $RPM_BUILD_ROOT/etc/pam.d/smtp
-#install %{SOURCE8} $RPM_BUILD_ROOT%{_sysconfdir}/mail/bounce.cf.pl
+install %{SOURCE8} $RPM_BUILD_ROOT%{_sysconfdir}/mail/bounce.cf.pl
 install auxiliary/rmail/rmail $RPM_BUILD_ROOT%{_bindir}/rmail
 install auxiliary/qshape/qshape.pl $RPM_BUILD_ROOT%{_bindir}/qshape
 
@@ -359,7 +359,7 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/access
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/aliases
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/bounce.cf.default
-#%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/bounce.cf.pl
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/bounce.cf.pl
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/canonical
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/generic
 #%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/regexp_table
