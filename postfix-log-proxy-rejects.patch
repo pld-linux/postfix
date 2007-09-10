@@ -12,7 +12,7 @@
 +	    }
  	} else if (state->err != CLEANUP_STAT_SIZE) {
  	    state->err |= CLEANUP_STAT_PROXY;
- 	    vstring_sprintf(state->proxy_buffer,
+ 	    detail = cleanup_stat_detail(CLEANUP_STAT_PROXY);
 --- postfix-2.2.3/src/smtpd/smtpd_check.c~	2005-09-08 15:51:27.482074664 +0200
 +++ postfix-2.2.3/src/smtpd/smtpd_check.c	2005-09-08 17:28:05.192097120 +0200
 @@ -764,7 +764,7 @@
@@ -21,16 +21,16 @@
  
 -static int smtpd_check_reject(SMTPD_STATE *state, int error_class,
 +int smtpd_check_reject(SMTPD_STATE *state, int error_class,
- 			              char *format,...)
+ 			              int code, const char *dsn,
+ 			              const char *format,...)
  {
-     va_list ap;
 --- postfix-2.2.3/src/smtpd/smtpd_check.h~	2005-09-08 15:51:27.483074512 +0200
 +++ postfix-2.2.3/src/smtpd/smtpd_check.h	2005-09-08 17:29:17.952035928 +0200
 @@ -25,6 +25,7 @@
  extern char *smtpd_check_data(SMTPD_STATE *);
  extern char *smtpd_check_eod(SMTPD_STATE *);
  extern char *smtpd_check_policy(SMTPD_STATE *, char *);
-+extern int smtpd_check_reject(SMTPD_STATE *state, int error_class, char *format,...);
++extern int smtpd_check_reject(SMTPD_STATE *state, int error_class, int code, const char *dsn, char *format,...);
  
  /* LICENSE
  /* .ad
