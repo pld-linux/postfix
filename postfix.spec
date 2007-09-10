@@ -44,8 +44,7 @@ Patch3:		%{name}-master.cf_cyrus.patch
 # from http://akson.sgh.waw.pl/~chopin/unix/postfix-2.1.5-header_if_reject.diff
 Patch4:		%{name}-header_if_reject.patch
 #Patch5:	%{name}-pl.patch
-#Patch6:	%{name}-size-check-before-proxy.patch
-#Patch7:	%{name}-log-proxy-rejects.patch
+Patch7:		%{name}-log-proxy-rejects.patch
 Patch8:		%{name}-ident.patch
 Patch9:		%{name}-lib64.patch
 Patch10:	%{name}-conf.patch
@@ -233,8 +232,7 @@ find -type f | xargs sed -i -e 's|/etc/postfix|/etc/mail|g'
 %patch3 -p1
 %{?with_hir:%patch4 -p0}
 #%{?with_polish:%patch5 -p1}
-#%patch6 -p1
-#%patch7 -p1 --obsolete ?
+%patch7 -p1
 %patch8 -p1
 sed -i '/scache_clnt_create/s/server/var_scache_service/' src/global/scache_clnt.c
 %if "%{_lib}" == "lib64"
