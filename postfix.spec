@@ -350,6 +350,8 @@ fi
 %doc html *README COMPATIBILITY HISTORY LICENSE RELEASE_NOTES TLS_*
 %doc README_FILES/*README
 %doc examples/smtpd-policy
+%dir %{_sysconfdir}/mail
+%{_sysconfdir}/mail/bounce.cf.default
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/access
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/aliases
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/canonical
@@ -360,7 +362,6 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/virtual
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/header_checks
 #%ghost %{_sysconfdir}/mail/*.db
-%dir %{_sysconfdir}/mail
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/dynamicmaps.cf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/main.cf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/master.cf
