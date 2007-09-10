@@ -9,7 +9,7 @@
 %bcond_without	sasl	# without SMTP AUTH support
 %bcond_without	ssl	# without SSL/TLS support
 %bcond_without	cdb	# without cdb map support
-%bcond_without	vda	# with VDA patch
+%bcond_without	vda	# without VDA patch
 %bcond_with	hir	# with Beeth's header_if_reject patch
 %bcond_with	tcp	# with unofficial tcp: lookup table
 #%bcond_with	polish	# with double English+Polish messages
@@ -24,7 +24,7 @@ Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	2.3.12
 %define		vda_ver 2.3.7
-Release:	4
+Release:	5
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
@@ -249,17 +249,13 @@ sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
 %{__make} -f Makefile.init makefiles
 %{__make} tidy
 %{__make} -j1 \
-	CC="%{__cc}" \
 	DEBUG="" \
 	OPT="%{rpmcflags} -D_FILE_OFFSET_BITS=64" \
 	%{!?with_ldap:LDAPSO=""} \
 	%{!?with_mysql:MYSQLSO=""} \
 	%{!?with_pgsql:PGSQLSO=""} \
-	CCARGS=""
-#	AUXLIBS="-ldb -lresolv %{?with_sasl:-lsasl} %{?with_ssl:-lssl -lcrypto} %{?with_cdb:-lcdb} -lpcre %{?with_ldap:-lldap -llber} %{?with_pgsql:-lpq} %{?with_mysql:-lmysqlclient -lz}"
-
-
-#	CCARGS="%{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL -I/usr/include/postgresql} %{?with_ssl:-DUSE_TLS -I/usr/include/openssl} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB} -DHAVE_GETIFADDRS" \
+	CCARGS="%{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL -I/usr/include/postgresql} %{?with_ssl:-DUSE_TLS -I/usr/include/openssl} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB} -DHAVE_GETIFADDRS" \
+	AUXLIBS="-ldb -lresolv %{?with_sasl:-lsasl} %{?with_ssl:-lssl -lcrypto} %{?with_cdb:-lcdb} -lpcre %{?with_ldap:-lldap -llber} %{?with_pgsql:-lpq} %{?with_mysql:-lmysqlclient -lz}"
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -358,6 +354,7 @@ fi
 %doc examples/smtpd-policy
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/access
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/aliases
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/bounce.cf.default
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/canonical
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/generic
 #%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/regexp_table
