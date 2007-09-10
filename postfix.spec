@@ -1,5 +1,3 @@
-# TODO:
-# - check/fix 'polish' bcond
 #
 # Conditional build:
 %bcond_without	ldap	# without LDAP map module
@@ -11,7 +9,6 @@
 %bcond_without	vda	# with VDA patch
 %bcond_with	hir	# with Beeth's header_if_reject patch
 %bcond_with	tcp	# with unofficial tcp: lookup table
-#%bcond_with	polish	# with double English+Polish messages
 #
 Summary:	Postfix Mail Transport Agent
 Summary(cs.UTF-8):	Postfix - program pro přepravu pošty (MTA)
@@ -43,7 +40,6 @@ Patch2:		%{name}-dynamicmaps.patch
 Patch3:		%{name}-master.cf_cyrus.patch
 # from http://akson.sgh.waw.pl/~chopin/unix/postfix-2.1.5-header_if_reject.diff
 Patch4:		%{name}-header_if_reject.patch
-#Patch5:	%{name}-pl.patch
 Patch7:		%{name}-log-proxy-rejects.patch
 Patch8:		%{name}-ident.patch
 Patch9:		%{name}-lib64.patch
@@ -231,7 +227,6 @@ find -type f | xargs sed -i -e 's|/etc/postfix|/etc/mail|g'
 %patch2 -p1
 %patch3 -p1
 %{?with_hir:%patch4 -p0}
-#%{?with_polish:%patch5 -p1}
 %patch7 -p1
 %patch8 -p1
 sed -i '/scache_clnt_create/s/server/var_scache_service/' src/global/scache_clnt.c
