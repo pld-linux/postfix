@@ -24,7 +24,7 @@ Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	2.3.12
 %define		vda_ver 2.3.7
-Release:	6
+Release:	7
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
@@ -249,13 +249,15 @@ sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
 %build
 %{__make} -f Makefile.init makefiles
 %{__make} tidy
+CC="%{__cc}"
+export CC
 %{__make} -j1 \
 	DEBUG="" \
-	OPT="%{rpmcflags} -D_FILE_OFFSET_BITS=64" \
 	%{!?with_ldap:LDAPSO=""} \
 	%{!?with_mysql:MYSQLSO=""} \
 	%{!?with_pgsql:PGSQLSO=""} \
 	CCARGS="%{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL -I/usr/include/postgresql} %{?with_ssl:-DUSE_TLS -I/usr/include/openssl} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB} -DHAVE_GETIFADDRS" \
+	OPT="%{rpmcflags} -D_FILE_OFFSET_BITS=64" \
 	AUXLIBS="-ldb -lresolv %{?with_sasl:-lsasl} %{?with_ssl:-lssl -lcrypto} %{?with_cdb:-lcdb} -lpcre"
 
 %install
