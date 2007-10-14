@@ -20,7 +20,7 @@ Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	2.4.5
 %define		vda_ver 2.4.5
-Release:	1
+Release:	2
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
@@ -37,6 +37,7 @@ Source7:	http://vda.sourceforge.net/VDA/%{name}-%{vda_ver}-vda-ng.patch.gz
 Source8:	%{name}-bounce.cf.pl
 # http://postfix.state-of-mind.de/bounce-templates/bounce.de-DE.cf
 Source9:	%{name}-bounce.cf.de
+Source10:	%{name}.monitrc
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
@@ -219,6 +220,19 @@ kolejki, więc musi być uruchamiany przez superużytkownika lub
 użytkownika mail_owner podanego w main.cf (zwykle nazywającego się
 postfix).
 
+%package -n monit-rc-%{name}
+Summary:        monit support for Postfix
+Summary(pl.UTF-8):      Wsparcie monit dla Postfix-a
+Group:          Applications/System
+Requires:       %{name} = %{version}-%{release}
+Requires:       monit
+
+%description -n monit-rc-%{name}
+monitrc file for monitoring Postfix.
+
+%description -n monit-rc-%{name} -l pl.UTF-8
+Plik monitrc do monitorowania serwera Postfix.
+
 %prep
 %setup -q
 %{?with_vda:zcat %{SOURCE7} | patch -p1 -s}
@@ -259,7 +273,7 @@ export CC
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT/etc/{cron.daily,rc.d/init.d,sysconfig,pam.d,security} \
+install -d $RPM_BUILD_ROOT/etc/{cron.daily,rc.d/init.d,sysconfig,pam.d,security,monit} \
 	$RPM_BUILD_ROOT%{_sysconfdir}/{mail,sasl} \
 	$RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,/usr/lib}\
 	$RPM_BUILD_ROOT{%{_includedir}/postfix,%{_mandir}} \
@@ -292,6 +306,7 @@ install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/sasl/smtpd.conf
 install %{SOURCE6} $RPM_BUILD_ROOT/etc/pam.d/smtp
 install %{SOURCE8} $RPM_BUILD_ROOT%{_sysconfdir}/mail/bounce.cf.pl
 install %{SOURCE9} $RPM_BUILD_ROOT%{_sysconfdir}/mail/bounce.cf.de
+install %{SOURCE10} $RPM_BUILD_ROOT/etc/monit/%{name}.monitrc
 install auxiliary/rmail/rmail $RPM_BUILD_ROOT%{_bindir}/rmail
 install auxiliary/qshape/qshape.pl $RPM_BUILD_ROOT%{_bindir}/qshape
 
@@ -473,3 +488,7 @@ fi
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/qshape
 %{_mandir}/man1/qshape.1*
+
+%files -n monit-rc-%{name}
+%defattr(644,root,root,755)
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/monit/%{name}.monitrc
