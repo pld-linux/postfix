@@ -221,11 +221,11 @@ użytkownika mail_owner podanego w main.cf (zwykle nazywającego się
 postfix).
 
 %package -n monit-rc-%{name}
-Summary:        monit support for Postfix
-Summary(pl.UTF-8):      Wsparcie monit dla Postfix-a
-Group:          Applications/System
-Requires:       %{name} = %{version}-%{release}
-Requires:       monit
+Summary:	monit support for Postfix
+Summary(pl.UTF-8):	Wsparcie monita dla Postfiksa
+Group:		Applications/System
+Requires:	%{name} = %{version}-%{release}
+Requires:	monit
 
 %description -n monit-rc-%{name}
 monitrc file for monitoring Postfix.
