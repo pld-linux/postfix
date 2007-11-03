@@ -55,7 +55,7 @@ BuildRequires:	db-devel
 # getifaddrs() with IPv6 support
 BuildRequires:	glibc-devel >= 6:2.3.4
 %{?with_mysql:BuildRequires:	mysql-devel}
-%{?with_ldap:BuildRequires:	openldap-devel >= 2.3.0}
+%{?with_ldap:BuildRequires:	openldap-devel >= 2.4.6}
 %{?with_ssl:BuildRequires:	openssl-devel >= 0.9.8b}
 BuildRequires:	pcre-devel
 %{?with_pgsql:BuildRequires:	postgresql-devel}
@@ -155,7 +155,7 @@ Summary:	LDAP map support for Postfix
 Summary(pl.UTF-8):	Obsługa map LDAP dla Postfiksa
 Group:		Networking/Daemons
 Requires:	%{name} = %{epoch}:%{version}-%{release}
-Requires:	openldap >= 2.3.0
+Requires:	openldap >= 2.4.6
 
 %description dict-ldap
 This package provides support for LDAP maps in Postfix.
