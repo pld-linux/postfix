@@ -6,7 +6,7 @@
 %bcond_without	sasl	# without SMTP AUTH support
 %bcond_without	ssl	# without SSL/TLS support
 %bcond_without	cdb	# without cdb map support
-%bcond_without	vda	# without VDA patch
+%bcond_with	vda	# without VDA patch
 %bcond_with	hir	# with Beeth's header_if_reject patch
 %bcond_with	tcp	# with unofficial tcp: lookup table
 #
