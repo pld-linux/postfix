@@ -20,7 +20,7 @@ Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	2.4.6
 %define		vda_ver 2.4.5
-Release:	2
+Release:	3
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
@@ -224,7 +224,7 @@ postfix).
 Summary:	monit support for Postfix
 Summary(pl.UTF-8):	Wsparcie monita dla Postfiksa
 Group:		Applications/System
-Requires:	%{name} = %{version}-%{release}
+Requires:	%{name} = %{epoch}:%{version}-%{release}
 Requires:	monit
 
 %description -n monit-rc-%{name}
