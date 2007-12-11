@@ -10,6 +10,7 @@
 %bcond_with	hir	# with Beeth's header_if_reject patch
 %bcond_with	tcp	# with unofficial tcp: lookup table
 #
+%define		vda_ver 2.4.5
 Summary:	Postfix Mail Transport Agent
 Summary(cs.UTF-8):	Postfix - program pro přepravu pošty (MTA)
 Summary(es.UTF-8):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -19,8 +20,7 @@ Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	2.4.6
-%define		vda_ver 2.4.5
-Release:	3
+Release:	4
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
@@ -337,12 +337,7 @@ if ! grep -q "^postmaster:" %{_sysconfdir}/mail/aliases; then
 echo "Adding Entry for postmaster in %{_sysconfdir}/mail/aliases" >&2
 echo "postmaster: root" >>%{_sysconfdir}/mail/aliases
 fi
-if [ "$1" = "1" ]; then
-	# only on installation, not upgrade
-	if ! grep -q "^myhostname" %{_sysconfdir}/mail/main.cf; then
-		postconf -e myhostname=`/bin/hostname -f`
-	fi
-else
+if [ "$1" -gt "1" ]; then
 	postfix upgrade-configuration
 fi
 
