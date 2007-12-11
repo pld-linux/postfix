@@ -258,8 +258,8 @@ sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
 %endif
 
 %build
-%{__make} -f Makefile.init makefiles
-%{__make} tidy
+%{__make} -j1 -f Makefile.init makefiles
+%{__make} -j1 tidy
 CC="%{__cc}"
 export CC
 %{__make} \
