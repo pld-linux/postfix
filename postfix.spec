@@ -9,11 +9,12 @@
 %bcond_without	sasl	# without SMTP AUTH support
 %bcond_without	ssl	# without SSL/TLS support
 %bcond_without	cdb	# without cdb map support
-%bcond_without	vda	# with VDA patch
+%bcond_with	vda	# without VDA patch
 %bcond_with	hir	# with Beeth's header_if_reject patch
 %bcond_with	tcp	# with unofficial tcp: lookup table
 #%bcond_with	polish	# with double English+Polish messages
 #
+%define		vda_ver 2.3.7
 Summary:	Postfix Mail Transport Agent
 Summary(cs.UTF-8):	Postfix - program pro přepravu pošty (MTA)
 Summary(es.UTF-8):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -22,22 +23,22 @@ Summary(pl.UTF-8):	Serwer SMTP Postfix
 Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
-Version:	2.3.12
-%define		vda_ver 2.3.3
+Version:	2.3.13
 Release:	2
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	54aa9e61cc640d2515d965b30cf73e37
+# Source0-md5:	198a4508ad4dc726584968e86013f6f2
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
 Source4:	%{name}.sysconfig
 Source5:	%{name}.sasl
 Source6:	%{name}.pamd
-Source7:	http://web.onda.com.br/nadal/postfix/VDA/%{name}-%{vda_ver}-vda.patch.gz
-# Source7-md5:	3506ab432360766b6a2708042b29943a
+Source7:	http://vda.sourceforge.net/VDA/%{name}-%{vda_ver}-vda.patch.gz
+# Source7-md5:	93ad21258bcde55f39792b5b753aed4b
+Source8:	%{name}-bounce.cf.pl
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
@@ -58,7 +59,7 @@ BuildRequires:	db-devel
 BuildRequires:	glibc-devel >= 6:2.3.4
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.3.0}
-%{?with_ssl:BuildRequires:	openssl-devel >= 0.9.8b}
+%{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7l}
 BuildRequires:	pcre-devel
 %{?with_pgsql:BuildRequires:	postgresql-devel}
 BuildRequires:	rpmbuild(macros) >= 1.268
@@ -248,18 +249,16 @@ sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
 %build
 %{__make} -f Makefile.init makefiles
 %{__make} tidy
-%{__make} \
-	CC="%{__cc}" \
+CC="%{__cc}"
+export CC
+%{__make} -j1 \
 	DEBUG="" \
-	OPT="%{rpmcflags} -D_FILE_OFFSET_BITS=64" \
 	%{!?with_ldap:LDAPSO=""} \
 	%{!?with_mysql:MYSQLSO=""} \
 	%{!?with_pgsql:PGSQLSO=""} \
-	CCARGS="" \
-	AUXLIBS="-ldb -lresolv %{?with_sasl:-lsasl} %{?with_ssl:-lssl -lcrypto} %{?with_cdb:-lcdb} -lpcre %{?with_ldap:-lldap -llber} %{?with_pgsql:-lpq} %{?with_mysql:-lmysqlclient -lz}"
-
-
-#	CCARGS="%{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL -I/usr/include/postgresql} %{?with_ssl:-DUSE_TLS -I/usr/include/openssl} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB} -DHAVE_GETIFADDRS" \
+	CCARGS="%{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL} %{?with_ssl:-DUSE_TLS} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB} -DHAVE_GETIFADDRS" \
+	OPT="%{rpmcflags} -D_FILE_OFFSET_BITS=64" \
+	AUXLIBS="-ldb -lresolv %{?with_sasl:-lsasl} %{?with_ssl:-lssl -lcrypto} %{?with_cdb:-lcdb} -lpcre"
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -294,6 +293,7 @@ install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/postfix
 install %{SOURCE4} $RPM_BUILD_ROOT/etc/sysconfig/postfix
 install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/sasl/smtpd.conf
 install %{SOURCE6} $RPM_BUILD_ROOT/etc/pam.d/smtp
+install %{SOURCE8} $RPM_BUILD_ROOT%{_sysconfdir}/mail/bounce.cf.pl
 install auxiliary/rmail/rmail $RPM_BUILD_ROOT%{_bindir}/rmail
 install auxiliary/qshape/qshape.pl $RPM_BUILD_ROOT%{_bindir}/qshape
 
@@ -324,12 +324,7 @@ if ! grep -q "^postmaster:" %{_sysconfdir}/mail/aliases; then
 echo "Adding Entry for postmaster in %{_sysconfdir}/mail/aliases" >&2
 echo "postmaster: root" >>%{_sysconfdir}/mail/aliases
 fi
-if [ "$1" = "1" ]; then
-	# only on installation, not upgrade
-	if ! grep -q "^myhostname" %{_sysconfdir}/mail/main.cf; then
-		postconf -e myhostname=`/bin/hostname -f`
-	fi
-else
+if [ "$1" -gt "1" ]; then
 	postfix upgrade-configuration
 fi
 
@@ -358,6 +353,8 @@ fi
 %doc examples/smtpd-policy
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/access
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/aliases
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/bounce.cf.default
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/bounce.cf.pl
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/canonical
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/generic
 #%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/regexp_table
