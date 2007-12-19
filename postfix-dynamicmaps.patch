@@ -48,14 +48,14 @@ diff -durN postfix-2.1.3.orig/src/global/Makefile.in postfix-2.1.3/src/global/Ma
 -	$(RANLIB) $(LIB)
 +	gcc -shared -Wl,-soname,libpostfix-global.so.1 -o $(LIB) $(OBJS)
 +
-+$(LDAPSO): dict_ldap.o
++$(LDAPSO): dict_ldap.o $(LIB)
 +	gcc -shared -Wl,-soname,dict_ldap.so -o $@ $? -lldap -llber -L../../lib -lutil -L. -lglobal
 +
-+$(MYSQLSO): dict_mysql.o
-+	gcc -shared -Wl,-soname,dict_ldap.so -o $@ $? -lmysqlclient -L../../lib -lutil -L. -lglobal
++$(MYSQLSO): dict_mysql.o $(LIB)
++	gcc -shared -Wl,-soname,dict_mysql.so -o $@ $? -lmysqlclient -L../../lib -lutil -L. -lglobal
 +
-+$(PGSQLSO): dict_pgsql.o
-+	gcc -shared -Wl,-soname,dict_ldap.so -o $@ $? -lpq -L../../lib -lutil -L. -lglobal
++$(PGSQLSO): dict_pgsql.o $(LIB)
++	gcc -shared -Wl,-soname,dict_pgsql.so -o $@ $? -lpq -L../../lib -lutil -L. -lglobal
  
  $(LIB_DIR)/$(LIB): $(LIB)
  	cp $(LIB) $(LIB_DIR)
