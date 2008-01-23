@@ -6,10 +6,11 @@
 %bcond_without	sasl	# without SMTP AUTH support
 %bcond_without	ssl	# without SSL/TLS support
 %bcond_without	cdb	# without cdb map support
-%bcond_without	vda	# without VDA patch
+%bcond_with	vda	# without VDA patch
 %bcond_with	hir	# with Beeth's header_if_reject patch
 %bcond_with	tcp	# with unofficial tcp: lookup table
 #
+%define		vda_ver 2.4.5
 Summary:	Postfix Mail Transport Agent
 Summary(cs.UTF-8):	Postfix - program pro přepravu pošty (MTA)
 Summary(es.UTF-8):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -18,14 +19,13 @@ Summary(pl.UTF-8):	Serwer SMTP Postfix
 Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
-Version:	2.4.5
-%define		vda_ver 2.4.5
-Release:	2
+Version:	2.4.6
+Release:	4
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	ceba0cde05d12baa0ba2ed69fbb96b42
+# Source0-md5:	303327f66c13ff9631734651ee184a88
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
@@ -55,7 +55,7 @@ BuildRequires:	db-devel
 # getifaddrs() with IPv6 support
 BuildRequires:	glibc-devel >= 6:2.3.4
 %{?with_mysql:BuildRequires:	mysql-devel}
-%{?with_ldap:BuildRequires:	openldap-devel >= 2.3.0}
+%{?with_ldap:BuildRequires:	openldap-devel >= 2.4.6}
 %{?with_ssl:BuildRequires:	openssl-devel >= 0.9.8b}
 BuildRequires:	pcre-devel
 %{?with_pgsql:BuildRequires:	postgresql-devel}
@@ -155,7 +155,7 @@ Summary:	LDAP map support for Postfix
 Summary(pl.UTF-8):	Obsługa map LDAP dla Postfiksa
 Group:		Networking/Daemons
 Requires:	%{name} = %{epoch}:%{version}-%{release}
-Requires:	openldap >= 2.3.0
+Requires:	openldap >= 2.4.6
 
 %description dict-ldap
 This package provides support for LDAP maps in Postfix.
@@ -221,11 +221,11 @@ użytkownika mail_owner podanego w main.cf (zwykle nazywającego się
 postfix).
 
 %package -n monit-rc-%{name}
-Summary:        monit support for Postfix
-Summary(pl.UTF-8):      Wsparcie monit dla Postfix-a
-Group:          Applications/System
-Requires:       %{name} = %{version}-%{release}
-Requires:       monit
+Summary:	monit support for Postfix
+Summary(pl.UTF-8):	Wsparcie monita dla Postfiksa
+Group:		Applications/System
+Requires:	%{name} = %{epoch}:%{version}-%{release}
+Requires:	monit
 
 %description -n monit-rc-%{name}
 monitrc file for monitoring Postfix.
@@ -337,12 +337,7 @@ if ! grep -q "^postmaster:" %{_sysconfdir}/mail/aliases; then
 echo "Adding Entry for postmaster in %{_sysconfdir}/mail/aliases" >&2
 echo "postmaster: root" >>%{_sysconfdir}/mail/aliases
 fi
-if [ "$1" = "1" ]; then
-	# only on installation, not upgrade
-	if ! grep -q "^myhostname" %{_sysconfdir}/mail/main.cf; then
-		postconf -e myhostname=`/bin/hostname -f`
-	fi
-else
+if [ "$1" -gt "1" ]; then
 	postfix upgrade-configuration
 fi
 
