@@ -10,7 +10,7 @@
 %bcond_with	hir	# with Beeth's header_if_reject patch
 %bcond_with	tcp	# with unofficial tcp: lookup table
 #
-%define		vda_ver 2.4.5
+%define		vda_ver 2.5.1
 Summary:	Postfix Mail Transport Agent
 Summary(cs.UTF-8):	Postfix - program pro přepravu pošty (MTA)
 Summary(es.UTF-8):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -19,13 +19,13 @@ Summary(pl.UTF-8):	Serwer SMTP Postfix
 Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
-Version:	2.4.6
-Release:	4
+Version:	2.5.1
+Release:	1
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	303327f66c13ff9631734651ee184a88
+# Source0-md5:	95a559c509081fdd07d78eafd4f4c3b4
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
@@ -33,7 +33,7 @@ Source4:	%{name}.sysconfig
 Source5:	%{name}.sasl
 Source6:	%{name}.pamd
 Source7:	http://vda.sourceforge.net/VDA/%{name}-%{vda_ver}-vda-ng.patch.gz
-# Source7-md5:	35fa62c93091d42ab02f67d0614d7086
+# Source7-md5:	bba9426f8ae9d8603861ce782f117760
 Source8:	%{name}-bounce.cf.pl
 # http://postfix.state-of-mind.de/bounce-templates/bounce.de-DE.cf
 Source9:	%{name}-bounce.cf.de
@@ -55,8 +55,8 @@ BuildRequires:	db-devel
 # getifaddrs() with IPv6 support
 BuildRequires:	glibc-devel >= 6:2.3.4
 %{?with_mysql:BuildRequires:	mysql-devel}
-%{?with_ldap:BuildRequires:	openldap-devel >= 2.4.6}
-%{?with_ssl:BuildRequires:	openssl-devel >= 0.9.8b}
+%{?with_ldap:BuildRequires:	openldap-devel >= 2.3.6}
+%{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7l}
 BuildRequires:	pcre-devel
 %{?with_pgsql:BuildRequires:	postgresql-devel}
 BuildRequires:	rpmbuild(macros) >= 1.268
@@ -322,6 +322,7 @@ touch $RPM_BUILD_ROOT/etc/security/blacklist.smtp
 > $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
 rm -rf $RPM_BUILD_ROOT%{_sysconfdir}/mail/makedefs.out
+rm -f $RPM_BUILD_ROOT%{_sysconfdir}/mail/TLS_LICENSE
 
 %clean
 rm -rf $RPM_BUILD_ROOT
