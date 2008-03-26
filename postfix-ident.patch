@@ -213,16 +213,16 @@ diff -urN -x '*~' postfix-2.2.5/src/smtpd/smtpd_ident.c postfix-2.2.5-ident/src/
  
  #define VSTRING_STRDUP(s) vstring_strcpy(vstring_alloc(strlen(s) + 1), (s))
  
-@@ -4129,6 +4143,9 @@
+@@ -4451,6 +4451,9 @@
      xclient_hosts = namadr_list_init(MATCH_FLAG_NONE, var_xclient_hosts);
      xforward_hosts = namadr_list_init(MATCH_FLAG_NONE, var_xforward_hosts);
      hogger_list = namadr_list_init(MATCH_FLAG_NONE, var_smtpd_hoggers);
 +    smtpd_ident_lookup =
-+	namadr_list_init(match_parent_style(VAR_SMTPD_IDENT_LOOKUP),
-+			 var_smtpd_ident_lookup);
-     if (getuid() == 0 || getuid() == var_owner_uid)
- 	smtpd_check_init();
-     debug_peer_init();
++           namadr_list_init(match_parent_style(VAR_SMTPD_IDENT_LOOKUP),
++                var_smtpd_ident_lookup);
+ 
+     /*
+      * Open maps before dropping privileges so we can read passwords etc.
 @@ -4513,6 +4513,7 @@
  	VAR_MILT_DAEMON_NAME, DEF_MILT_DAEMON_NAME, &var_milt_daemon_name, 1, 0,
  	VAR_MILT_V, DEF_MILT_V, &var_milt_v, 1, 0,
@@ -287,14 +287,14 @@ diff -urN -x '*~' postfix-2.2.5/src/smtpd/smtpd_ident.c postfix-2.2.5-ident/src/
      INET_PROTO_INFO *proto_info = inet_proto_info();
  
      sa = (struct sockaddr *) & (state->sockaddr);
-@@ -163,6 +170,7 @@
+@@ -177,6 +177,7 @@
  	state->addr_family = AF_UNSPEC;
  	state->name_status = SMTPD_PEER_CODE_PERM;
  	state->reverse_name_status = SMTPD_PEER_CODE_PERM;
 +	state->ident_user = mystrdup("NO-USER");
+	state->port = mystrdup(CLIENT_PORT_UNKNOWN);
      }
- 
-     /*
+
 @@ -302,6 +310,7 @@
  	    if (aierr) {
  		msg_warn("%s: hostname %s verification failed: %s",
@@ -324,17 +324,20 @@ diff -urN -x '*~' postfix-2.2.5/src/smtpd/smtpd_ident.c postfix-2.2.5-ident/src/
      }
  
      /*
-@@ -337,6 +360,7 @@
- 	state->addr_family = AF_UNSPEC;
+@@ -390,7 +391,8 @@
  	state->name_status = SMTPD_PEER_CODE_OK;
  	state->reverse_name_status = SMTPD_PEER_CODE_OK;
+ 	state->port = mystrdup("0");		/* XXX bogus. */
+-    }
 +	state->ident_user = mystrdup("NO-USER");
-     }
++    }
  
      /*
-@@ -355,4 +379,5 @@
+      * Do the name[addr]:port formatting for pretty reports.
+@@ -410,5 +412,6 @@
      myfree(state->addr);
      myfree(state->namaddr);
      myfree(state->rfc_addr);
 +    myfree(state->ident_user);
+     myfree(state->port);
  }

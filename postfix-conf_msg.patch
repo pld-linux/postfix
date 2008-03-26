@@ -17,9 +17,9 @@
 --- src/smtpd/smtpd.c.orig	2004-06-22 14:32:57.338808646 +0200
 +++ src/smtpd/smtpd.c	2004-06-22 14:41:40.372360162 +0200
 @@ -4514,6 +4514,7 @@
- 	VAR_MILT_DEF_ACTION, DEF_MILT_DEF_ACTION, &var_milt_def_action, 1, 0,
  	VAR_MILT_DAEMON_NAME, DEF_MILT_DAEMON_NAME, &var_milt_daemon_name, 1, 0,
  	VAR_MILT_V, DEF_MILT_V, &var_milt_v, 1, 0,
+ 	VAR_STRESS, DEF_STRESS, &var_stress, 0, 0,
 +	VAR_REJECT_REPLY_MSG_ACCESS_DENIED, DEF_REJECT_REPLY_MSG_ACCESS_DENIED, &var_reject_reply_msg_access_denied, 1, 0,
  	0,
      };

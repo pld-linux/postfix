@@ -1,15 +1,17 @@
 diff -ur postfix-2.4.5/src/smtpd/smtpd.c postfix-2.4.5-proxy/src/smtpd/smtpd.c
 --- postfix-2.4.5/src/smtpd/smtpd.c	2007-09-11 00:27:31.181567626 +0200
 +++ postfix-2.4.5-proxy/src/smtpd/smtpd.c	2007-09-11 00:26:54.177444169 +0200
-@@ -2452,6 +2452,8 @@
+@@ -2526,7 +2526,9 @@
      int     out_error;
      char  **cpp;
-     CLEANUP_STAT_DETAIL *detail;
+     const CLEANUP_STAT_DETAIL *detail;
+-    const char *rfc3848_sess;
 +    VSTRING *proxy_why = 0;
 +    int     proxy_code;
++    const char *rfc3848_sess;
+     const char *rfc3848_auth;
  
  #ifdef USE_TLS
-     VSTRING *peer_CN;
 @@ -2705,8 +2707,19 @@
  	if (state->err == CLEANUP_STAT_OK) {
  	    (void) smtpd_proxy_cmd(state, SMTPD_PROX_WANT_ANY, ".");
