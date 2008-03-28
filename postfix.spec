@@ -20,7 +20,7 @@ Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	2.5.1
-Release:	1
+Release:	5.1
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
@@ -155,7 +155,7 @@ Summary:	LDAP map support for Postfix
 Summary(pl.UTF-8):	Obsługa map LDAP dla Postfiksa
 Group:		Networking/Daemons
 Requires:	%{name} = %{epoch}:%{version}-%{release}
-Requires:	openldap >= 2.4.6
+Requires:	openldap >= 2.3.6
 
 %description dict-ldap
 This package provides support for LDAP maps in Postfix.
@@ -268,7 +268,7 @@ export CC
 	%{!?with_ldap:LDAPSO=""} \
 	%{!?with_mysql:MYSQLSO=""} \
 	%{!?with_pgsql:PGSQLSO=""} \
-	CCARGS="%{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL} %{?with_ssl:-DUSE_TLS} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB} -DHAVE_GETIFADDRS" \
+	CCARGS="-DNO_EPOLL %{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL} %{?with_ssl:-DUSE_TLS} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB} -DHAVE_GETIFADDRS" \
 	AUXLIBS="-ldb -lresolv %{?with_sasl:-lsasl} %{?with_ssl:-lssl -lcrypto} %{?with_cdb:-lcdb} -lpcre"
 
 %install
@@ -277,8 +277,8 @@ install -d $RPM_BUILD_ROOT/etc/{cron.daily,rc.d/init.d,sysconfig,pam.d,security,
 	$RPM_BUILD_ROOT%{_sysconfdir}/{mail,sasl} \
 	$RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,/usr/lib}\
 	$RPM_BUILD_ROOT{%{_includedir}/postfix,%{_mandir}} \
-	$RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public}
-
+	$RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public} \
+	$RPM_BUILD_ROOT%{_var}/lib/postfix
 rm -f html/Makefile.in conf/{LICENSE,main.cf.default}
 
 install bin/* $RPM_BUILD_ROOT%{_sbindir}
@@ -362,7 +362,7 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%doc html *README COMPATIBILITY HISTORY LICENSE RELEASE_NOTES TLS_*
+%doc html COMPATIBILITY HISTORY LICENSE RELEASE_NOTES* TLS_*
 %doc README_FILES/*README
 %doc examples/smtpd-policy
 %dir %{_sysconfdir}/mail
@@ -424,6 +424,7 @@ fi
 %attr(710,postfix,maildrop) %dir %{_var}/spool/postfix/public
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/saved
 %attr(644,postfix,root) %{_var}/spool/postfix/.nofinger
+%attr(700,postfix,root) %{_var}/lib/postfix
 %{_mandir}/man1/mailq.1*
 %{_mandir}/man1/newaliases.1*
 %{_mandir}/man1/post*.1*
