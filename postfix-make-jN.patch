@@ -1,0 +1,11 @@
+--- postfix-2.5.1/src/util/Makefile.in.orig	2008-04-01 08:29:37.168090190 +0200
++++ postfix-2.5.1/src/util/Makefile.in	2008-04-01 08:30:10.665787970 +0200
+@@ -118,7 +118,7 @@
+ 
+ test:	$(TESTPROG)
+ 
+-$(PCRESO): dict_pcre.o
++$(PCRESO): dict_pcre.o libutil.a
+ 	gcc -shared -Wl,-soname,dict_pcre.so -o $@ $? -lpcre -L. -lutil
+ 
+ $(LIB):	$(OBJS)
