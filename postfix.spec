@@ -6,7 +6,7 @@
 %bcond_without	sasl	# without SMTP AUTH support
 %bcond_without	ssl	# without SSL/TLS support
 %bcond_without	cdb	# without cdb map support
-%bcond_without	vda	# without VDA patch
+%bcond_with	vda	# without VDA patch
 %bcond_with	hir	# with Beeth's header_if_reject patch
 %bcond_with	tcp	# with unofficial tcp: lookup table
 %bcond_without	epoll	# disable epoll for 2.4 kernels
@@ -21,7 +21,7 @@ Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	2.5.1
-Release:	5.1
+Release:	1
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
@@ -50,6 +50,7 @@ Patch6:		%{name}-ident.patch
 Patch7:		%{name}-lib64.patch
 Patch8:		%{name}-conf.patch
 Patch9:		%{name}-dictname.patch
+Patch10:	%{name}-make-jN.patch
 URL:		http://www.postfix.org/
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db-devel
@@ -253,6 +254,7 @@ sed -i '/scache_clnt_create/s/server/var_scache_service/' src/global/scache_clnt
 %endif
 %patch8 -p1
 %patch9 -p1
+%patch10 -p1
 
 %if %{with tcp}
 sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
@@ -263,7 +265,7 @@ sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
 %{__make} tidy
 CC="%{__cc}"
 export CC
-%{__make} -j1 \
+%{__make} \
 	DEBUG="" \
 	OPT="%{rpmcflags} -D_FILE_OFFSET_BITS=64" \
 	%{!?with_ldap:LDAPSO=""} \
