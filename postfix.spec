@@ -9,8 +9,9 @@
 %bcond_with	vda	# without VDA patch
 %bcond_with	hir	# with Beeth's header_if_reject patch
 %bcond_with	tcp	# with unofficial tcp: lookup table
+%bcond_without	epoll	# disable epoll for 2.4 kernels
 #
-%define		vda_ver 2.4.5
+%define		vda_ver 2.5.1
 Summary:	Postfix Mail Transport Agent
 Summary(cs.UTF-8):	Postfix - program pro přepravu pošty (MTA)
 Summary(es.UTF-8):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -19,13 +20,13 @@ Summary(pl.UTF-8):	Serwer SMTP Postfix
 Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
-Version:	2.4.6
-Release:	4
+Version:	2.5.1
+Release:	6
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	303327f66c13ff9631734651ee184a88
+# Source0-md5:	95a559c509081fdd07d78eafd4f4c3b4
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
@@ -33,7 +34,7 @@ Source4:	%{name}.sysconfig
 Source5:	%{name}.sasl
 Source6:	%{name}.pamd
 Source7:	http://vda.sourceforge.net/VDA/%{name}-%{vda_ver}-vda-ng.patch.gz
-# Source7-md5:	35fa62c93091d42ab02f67d0614d7086
+# Source7-md5:	bba9426f8ae9d8603861ce782f117760
 Source8:	%{name}-bounce.cf.pl
 # http://postfix.state-of-mind.de/bounce-templates/bounce.de-DE.cf
 Source9:	%{name}-bounce.cf.de
@@ -49,14 +50,15 @@ Patch6:		%{name}-ident.patch
 Patch7:		%{name}-lib64.patch
 Patch8:		%{name}-conf.patch
 Patch9:		%{name}-dictname.patch
+Patch10:	%{name}-make-jN.patch
 URL:		http://www.postfix.org/
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db-devel
 # getifaddrs() with IPv6 support
 BuildRequires:	glibc-devel >= 6:2.3.4
 %{?with_mysql:BuildRequires:	mysql-devel}
-%{?with_ldap:BuildRequires:	openldap-devel >= 2.4.6}
-%{?with_ssl:BuildRequires:	openssl-devel >= 0.9.8b}
+%{?with_ldap:BuildRequires:	openldap-devel >= 2.0.12}
+%{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7l}
 BuildRequires:	pcre-devel
 %{?with_pgsql:BuildRequires:	postgresql-devel}
 BuildRequires:	rpmbuild(macros) >= 1.268
@@ -155,7 +157,7 @@ Summary:	LDAP map support for Postfix
 Summary(pl.UTF-8):	Obsługa map LDAP dla Postfiksa
 Group:		Networking/Daemons
 Requires:	%{name} = %{epoch}:%{version}-%{release}
-Requires:	openldap >= 2.4.6
+Requires:	openldap >= 2.3.6
 
 %description dict-ldap
 This package provides support for LDAP maps in Postfix.
@@ -252,6 +254,7 @@ sed -i '/scache_clnt_create/s/server/var_scache_service/' src/global/scache_clnt
 %endif
 %patch8 -p1
 %patch9 -p1
+%patch10 -p1
 
 %if %{with tcp}
 sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
@@ -268,7 +271,7 @@ export CC
 	%{!?with_ldap:LDAPSO=""} \
 	%{!?with_mysql:MYSQLSO=""} \
 	%{!?with_pgsql:PGSQLSO=""} \
-	CCARGS="%{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL} %{?with_ssl:-DUSE_TLS} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB} -DHAVE_GETIFADDRS" \
+	CCARGS="%{?with_epoll:-DNO_EPOLL} %{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL} %{?with_ssl:-DUSE_TLS} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB} -DHAVE_GETIFADDRS" \
 	AUXLIBS="-ldb -lresolv %{?with_sasl:-lsasl} %{?with_ssl:-lssl -lcrypto} %{?with_cdb:-lcdb} -lpcre"
 
 %install
@@ -277,8 +280,8 @@ install -d $RPM_BUILD_ROOT/etc/{cron.daily,rc.d/init.d,sysconfig,pam.d,security,
 	$RPM_BUILD_ROOT%{_sysconfdir}/{mail,sasl} \
 	$RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,/usr/lib}\
 	$RPM_BUILD_ROOT{%{_includedir}/postfix,%{_mandir}} \
-	$RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public}
-
+	$RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public} \
+	$RPM_BUILD_ROOT%{_var}/lib/postfix
 rm -f html/Makefile.in conf/{LICENSE,main.cf.default}
 
 install bin/* $RPM_BUILD_ROOT%{_sbindir}
@@ -322,6 +325,7 @@ touch $RPM_BUILD_ROOT/etc/security/blacklist.smtp
 > $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
 rm -rf $RPM_BUILD_ROOT%{_sysconfdir}/mail/makedefs.out
+rm -f $RPM_BUILD_ROOT%{_sysconfdir}/mail/TLS_LICENSE
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -361,7 +365,7 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%doc html *README COMPATIBILITY HISTORY LICENSE RELEASE_NOTES TLS_*
+%doc html COMPATIBILITY HISTORY LICENSE RELEASE_NOTES* TLS_*
 %doc README_FILES/*README
 %doc examples/smtpd-policy
 %dir %{_sysconfdir}/mail
@@ -423,6 +427,7 @@ fi
 %attr(710,postfix,maildrop) %dir %{_var}/spool/postfix/public
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/saved
 %attr(644,postfix,root) %{_var}/spool/postfix/.nofinger
+%attr(700,postfix,root) %{_var}/lib/postfix
 %{_mandir}/man1/mailq.1*
 %{_mandir}/man1/newaliases.1*
 %{_mandir}/man1/post*.1*
