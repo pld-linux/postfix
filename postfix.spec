@@ -6,7 +6,7 @@
 %bcond_without	sasl	# without SMTP AUTH support
 %bcond_without	ssl	# without SSL/TLS support
 %bcond_without	cdb	# without cdb map support
-%if "%{pld_release}" == "th"
+%if "%{pld_release}" == "ti"
 %bcond_with	vda	# without VDA patch
 %else
 %bcond_without	vda	# without VDA patch
