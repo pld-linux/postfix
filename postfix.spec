@@ -6,7 +6,11 @@
 %bcond_without	sasl	# without SMTP AUTH support
 %bcond_without	ssl	# without SSL/TLS support
 %bcond_without	cdb	# without cdb map support
+%if "%{pld_release}" == "th"
+%bcond_with	vda	# without VDA patch
+%else
 %bcond_without	vda	# without VDA patch
+%endif
 %bcond_with	hir	# with Beeth's header_if_reject patch
 %bcond_with	tcp	# with unofficial tcp: lookup table
 %bcond_without	epoll	# disable epoll for 2.4 kernels
@@ -61,6 +65,7 @@ BuildRequires:	glibc-devel >= 6:2.3.4
 %{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7l}
 BuildRequires:	pcre-devel
 %{?with_pgsql:BuildRequires:	postgresql-devel}
+BuildRequires:	rpm >= 4.4.9-56
 BuildRequires:	rpmbuild(macros) >= 1.268
 BuildRequires:	sed >= 4.0
 %{?with_cdb:BuildRequires:	tinycdb-devel}
