@@ -19,7 +19,7 @@
 %bcond_without	epoll	# disable epoll for 2.4 kernels
 %endif
 #
-%define		vda_ver 2.5.1
+%define		vda_ver 2.5.3
 Summary:	Postfix Mail Transport Agent
 Summary(cs.UTF-8):	Postfix - program pro přepravu pošty (MTA)
 Summary(es.UTF-8):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -28,13 +28,13 @@ Summary(pl.UTF-8):	Serwer SMTP Postfix
 Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
-Version:	2.5.2
+Version:	2.5.4
 Release:	1
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	b0965aea4d548d9bd231af7143aa6942
+# Source0-md5:	0985c854cd92016a8a6b2ed0b7d95af1
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
@@ -42,7 +42,7 @@ Source4:	%{name}.sysconfig
 Source5:	%{name}.sasl
 Source6:	%{name}.pamd
 Source7:	http://vda.sourceforge.net/VDA/%{name}-%{vda_ver}-vda-ng.patch.gz
-# Source7-md5:	bba9426f8ae9d8603861ce782f117760
+# Source7-md5:	44bc9b1278fc971515cb8c94268dea94
 Source8:	%{name}-bounce.cf.pl
 # http://postfix.state-of-mind.de/bounce-templates/bounce.de-DE.cf
 Source9:	%{name}-bounce.cf.de
