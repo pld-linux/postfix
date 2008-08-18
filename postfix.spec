@@ -6,14 +6,18 @@
 %bcond_without	sasl	# without SMTP AUTH support
 %bcond_without	ssl	# without SSL/TLS support
 %bcond_without	cdb	# without cdb map support
-%if "%{pld_release}" == "ti"
-%bcond_with	vda	# without VDA patch
-%else
+%if "%{pld_release}" == "th"
 %bcond_without	vda	# without VDA patch
+%else
+%bcond_with	vda	# with VDA patch
 %endif
 %bcond_with	hir	# with Beeth's header_if_reject patch
 %bcond_with	tcp	# with unofficial tcp: lookup table
+%if "%{pld_release}" == "ac"
+%bcond_with		epoll	# enable epoll for 2.6 kernels
+%else
 %bcond_without	epoll	# disable epoll for 2.4 kernels
+%endif
 #
 %define		vda_ver 2.5.1
 Summary:	Postfix Mail Transport Agent
@@ -343,16 +347,16 @@ rm -rf $RPM_BUILD_ROOT
 %post
 /sbin/ldconfig
 if ! grep -q "^postmaster:" %{_sysconfdir}/mail/aliases; then
-echo "Adding Entry for postmaster in %{_sysconfdir}/mail/aliases" >&2
-echo "postmaster: root" >>%{_sysconfdir}/mail/aliases
+	echo "Adding Entry for postmaster in %{_sysconfdir}/mail/aliases" >&2
+	echo "postmaster: root" >>%{_sysconfdir}/mail/aliases
 fi
 if [ "$1" -gt "1" ]; then
-	postfix upgrade-configuration
+	%{_sbindir}/postfix upgrade-configuration
 fi
 
-newaliases
+%{_sbindir}/newaliases
 /sbin/chkconfig --add postfix
-%service postfix restart "postfix daemon"
+%service postfix restart "Postfix Daemon"
 
 %preun
 if [ "$1" = "0" ]; then
