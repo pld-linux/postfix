@@ -29,7 +29,7 @@ Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	2.5.4
-Release:	1
+Release:	2
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
@@ -354,7 +354,7 @@ if [ "$1" -gt "1" ]; then
 	%{_sbindir}/postfix upgrade-configuration
 fi
 
-%{_sbindir}/newaliases
+%{_bindir}/newaliases
 /sbin/chkconfig --add postfix
 %service postfix restart "Postfix Daemon"
 
