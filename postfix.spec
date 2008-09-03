@@ -28,13 +28,13 @@ Summary(pl.UTF-8):	Serwer SMTP Postfix
 Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
-Version:	2.5.4
-Release:	3
+Version:	2.5.5
+Release:	1
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	0985c854cd92016a8a6b2ed0b7d95af1
+# Source0-md5:	6b4b848bdd2239dddfc9d385e57e19ef
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
