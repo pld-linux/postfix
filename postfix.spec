@@ -32,7 +32,7 @@ Version:	2.5.5
 Release:	1
 Epoch:		2
 License:	distributable
-Group:		Networking/Daemons
+Group:		Networking/Daemons/SMTP
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
 # Source0-md5:	6b4b848bdd2239dddfc9d385e57e19ef
 Source1:	%{name}.aliases
@@ -164,7 +164,7 @@ Pliki nagłówkowe do tworzenia dodatkowych typów map dla Postfiksa.
 %package dict-ldap
 Summary:	LDAP map support for Postfix
 Summary(pl.UTF-8):	Obsługa map LDAP dla Postfiksa
-Group:		Networking/Daemons
+Group:		Networking/Daemons/SMTP
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 Requires:	openldap >= 2.3.6
 
@@ -177,7 +177,7 @@ Ten pakiet dodaje obsługę map LDAP do Postfiksa.
 %package dict-mysql
 Summary:	MySQL map support for Postfix
 Summary(pl.UTF-8):	Obsługa map MySQL dla Postfiksa
-Group:		Networking/Daemons
+Group:		Networking/Daemons/SMTP
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 
 %description dict-mysql
@@ -189,7 +189,7 @@ Ten pakiet dodaje obsługę map MySQL do Postfiksa.
 %package dict-pcre
 Summary:	PCRE map support for Postfix
 Summary(pl.UTF-8):	Obsługa map PCRE dla Postfiksa
-Group:		Networking/Daemons
+Group:		Networking/Daemons/SMTP
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 
 %description dict-pcre
@@ -201,7 +201,7 @@ Ten pakiet dodaje obsługę map PCRE do Postfiksa.
 %package dict-pgsql
 Summary:	PostgreSQL map support for Postfix
 Summary(pl.UTF-8):	Obsługa map PostgreSQL dla Postfiksa
-Group:		Networking/Daemons
+Group:		Networking/Daemons/SMTP
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 
 %description dict-pgsql
@@ -213,7 +213,7 @@ Ten pakiet dodaje obsługę map PostgreSQL do Postfiksa.
 %package qshape
 Summary:	qshape - Print Postfix queue domain and age distribution
 Summary(pl.UTF-8):	qshape - wypisywanie rozkładu domen i wieku z kolejki Postfiksa
-Group:		Networking/Daemons
+Group:		Networking/Daemons/SMTP
 Requires:	%{name} = %{epoch}:%{version}-%{release}
 
 %description qshape
