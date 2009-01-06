@@ -15,10 +15,14 @@
 %bcond_with	tcp	# with unofficial tcp: lookup table
 %if "%{pld_release}" == "ac"
 %bcond_with		epoll	# enable epoll for 2.6 kernels
+# there didn't exist x86_64 2.4 kernel in PLD, so can safely enable epoll
+%ifarch %{x8664}
+%define		with_epoll	1
+%endif
 %else
 %bcond_without	epoll	# disable epoll for 2.4 kernels
 %endif
-#
+
 %define		vda_ver 2.5.3
 Summary:	Postfix Mail Transport Agent
 Summary(cs.UTF-8):	Postfix - program pro přepravu pošty (MTA)
