@@ -23,7 +23,7 @@
 %bcond_without	epoll	# disable epoll for 2.4 kernels
 %endif
 
-%define		vda_ver 2.5.3
+%define		vda_ver 2.5.5
 Summary:	Postfix Mail Transport Agent
 Summary(cs.UTF-8):	Postfix - program pro přepravu pošty (MTA)
 Summary(es.UTF-8):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -32,13 +32,13 @@ Summary(pl.UTF-8):	Serwer SMTP Postfix
 Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
-Version:	2.5.5
-Release:	2
+Version:	2.5.6
+Release:	1
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons/SMTP
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	6b4b848bdd2239dddfc9d385e57e19ef
+# Source0-md5:	ec2cb63b53f5f36c3ca91da8f3bc9407
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
@@ -46,11 +46,12 @@ Source4:	%{name}.sysconfig
 Source5:	%{name}.sasl
 Source6:	%{name}.pamd
 Source7:	http://vda.sourceforge.net/VDA/%{name}-%{vda_ver}-vda-ng.patch.gz
-# Source7-md5:	44bc9b1278fc971515cb8c94268dea94
+# Source7-md5:	1e30fdda918cf7e87e124b0a551337d3
 Source8:	%{name}-bounce.cf.pl
 # http://postfix.state-of-mind.de/bounce-templates/bounce.de-DE.cf
 Source9:	%{name}-bounce.cf.de
 Source10:	%{name}.monitrc
+Source11:	http://vda.sourceforge.net/VDA/%{name}-%{vda_ver}-vda-ng-64bit.patch.gz
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
@@ -250,7 +251,11 @@ Plik monitrc do monitorowania serwera Postfix.
 
 %prep
 %setup -q
-%{?with_vda:zcat %{SOURCE7} | patch -p1 -s}
+%{?with_vda:zcat %{SOURCE7} | %{__patch} -p1 -s}
+%ifarch alpha %{x8664} ia64 ppc64 sparc64
+# XXX not actually sure what they mean with 64bit
+%{?with_vda:zcat %{SOURCE11} | %{__patch} -p1 -s}
+%endif
 
 find -type f | xargs sed -i -e 's|/etc/postfix|/etc/mail|g'
 
