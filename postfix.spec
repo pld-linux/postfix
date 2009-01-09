@@ -52,6 +52,7 @@ Source8:	%{name}-bounce.cf.pl
 Source9:	%{name}-bounce.cf.de
 Source10:	%{name}.monitrc
 Source11:	http://vda.sourceforge.net/VDA/%{name}-%{vda_ver}-vda-ng-64bit.patch.gz
+# Source11-md5:	3b982959b6bbe7eebada34dc0c26038b
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
