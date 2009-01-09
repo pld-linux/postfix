@@ -253,10 +253,7 @@ Plik monitrc do monitorowania serwera Postfix.
 %prep
 %setup -q
 %{?with_vda:zcat %{SOURCE7} | %{__patch} -p1 -s}
-%ifarch alpha %{x8664} ia64 ppc64 sparc64
-# XXX not actually sure what they mean with 64bit
 %{?with_vda:zcat %{SOURCE11} | %{__patch} -p1 -s}
-%endif
 
 find -type f | xargs sed -i -e 's|/etc/postfix|/etc/mail|g'
 
