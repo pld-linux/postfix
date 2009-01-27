@@ -75,7 +75,13 @@ reload() {
 		busy
 		msg=$(/usr/sbin/postfix reload 2>&1)
 		RETVAL=$?
-		[ $RETVAL -ne 0 ] && RETVAL=7
+		if [ $RETVAL -eq 0 ]; then
+			ok
+		else
+			fail
+			echo >&2 "$msg"
+		   	RETVAL=7
+		fi
 	else
 		msg_not_running "Postfix"
 		RETVAL=7
