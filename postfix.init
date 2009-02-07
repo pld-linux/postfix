@@ -36,7 +36,7 @@ start() {
 	if [ ! -f /var/lock/subsys/postfix ]; then
 		msg_starting "Postfix"
 		busy
-		msg=$(/usr/sbin/postfix start 2>&1)
+		msg=$(nice -n ${SERVICE_RUN_NICE_LEVEL:-${DEFAULT_SERVICE_RUN_NICE_LEVEL:-0}} /usr/sbin/postfix start 2>&1)
 		RETVAL=$?
 		if [ $RETVAL -eq 0 ]; then
 			ok
