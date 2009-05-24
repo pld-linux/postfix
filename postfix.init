@@ -31,60 +31,62 @@ networking_check() {
 }
 
 start() {
-	local msg
-
-	if [ ! -f /var/lock/subsys/postfix ]; then
-		msg_starting "Postfix"
-		busy
-		_daemon_set_ulimits
-		msg=$(nice -n ${SERVICE_RUN_NICE_LEVEL:-${DEFAULT_SERVICE_RUN_NICE_LEVEL:-0}} /usr/sbin/postfix start 2>&1)
-		RETVAL=$?
-		if [ $RETVAL -eq 0 ]; then
-			ok
-			touch /var/lock/subsys/postfix
-		else
-			fail
-			echo >&2 "$msg"
-		fi
-	else
+	if [ -f /var/lock/subsys/postfix ]; then
 		msg_already_running "Postfix"
+		return
+	fi
+
+	local msg
+	msg_starting "Postfix"
+	busy
+	_daemon_set_ulimits
+	msg=$(nice -n ${SERVICE_RUN_NICE_LEVEL:-${DEFAULT_SERVICE_RUN_NICE_LEVEL:-0}} /usr/sbin/postfix start 2>&1)
+	RETVAL=$?
+	if [ $RETVAL -eq 0 ]; then
+		ok
+		touch /var/lock/subsys/postfix
+	else
+		fail
+		echo >&2 "$msg"
 	fi
 }
 
 stop() {
-	local msg
-	if [ -f /var/lock/subsys/postfix ]; then
-		msg_stopping "Postfix"
-		busy
-		msg=$(/usr/sbin/postfix stop 2>&1)
-		if [ $? -eq 0 ]; then
-			ok
-		else
-			fail
-			echo >&2 "$msg"
-		fi
-		rm -f /var/lock/subsys/postfix
-	else
+	if [ ! -f /var/lock/subsys/postfix ]; then
 		msg_not_running "Postfix"
+		return
 	fi
+
+	local msg
+	msg_stopping "Postfix"
+	busy
+	msg=$(/usr/sbin/postfix stop 2>&1)
+	if [ $? -eq 0 ]; then
+		ok
+	else
+		fail
+		echo >&2 "$msg"
+	fi
+	rm -f /var/lock/subsys/postfix
 }
 
 reload() {
-	local msg
-	if [ -f /var/lock/subsys/postfix ]; then
-		msg_reloading "Postfix"
-		busy
-		msg=$(/usr/sbin/postfix reload 2>&1)
-		RETVAL=$?
-		if [ $RETVAL -eq 0 ]; then
-			ok
-		else
-			fail
-			echo >&2 "$msg"
-		   	RETVAL=7
-		fi
-	else
+	if [ ! -f /var/lock/subsys/postfix ]; then
 		msg_not_running "Postfix"
+		RETVAL=7
+		return
+	fi
+
+	local msg
+	msg_reloading "Postfix"
+	busy
+	msg=$(/usr/sbin/postfix reload 2>&1)
+	RETVAL=$?
+	if [ $RETVAL -eq 0 ]; then
+		ok
+	else
+		fail
+		echo >&2 "$msg"
 		RETVAL=7
 	fi
 }
