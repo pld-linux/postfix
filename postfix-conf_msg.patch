@@ -14,19 +14,19 @@
  /* LICENSE
  /* .ad
  /* .fi
---- src/smtpd/smtpd.c.orig	2004-06-22 14:32:57.338808646 +0200
-+++ src/smtpd/smtpd.c	2004-06-22 14:41:40.372360162 +0200
-@@ -4514,6 +4514,7 @@
+--- src/smtpd/smtpd.c.orig	2009-05-25 19:13:15.584397697 +0200
++++ src/smtpd/smtpd.c	2009-05-25 19:14:31.066487776 +0200
+@@ -5062,6 +5062,7 @@
  	VAR_MILT_DAEMON_NAME, DEF_MILT_DAEMON_NAME, &var_milt_daemon_name, 1, 0,
  	VAR_MILT_V, DEF_MILT_V, &var_milt_v, 1, 0,
  	VAR_STRESS, DEF_STRESS, &var_stress, 0, 0,
 +	VAR_REJECT_REPLY_MSG_ACCESS_DENIED, DEF_REJECT_REPLY_MSG_ACCESS_DENIED, &var_reject_reply_msg_access_denied, 1, 0,
- 	0,
-     };
-     static CONFIG_RAW_TABLE raw_table[] = {
---- src/global/mail_params.c	2006-06-15 02:50:02.000000000 +0200
-+++ src/global/mail_params.c-new	2006-07-11 19:29:07.162325784 +0200
-@@ -78,6 +78,7 @@
+ 	VAR_UNV_FROM_WHY, DEF_UNV_FROM_WHY, &var_unv_from_why, 0, 0,
+ 	VAR_UNV_RCPT_WHY, DEF_UNV_RCPT_WHY, &var_unv_rcpt_why, 0, 0,
+ 	VAR_REJECT_TMPF_ACT, DEF_REJECT_TMPF_ACT, &var_reject_tmpf_act, 1, 0,
+--- src/global/mail_params.c.orig	2009-05-25 19:15:04.209595211 +0200
++++ src/global/mail_params.c	2009-05-25 19:20:20.187561915 +0200
+@@ -80,6 +80,7 @@
  /*	char	*var_debug_peer_list;
  /*	int	var_debug_peer_level;
  /*	int	var_in_flow_delay;
@@ -34,7 +34,7 @@
  /*	int	var_fault_inj_code;
  /*	char   *var_bounce_service;
  /*	char   *var_cleanup_service;
-@@ -246,6 +247,7 @@
+@@ -265,6 +266,7 @@
  char   *var_export_environ;
  char   *var_debug_peer_list;
  int     var_debug_peer_level;
@@ -42,12 +42,11 @@
  int     var_fault_inj_code;
  char   *var_bounce_service;
  char   *var_cleanup_service;
-@@ -488,6 +490,7 @@
- 	VAR_FLUSH_SERVICE, DEF_FLUSH_SERVICE, &var_flush_service, 1, 0,
- 	VAR_VERIFY_SERVICE, DEF_VERIFY_SERVICE, &var_verify_service, 1, 0,
- 	VAR_TRACE_SERVICE, DEF_TRACE_SERVICE, &var_trace_service, 1, 0,
-	VAR_INT_FILT_CLASSES, DEF_INT_FILT_CLASSES, &var_int_filt_classes, 0, 0,
+@@ -567,6 +569,7 @@
+ 	VAR_PROXYMAP_SERVICE, DEF_PROXYMAP_SERVICE, &var_proxymap_service, 1, 0,
+ 	VAR_PROXYWRITE_SERVICE, DEF_PROXYWRITE_SERVICE, &var_proxywrite_service, 1, 0,
+ 	VAR_INT_FILT_CLASSES, DEF_INT_FILT_CLASSES, &var_int_filt_classes, 0, 0,
 +	VAR_REJECT_REPLY_MSG_ACCESS_DENIED, DEF_REJECT_REPLY_MSG_ACCESS_DENIED, &var_reject_reply_msg_access_denied, 1, 0,
  	0,
      };
-     static CONFIG_STR_FN_TABLE function_str_defaults_2[] = {
+     static const CONFIG_STR_FN_TABLE function_str_defaults_2[] = {

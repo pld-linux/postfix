@@ -153,21 +153,21 @@ diff -urN -x '*~' postfix-2.2.5/src/smtpd/smtpd_ident.c postfix-2.2.5-ident/src/
 +    return_val = mystrdup(ident_user);
 +    return return_val;
 +}
---- postfix-2.3-RC9/src/smtpd/Makefile.in.orig	2006-07-09 19:45:31.000000000 +0200
-+++ postfix-2.3-RC9/src/smtpd/Makefile.in	2006-07-11 20:17:09.605127872 +0200
+--- postfix-2.6.1/src/smtpd/Makefile.in.orig	2009-05-25 19:34:22.326563111 +0200
++++ postfix-2.6.1/src/smtpd/Makefile.in	2009-05-25 19:40:29.642775958 +0200
 @@ -1,10 +1,10 @@
  SHELL	= /bin/sh
  SRCS	= smtpd.c smtpd_token.c smtpd_check.c smtpd_chat.c smtpd_state.c \
  	smtpd_peer.c smtpd_sasl_proto.c smtpd_sasl_glue.c smtpd_proxy.c \
--	smtpd_xforward.c smtpd_dsn_fix.c smtpd_milter.c
-+	smtpd_xforward.c smtpd_dsn_fix.c smtpd_milter.c smtpd_ident.c
+-	smtpd_xforward.c smtpd_dsn_fix.c smtpd_milter.c smtpd_resolve.c
++	smtpd_xforward.c smtpd_dsn_fix.c smtpd_milter.c smtpd_resolve.c smtpd_ident.c
  OBJS	= smtpd.o smtpd_token.o smtpd_check.o smtpd_chat.o smtpd_state.o \
  	smtpd_peer.o smtpd_sasl_proto.o smtpd_sasl_glue.o smtpd_proxy.o \
--	smtpd_xforward.o smtpd_dsn_fix.o smtpd_milter.o
-+	smtpd_xforward.o smtpd_dsn_fix.o smtpd_milter.o smtpd_ident.o
+-	smtpd_xforward.o smtpd_dsn_fix.o smtpd_milter.o smtpd_resolve.o
++	smtpd_xforward.o smtpd_dsn_fix.o smtpd_milter.o smtpd_resolve.o smtpd_ident.o
  HDRS	= smtpd_token.h smtpd_check.h smtpd_chat.h smtpd_sasl_proto.h \
- 	smtpd_sasl_glue.h smtpd_proxy.h smtpd_dsn_fix.h smtpd_milter.h
- TESTSRC	= smtpd_token_test.c
+ 	smtpd_sasl_glue.h smtpd_proxy.h smtpd_dsn_fix.h smtpd_milter.h \
+ 	smtpd_resolve.h
 --- postfix-2.3-RC9/src/smtpd/smtpd.c.orig	2006-07-11 20:13:27.780850288 +0200
 +++ postfix-2.3-RC9/src/smtpd/smtpd.c	2006-07-11 20:27:06.515383720 +0200
 @@ -1024,6 +1024,7 @@
@@ -223,14 +223,14 @@ diff -urN -x '*~' postfix-2.2.5/src/smtpd/smtpd_ident.c postfix-2.2.5-ident/src/
  
      /*
       * Open maps before dropping privileges so we can read passwords etc.
-@@ -4513,6 +4513,7 @@
- 	VAR_MILT_DAEMON_NAME, DEF_MILT_DAEMON_NAME, &var_milt_daemon_name, 1, 0,
+@@ -5076,6 +5093,7 @@
  	VAR_MILT_V, DEF_MILT_V, &var_milt_v, 1, 0,
+ 	VAR_STRESS, DEF_STRESS, &var_stress, 0, 0,
  	VAR_REJECT_REPLY_MSG_ACCESS_DENIED, DEF_REJECT_REPLY_MSG_ACCESS_DENIED, &var_reject_reply_msg_access_denied, 1, 0,
 +	VAR_SMTPD_IDENT_LOOKUP, DEF_SMTPD_IDENT_LOOKUP, &var_smtpd_ident_lookup, 0, 0,
- 	0,
-     };
-     static CONFIG_RAW_TABLE raw_table[] = {
+ 	VAR_UNV_FROM_WHY, DEF_UNV_FROM_WHY, &var_unv_from_why, 0, 0,
+ 	VAR_UNV_RCPT_WHY, DEF_UNV_RCPT_WHY, &var_unv_rcpt_why, 0, 0,
+ 	VAR_REJECT_TMPF_ACT, DEF_REJECT_TMPF_ACT, &var_reject_tmpf_act, 1, 0,
 --- postfix-2.3-RC9/src/smtpd/smtpd.h.orig	2006-07-09 21:49:21.000000000 +0200
 +++ postfix-2.3-RC9/src/smtpd/smtpd.h	2006-07-11 20:30:43.993322048 +0200
 @@ -77,6 +77,7 @@
