@@ -32,13 +32,13 @@ Summary(pl.UTF-8):	Serwer SMTP Postfix
 Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
-Version:	2.5.7
+Version:	2.6.1
 Release:	1
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons/SMTP
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	52a49d11555571fe7c3b0d3768f45092
+# Source0-md5:	737bbc245da9c72c174893397f70ae86
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
@@ -404,6 +404,8 @@ fi
 %attr(755,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/postfix-script
 %attr(755,root,root) %{_sysconfdir}/mail/post-install
 %{_sysconfdir}/mail/postfix-files
+%{_sysconfdir}/mail/postfix-wrapper
+%{_sysconfdir}/mail/postmulti-script
 %attr(740,root,root) /etc/cron.daily/postfix
 %attr(754,root,root) /etc/rc.d/init.d/postfix
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/postfix
@@ -421,6 +423,7 @@ fi
 %attr(755,root,root) %{_sbindir}/postl*
 %attr(755,root,root) %{_sbindir}/postc*
 %attr(755,root,root) %{_sbindir}/postmap
+%attr(755,root,root) %{_sbindir}/postmulti
 %attr(2755,root,maildrop) %{_sbindir}/postqueue
 %attr(755,root,root) %{_sbindir}/postsuper
 %attr(2755,root,maildrop) %{_sbindir}/postdrop
@@ -461,6 +464,7 @@ fi
 %{_mandir}/man5/master.5*
 %{_mandir}/man5/nisplus_table.5*
 %{_mandir}/man5/postconf.5*
+%{_mandir}/man5/postfix-wrapper.5*
 %{_mandir}/man5/regexp_table.5*
 %{_mandir}/man5/relocated.5*
 %{_mandir}/man5/tcp_table.5*
