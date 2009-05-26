@@ -388,8 +388,8 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/access
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/aliases
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/bounce.cf.default
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/bounce.cf.de
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/bounce.cf.pl
+%lang(de) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/bounce.cf.de
+%lang(pl) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/bounce.cf.pl
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/canonical
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/generic
 #%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/regexp_table
