@@ -33,7 +33,7 @@ Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	2.6.1
-Release:	1
+Release:	2
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons/SMTP
@@ -343,6 +343,8 @@ touch $RPM_BUILD_ROOT/etc/security/blacklist.smtp
 rm -rf $RPM_BUILD_ROOT%{_sysconfdir}/mail/makedefs.out
 rm -f $RPM_BUILD_ROOT%{_sysconfdir}/mail/TLS_LICENSE
 
+rm $RPM_BUILD_ROOT%{_sysconfdir}/mail/{postfix-files,postfix-script,post-install}
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -401,9 +403,6 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/dynamicmaps.cf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/main.cf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/master.cf
-%attr(755,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/postfix-script
-%attr(755,root,root) %{_sysconfdir}/mail/post-install
-%{_sysconfdir}/mail/postfix-files
 %{_sysconfdir}/mail/postfix-wrapper
 %{_sysconfdir}/mail/postmulti-script
 %attr(740,root,root) /etc/cron.daily/postfix
