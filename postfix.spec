@@ -359,7 +359,14 @@ if ! grep -q "^postmaster:" %{_sysconfdir}/mail/aliases; then
 	echo "Adding Entry for postmaster in %{_sysconfdir}/mail/aliases" >&2
 	echo "postmaster: root" >>%{_sysconfdir}/mail/aliases
 fi
-if [ "$1" -gt "1" ]; then
+if [ "$1" = "1" ]; then
+	# only on installation, not upgrade; set sane defaults
+	# postfix expects gethostname() to return FQDN, which is obviously wrong
+	if ! grep -qE "^my(domain|hostname)" %{_sysconfdir}/mail/main.cf; then
+		[ `/bin/hostname -d` != 'localdomain' ] && \
+			postconf -e mydomain=`/bin/hostname -d`
+	fi
+else
 	%{_sbindir}/postfix upgrade-configuration
 fi
 
