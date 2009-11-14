@@ -74,6 +74,7 @@ BuildRequires:	glibc-devel >= 6:2.3.4
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.0.12}
 %{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7l}
 BuildRequires:	pcre-devel
+BuildRequires:	perl-base
 %{?with_pgsql:BuildRequires:	postgresql-devel}
 BuildRequires:	rpm >= 4.4.9-56
 BuildRequires:	rpmbuild(macros) >= 1.268
