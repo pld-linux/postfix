@@ -283,7 +283,7 @@ diff -urN -x '*~' postfix-2.2.5/src/smtpd/smtpd_ident.c postfix-2.2.5-ident/src/
      struct sockaddr *sa;
 +    struct sockaddr_in serv_sin;
 +    char *ident_user = NULL;
-+    size_t sa_len;
++    SOCKADDR_SIZE sa_len;
      INET_PROTO_INFO *proto_info = inet_proto_info();
  
      sa = (struct sockaddr *) & (state->sockaddr);

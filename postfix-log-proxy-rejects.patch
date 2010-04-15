@@ -26,7 +26,7 @@ diff -ur postfix-2.4.5/src/smtpd/smtpd.c postfix-2.4.5-proxy/src/smtpd/smtpd.c
 +		else
 +			proxy_code = 554;
 +		vstring_strncpy(proxy_why, STR(proxy->buffer)+4, 5);
-+		smtpd_check_reject(state, MAIL_ERROR_POLICY, proxy_code, proxy_why,
++		smtpd_check_reject(state, MAIL_ERROR_POLICY, proxy_code, STR(proxy_why),
 +					"%s", STR(proxy->buffer));
 +		vstring_free(proxy_why);
 +	    }
