@@ -602,9 +602,9 @@ diff -dur postfix-2.1.3.orig/src/global/mail_dict.c postfix-2.1.3/src/global/mai
  	write_buf.c write_wait.c sane_basename.c format_tv.c allspace.c \
 -	allascii.c load_file.c killme_after.c vstream_tweak.c upass_connect.c \
 +	allascii.c load_file.c killme_after.c vstream_tweak.c upass_connect.c load_lib.c \
- 	upass_listen.c upass_trigger.c edit_file.c inet_windowsize.c
+ 	upass_listen.c upass_trigger.c edit_file.c inet_windowsize.c \
+ 	unix_pass_fd_fix.c dict_cache.c
  OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
- 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 @@ -38,7 +38,7 @@
  	chroot_uid.o cidr_match.o clean_env.o close_on_exec.o concatenate.o \
  	ctable.o dict.o dict_alloc.o dict_cdb.o dict_cidr.o dict_db.o \
@@ -620,18 +620,18 @@ diff -dur postfix-2.1.3.orig/src/global/mail_dict.c postfix-2.1.3/src/global/mai
  	write_buf.o write_wait.o sane_basename.o format_tv.o allspace.o \
 -	allascii.o load_file.o killme_after.o vstream_tweak.o upass_connect.o \
 +	allascii.o load_file.o killme_after.o vstream_tweak.o upass_connect.o load_lib.o \
- 	upass_listen.o upass_trigger.o edit_file.o inet_windowsize.o
+ 	upass_listen.o upass_trigger.o edit_file.o inet_windowsize.o \
+ 	unix_pass_fd_fix.o dict_cache.o
  HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
- 	chroot_uid.h cidr_match.h clean_env.h connect.h ctable.h dict.h \
 @@ -83,7 +83,7 @@
  	sigdelay.h sock_addr.h spawn_command.h split_at.h stat_as.h \
  	stringops.h sys_defs.h timed_connect.h timed_wait.h trigger.h \
  	username.h valid_hostname.h vbuf.h vbuf_print.h vstream.h vstring.h \
 -	vstring_vstream.h watchdog.h format_tv.h load_file.h killme_after.h \
 +	vstring_vstream.h watchdog.h format_tv.h load_file.h killme_after.h load_lib.h \
- 	edit_file.h
+ 	edit_file.h dict_cache.h
  TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
- 	stream_test.c dup2_pass_on_exec.c 
+ 	stream_test.c dup2_pass_on_exec.c test_send_fd test_recv_fd
 @@ -91,6 +91,7 @@
  CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
  FILES	= Makefile $(SRCS) $(HDRS)

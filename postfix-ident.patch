@@ -193,7 +193,7 @@ diff -urN -x '*~' postfix-2.2.5/src/smtpd/smtpd_ident.c postfix-2.2.5-ident/src/
 @@ -2503,10 +2509,18 @@
       * intermediate proxy.
       */
-     if (!state->proxy || state->xforward.flags == 0) {
+     if (!proxy || state->xforward.flags == 0) {
 -	out_fprintf(out_stream, REC_TYPE_NORM,
 -		    "Received: from %s (%s [%s])",
 -		    state->helo_name ? state->helo_name : state->name,

@@ -1,20 +1,19 @@
 --- postfix-2.2.2/conf/master.cf.orig	2005-01-24 20:12:46.000000000 +0100
 +++ postfix-2.2.2/conf/master.cf	2005-04-26 11:46:51.000000000 +0200
-@@ -60,15 +60,15 @@
- # The Cyrus deliver program has changed incompatibly, multiple times.
- #
- #old-cyrus unix  -       n       n       -       -       pipe
--#  flags=R user=cyrus argv=/cyrus/bin/deliver -e -m ${extension} ${user}
-+#  flags=R user=cyrus argv=/usr/lib/cyrus/deliver -e -m ${extension} ${user}
- #
- # ====================================================================
- #
- # Cyrus 2.1.5 (Amos Gouaux)
+@@ -60,14 +60,14 @@
  # Also specify in main.cf: cyrus_destination_recipient_limit=1
  #
  #cyrus     unix  -       n       n       -       -       pipe
 -#  user=cyrus argv=/cyrus/bin/deliver -e -r ${sender} -m ${extension} ${user}
 +#  user=cyrus argv=/usr/lib/cyrus/deliver -e -r ${sender} -m ${extension} ${user}
+ #
+ # ====================================================================
+ #
+ # Old example of delivery via Cyrus.
+ #
+ #old-cyrus unix  -       n       n       -       -       pipe
+-#  flags=R user=cyrus argv=/cyrus/bin/deliver -e -m ${extension} ${user}
++#  flags=R user=cyrus argv=/usr/lib/cyrus/deliver -e -m ${extension} ${user}
  #
  # ====================================================================
  #

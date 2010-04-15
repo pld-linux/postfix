@@ -14,25 +14,25 @@ diff -ur postfix-2.4.5/src/smtpd/smtpd.c postfix-2.4.5-proxy/src/smtpd/smtpd.c
  #ifdef USE_TLS
 @@ -2705,8 +2707,19 @@
  	if (state->err == CLEANUP_STAT_OK) {
- 	    (void) smtpd_proxy_cmd(state, SMTPD_PROX_WANT_ANY, ".");
+ 	    (void) proxy->cmd(state, SMTPD_PROX_WANT_ANY, ".");
  	    if (state->err == CLEANUP_STAT_OK &&
--		*STR(state->proxy_buffer) != '2')
-+		*STR(state->proxy_buffer) != '2') {
+-		*STR(proxy->buffer) != '2')
++		*STR(proxy->buffer) != '2') {
  		state->err = CLEANUP_STAT_CONT;
 +		proxy_why = vstring_alloc(10);
-+		vstring_strncpy(proxy_why, STR(state->proxy_buffer), 3);
++		vstring_strncpy(proxy_why, STR(proxy->buffer), 3);
 +		if (alldig(STR(proxy_why)))
 +			proxy_code = atol(STR(proxy_why));
 +		else
 +			proxy_code = 554;
-+		vstring_strncpy(proxy_why, STR(state->proxy_buffer)+4, 5);
++		vstring_strncpy(proxy_why, STR(proxy->buffer)+4, 5);
 +		smtpd_check_reject(state, MAIL_ERROR_POLICY, proxy_code, proxy_why,
-+					"%s", STR(state->proxy_buffer));
++					"%s", STR(proxy->buffer));
 +		vstring_free(proxy_why);
 +	    }
- 	} else if (state->err != CLEANUP_STAT_SIZE) {
- 	    state->err |= CLEANUP_STAT_PROXY;
- 	    detail = cleanup_stat_detail(CLEANUP_STAT_PROXY);
+ 	}
+     }
+ 
 --- postfix-2.6.1/src/smtpd/smtpd_check.c.orig	2009-05-25 19:29:43.159923869 +0200
 +++ postfix-2.6.1/src/smtpd/smtpd_check.c	2009-05-25 19:31:30.299567709 +0200
 @@ -386,7 +386,7 @@
