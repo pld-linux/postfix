@@ -1,0 +1,204 @@
+diff -ur postfix-2.7.0/src/virtual/maildir.c postfix-2.7.0-bg/src/virtual/maildir.c
+--- postfix-2.7.0/src/virtual/maildir.c	2010-04-15 16:46:03.766130197 +0200
++++ postfix-2.7.0-bg/src/virtual/maildir.c	2010-04-15 16:55:02.496126981 +0200
+@@ -65,6 +65,7 @@
+ 
+ /* Patch library. */
+ 
++#include <stdint.h>
+ #include <sys/types.h> /* opendir(3), stat(2) */
+ #include <sys/stat.h>  /* stat(2) */
+ #include <dirent.h>    /* opendir(3) */
+@@ -98,14 +99,14 @@
+  * Returns the size of all mails as read from maildirsize,
+  * zero if it couldn't read the file.
+  */
+-static long read_maildirsize(char *filename, long *sumptr, long *countptr)
++static long read_maildirsize(char *filename, int64_t *sumptr, int64_t *countptr)
+ {
+     char *myname = "read_maildirsize";
+     struct stat statbuf;
+     VSTREAM *sizefile;
+     char *p;
+     int len, first;
+-    long sum = 0, count = 0, ret_value = -1;
++    int64_t sum = 0, count = 0, ret_value = -1;
+ 
+     if (msg_verbose) 
+ 	msg_info("%s: we will use sizefile = '%s'", myname, filename);
+@@ -136,7 +137,7 @@
+     first = 1;
+ 
+     while (*p) {
+-        long n = 0, c = 0;
++        int64_t n = 0, c = 0;
+         char *q = p;
+ 
+         while (*p) {
+@@ -151,7 +152,7 @@
+             continue;
+         }
+ 
+-        if (sscanf(q, "%ld %ld", &n, &c) == 2) {
++        if (sscanf(q, "%lld %lld", &n, &c) == 2) {
+             sum += n;
+             count += c;
+             /* if (msg_verbose)
+@@ -179,7 +180,7 @@
+ 	ret_value = -1;
+     } else {
+ 	if (msg_verbose) 
+-	    msg_info("%s: we will return Maildir size = %ld, count = %ld", myname, *sumptr, *countptr);
++	    msg_info("%s: we will return Maildir size = %lld, count = %lld", myname, *sumptr, *countptr);
+ 
+ 	ret_value = sum;	
+     }
+@@ -200,7 +201,7 @@
+  * Returns the size given in ",S=<size>" in the filename,
+  * zero if it cannot find ",S=<size>" in the filename.
+  */
+-static long maildir_parsequota(const char *n)
++static int64_t maildir_parsequota(const char *n)
+ {
+     const char *o;
+     int yes = 0;
+@@ -225,7 +226,7 @@
+     }
+ 
+     if (yes) {
+-        long s = 0;
++        int64_t s = 0;
+ 
+         while (*o >= '0' && *o <= '9')
+             s = s*10 + (*o++ - '0');
+@@ -252,11 +253,11 @@
+  * Returns the sum of the sizes of all measurable files,
+  * zero if the directory could not be opened.
+  */
+-static long check_dir_size(char *dirname, long *countptr)
++static int64_t check_dir_size(char *dirname, int64_t *countptr)
+ {
+     char *myname = "check_dir_size";
+     DIR *dir;
+-    long sum = 0;
++    int64_t sum = 0;
+     struct dirent *ent;
+     struct stat statbuf;
+ 
+@@ -277,7 +278,7 @@
+ 
+     while ((ent = readdir(dir)) != NULL) {
+         char *name = ent->d_name;
+-        long tmpsum = 0;
++        int64_t tmpsum = 0;
+         VSTRING *buffer;
+ 
+ 	/* do not count dot a double-dot dirs */
+@@ -324,7 +325,7 @@
+             }
+             if ((statbuf.st_mode & S_IFREG) != 0) {
+                 if (strcmp(dirname + strlen(dirname) - 3, "new") == 0 || strcmp(dirname + strlen(dirname) - 3, "cur") == 0 || strcmp(dirname + strlen(dirname) - 3, "tmp") == 0) {
+-                    sum += (long) statbuf.st_size;
++                    sum += (int64_t) statbuf.st_size;
+                     (*countptr)++;
+                 }
+             }
+@@ -338,7 +339,7 @@
+     closedir(dir);
+ 
+     if (msg_verbose)
+-        msg_info("%s: full scan done: dir=%s sum=%ld count=%ld", myname, dirname, sum, *countptr);
++        msg_info("%s: full scan done: dir=%s sum=%lld count=%lld", myname, dirname, sum, *countptr);
+ 
+     return sum;
+ }
+@@ -456,9 +457,9 @@
+     char    *sizefilename = (char *) 0; /* Maildirsize file name. */
+     VSTRING *filequota;                 /* Quota setting from the maildirsize file. */
+     VSTREAM *sizefile;                  /* Maildirsize file handle. */
+-    long     n = 0;                     /* Limit in long integer format. */
+-    long     saved_count = 0;           /* The total number of files. */
+-    long     saved_size = 0;            /* The total quota of all files. */
++    int64_t  n = 0;                     /* Limit in long integer format. */
++    int64_t  saved_count = 0;           /* The total number of files. */
++    int64_t  saved_size = 0;            /* The total quota of all files. */
+     struct   stat mail_stat;            /* To check the size of the mail to be written. */
+     struct   stat sizefile_stat;        /* To check the size of the maildirsize file. */
+     time_t   tm;                        /* To check the age of the maildirsize file. */
+@@ -541,7 +542,7 @@
+      * warn the user, else use the value directly as the maildir limit.
+      */
+     if (*var_virt_mailbox_limit_maps != 0 && (limit_res = mail_addr_find(virtual_mailbox_limit_maps, state.msg_attr.user, (char **) NULL)) != 0) {
+-        n = atol(limit_res);
++        n = strtoll(limit_res, NULL, 10);
+         if (n > 0) {
+             if ((n < var_message_limit) && (!var_virt_mailbox_limit_override)) {
+                 n = var_virt_mailbox_limit;
+@@ -552,13 +553,13 @@
+             }
+             else {
+                 if (msg_verbose)
+-                    msg_info("%s: set virtual maildir limit size for %s to %ld",
++                    msg_info("%s: set virtual maildir limit size for %s to %lld",
+                             myname, usr_attr.mailbox, n);
+             }
+         }
+         else if (n == 0) {
+                 if (msg_verbose)
+-                    msg_info("%s: set virtual maildir limit size for %s to %ld",
++                    msg_info("%s: set virtual maildir limit size for %s to %lld",
+                             myname, usr_attr.mailbox, n);
+         }
+         else {
+@@ -580,7 +581,7 @@
+ 	x >= 0 = reading successfully finished - sum si returned, so sum size of Maildir was 0 or more */
+         if (!var_virt_mailbox_limit_inbox && var_virt_maildir_extended && read_maildirsize(sizefilename, &saved_size, &saved_count) >= 0) {
+     	    if (msg_verbose)
+-        	msg_info("%s: maildirsize used=%s sum=%ld count=%ld", myname, sizefilename, saved_size, saved_count);
++        	msg_info("%s: maildirsize used=%s sum=%lld count=%lld", myname, sizefilename, saved_size, saved_count);
+ 	} else {
+ 	    if (msg_verbose) 
+ 		msg_info("%s: var_virt_mailbox_limit == 1 OR var_virt_maildir_extended == 0 OR read_maildidrsize() returned value x < 0 as saying something failed", myname);
+@@ -693,7 +694,7 @@
+              */
+             if (stat(tmpfile, &mail_stat) == 0) {
+                 if (n != 0) {
+-                    saved_size += (long) mail_stat.st_size;
++                    saved_size += (int64_t) mail_stat.st_size;
+                     saved_count++;
+                 }
+                 if (var_virt_maildir_extended) {
+@@ -710,7 +711,7 @@
+              */
+             if (saved_size > n) {
+                 mail_copy_status = MAIL_COPY_STAT_WRITE;
+-                if (((long) mail_stat.st_size > n) || (var_virt_overquota_bounce))
++                if (((int64_t) mail_stat.st_size > n) || (var_virt_overquota_bounce))
+                     errno = EFBIG;
+                 else
+                     errno = EDQUOT;
+@@ -889,7 +890,7 @@
+                             filequota = vstring_alloc(128);
+                             vstring_get_null_bound(filequota, sizefile, 127);
+                             vstream_fclose(sizefile);
+-                            if (atol(vstring_export(filequota)) != n)
++                            if (strtoll(vstring_export(filequota), NULL, 10) != n)
+                                 unlink(sizefilename);
+                         }
+ 
+@@ -909,13 +910,13 @@
+ 
+                             /* If the creation worked, write to the file, otherwise just give up. */
+                             if (sizefile) {
+-                                vstream_fprintf(sizefile, "%ldS\n%ld %ld\n", n, saved_size, saved_count);
++                                vstream_fprintf(sizefile, "%lldS\n%lld %lld\n", n, saved_size, saved_count);
+                                 vstream_fclose(sizefile);
+                             }
+                         }
+                         else {
+                             /* We opened maildirsize, so let's just append this transaction and close it. */
+-                            vstream_fprintf(sizefile, "%ld 1\n", (long) mail_stat.st_size);
++                            vstream_fprintf(sizefile, "%lld 1\n", (int64_t) mail_stat.st_size);
+                             vstream_fclose(sizefile);
+                         }
+ 

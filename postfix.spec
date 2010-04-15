@@ -33,7 +33,7 @@ Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	2.7.0
-Release:	0.1
+Release:	0.2
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons/SMTP
@@ -51,8 +51,9 @@ Source8:	%{name}-bounce.cf.pl
 # http://postfix.state-of-mind.de/bounce-templates/bounce.de-DE.cf
 Source9:	%{name}-bounce.cf.de
 Source10:	%{name}.monitrc
-Source11:	http://vda.sourceforge.net/VDA/%{name}-%{vda_ver}-vda-ng-bigquota.patch.gz
-# Source11-md5:	d46103195b43ec5784ea2c166b238f71
+Source11:	postfix-vda-bigquota.patch
+#Source11:	http://vda.sourceforge.net/VDA/%{name}-%{vda_ver}-vda-ng-bigquota.patch.gz
+# -ource11-md5:	d46103195b43ec5784ea2c166b238f71
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
@@ -253,8 +254,10 @@ Plik monitrc do monitorowania serwera Postfix.
 
 %prep
 %setup -q
-%{?with_vda:zcat %{SOURCE7} | %{__patch} -p1 -s}
-%{?with_vda:zcat %{SOURCE11} | %{__patch} -p1 -s}
+#{?with_vda:zcat %{SOURCE7} | %{__patch} -p1 -s}
+#{?with_vda:zcat %{SOURCE11} | %{__patch} -p1 -s}
+%{?with_vda:cat %{SOURCE7} | %{__patch} -p1 -s}
+%{?with_vda:cat %{SOURCE11} | %{__patch} -p1 -s}
 
 find -type f | xargs sed -i -e 's|/etc/postfix|/etc/mail|g'
 
