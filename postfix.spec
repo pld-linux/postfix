@@ -254,10 +254,10 @@ Plik monitrc do monitorowania serwera Postfix.
 
 %prep
 %setup -q
-#{?with_vda:zcat %{SOURCE7} | %{__patch} -p1 -s}
-#{?with_vda:zcat %{SOURCE11} | %{__patch} -p1 -s}
-%{?with_vda:cat %{SOURCE7} | %{__patch} -p1 -s}
-%{?with_vda:cat %{SOURCE11} | %{__patch} -p1 -s}
+%if %{with vda}
+cat %{SOURCE7} | %{__patch} -p1 -s
+cat %{SOURCE11} | %{__patch} -p1 -s
+%endif
 
 find -type f | xargs sed -i -e 's|/etc/postfix|/etc/mail|g'
 
