@@ -291,7 +291,7 @@ export CC
 	%{!?with_ldap:LDAPSO=""} \
 	%{!?with_mysql:MYSQLSO=""} \
 	%{!?with_pgsql:PGSQLSO=""} \
-	CCARGS="%{!?with_epoll:-DNO_EPOLL} %{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL} %{?with_ssl:-DUSE_TLS} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB} -DHAVE_GETIFADDRS" \
+	CCARGS="%{!?with_epoll:-DNO_EPOLL} %{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL} %{?with_ssl:-DUSE_TLS} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB}" \
 	AUXLIBS="-ldb -lresolv %{?with_sasl:-lsasl} %{?with_ssl:-lssl -lcrypto} %{?with_cdb:-lcdb} -lpcre"
 
 %install
