@@ -33,7 +33,7 @@ Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	2.7.0
-Release:	1
+Release:	2
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons/SMTP
@@ -60,11 +60,11 @@ Patch2:		%{name}-dynamicmaps.patch
 Patch3:		%{name}-master.cf_cyrus.patch
 # from http://akson.sgh.waw.pl/~chopin/unix/postfix-2.1.5-header_if_reject.diff
 Patch4:		%{name}-header_if_reject.patch
-Patch6:		%{name}-ident.patch
-Patch7:		%{name}-lib64.patch
-Patch8:		%{name}-conf.patch
-Patch9:		%{name}-dictname.patch
-Patch10:	%{name}-make-jN.patch
+Patch5:		%{name}-ident.patch
+Patch6:		%{name}-lib64.patch
+Patch7:		%{name}-conf.patch
+Patch8:		%{name}-dictname.patch
+Patch9:		%{name}-make-jN.patch
 URL:		http://www.postfix.org/
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db-devel
@@ -265,14 +265,14 @@ find -type f | xargs sed -i -e 's|/etc/postfix|/etc/mail|g'
 %patch2 -p1
 %patch3 -p1
 %{?with_hir:%patch4 -p0}
-%patch6 -p1
+%patch5 -p1
 sed -i '/scache_clnt_create/s/server/var_scache_service/' src/global/scache_clnt.c
 %if "%{_lib}" == "lib64"
-%patch7 -p1
+%patch6 -p1
 %endif
+%patch7 -p1
 %patch8 -p1
 %patch9 -p1
-%patch10 -p1
 
 %if %{with tcp}
 sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
