@@ -32,13 +32,13 @@ Summary(pl.UTF-8):	Serwer SMTP Postfix
 Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
-Version:	2.7.0
-Release:	2
+Version:	2.7.1
+Release:	1
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons/SMTP
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	df648f59421604e895cce56325f00bae
+# Source0-md5:	b7a5c3ccd309156a65d6f8d2683d4fa1
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
@@ -302,34 +302,34 @@ install -d $RPM_BUILD_ROOT/etc/{cron.daily,rc.d/init.d,sysconfig,pam.d,security,
 	$RPM_BUILD_ROOT%{_var}/lib/postfix
 rm -f html/Makefile.in conf/{LICENSE,main.cf.default}
 
-install bin/* $RPM_BUILD_ROOT%{_sbindir}
-install libexec/* $RPM_BUILD_ROOT%{_libdir}/postfix
+install -p bin/* $RPM_BUILD_ROOT%{_sbindir}
+install -p libexec/* $RPM_BUILD_ROOT%{_libdir}/postfix
 ln $RPM_BUILD_ROOT%{_libdir}/postfix/smtp $RPM_BUILD_ROOT%{_libdir}/postfix/lmtp
 ln $RPM_BUILD_ROOT%{_libdir}/postfix/qmgr $RPM_BUILD_ROOT%{_libdir}/postfix/nqmgr
-install conf/* $RPM_BUILD_ROOT%{_sysconfdir}/mail
+cp -a conf/* $RPM_BUILD_ROOT%{_sysconfdir}/mail
 sed -e's,^daemon_directory = .*,daemon_directory = %{_libdir}/postfix,' \
 	conf/main.cf > $RPM_BUILD_ROOT%{_sysconfdir}/mail/main.cf
 
 for f in dns global master util ; do
-	install lib/lib${f}.a $RPM_BUILD_ROOT%{_libdir}/libpostfix-${f}.so.1
+	cp -a lib/lib${f}.a $RPM_BUILD_ROOT%{_libdir}/libpostfix-${f}.so.1
 	ln -sf lib${f}.so.1 $RPM_BUILD_ROOT%{_libdir}/libpostfix-${f}.so
 done
-install lib/dict*.so $RPM_BUILD_ROOT%{_libdir}/postfix
-install include/*.h $RPM_BUILD_ROOT%{_includedir}/postfix
+install -p lib/dict*.so $RPM_BUILD_ROOT%{_libdir}/postfix
+cp -a include/*.h $RPM_BUILD_ROOT%{_includedir}/postfix
 
 cp -a man/man* $RPM_BUILD_ROOT%{_mandir}
 
-install %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/mail/aliases
-install %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.daily/postfix
+cp -a %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/mail/aliases
+install -p %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.daily/postfix
 install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/postfix
-install %{SOURCE4} $RPM_BUILD_ROOT/etc/sysconfig/postfix
-install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/sasl/smtpd.conf
-install %{SOURCE6} $RPM_BUILD_ROOT/etc/pam.d/smtp
-install %{SOURCE8} $RPM_BUILD_ROOT%{_sysconfdir}/mail/bounce.cf.pl
-install %{SOURCE9} $RPM_BUILD_ROOT%{_sysconfdir}/mail/bounce.cf.de
-install %{SOURCE10} $RPM_BUILD_ROOT/etc/monit/%{name}.monitrc
-install auxiliary/rmail/rmail $RPM_BUILD_ROOT%{_bindir}/rmail
-install auxiliary/qshape/qshape.pl $RPM_BUILD_ROOT%{_bindir}/qshape
+cp -a %{SOURCE4} $RPM_BUILD_ROOT/etc/sysconfig/postfix
+cp -a %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/sasl/smtpd.conf
+cp -a %{SOURCE6} $RPM_BUILD_ROOT/etc/pam.d/smtp
+cp -a %{SOURCE8} $RPM_BUILD_ROOT%{_sysconfdir}/mail/bounce.cf.pl
+cp -a %{SOURCE9} $RPM_BUILD_ROOT%{_sysconfdir}/mail/bounce.cf.de
+cp -a %{SOURCE10} $RPM_BUILD_ROOT/etc/monit/%{name}.monitrc
+install -p auxiliary/rmail/rmail $RPM_BUILD_ROOT%{_bindir}/rmail
+install -p auxiliary/qshape/qshape.pl $RPM_BUILD_ROOT%{_bindir}/qshape
 
 ln -sf %{_sbindir}/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
 ln -sf %{_sbindir}/sendmail $RPM_BUILD_ROOT%{_bindir}/newaliases
