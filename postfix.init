@@ -67,7 +67,7 @@ stop() {
 		fail
 		echo >&2 "$msg"
 	fi
-	rm -f /var/lock/subsys/postfix
+	rm -f /var/lock/subsys/postfix >/dev/null 2>&1
 }
 
 reload() {
