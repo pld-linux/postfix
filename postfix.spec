@@ -51,7 +51,7 @@ Source8:	%{name}-bounce.cf.pl
 # http://postfix.state-of-mind.de/bounce-templates/bounce.de-DE.cf
 Source9:	%{name}-bounce.cf.de
 Source10:	%{name}.monitrc
-Source11:	postfix-vda-bigquota.patch
+Source11:	%{name}-vda-bigquota.patch
 #Source11:	http://vda.sourceforge.net/VDA/%{name}-%{vda_ver}-vda-ng-bigquota.patch.gz
 # -ource11-md5:	d46103195b43ec5784ea2c166b238f71
 Patch0:		%{name}-config.patch
