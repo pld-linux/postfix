@@ -1,0 +1,48 @@
+diff -ur postfix-2.7.1/src/dns/Makefile.in postfix-2.7.1-libs/src/dns/Makefile.in
+--- postfix-2.7.1/src/dns/Makefile.in	2010-11-08 20:14:18.394139054 +0100
++++ postfix-2.7.1-libs/src/dns/Makefile.in	2010-11-08 20:12:39.300139053 +0100
+@@ -31,7 +31,7 @@
+ root_tests:
+ 
+ $(LIB):	$(OBJS)
+-	gcc -shared -Wl,-soname,libpostfix-dns.so.1 -o $(LIB) $(OBJS)
++	gcc -shared -Wl,-soname,libpostfix-dns.so.1 -o $(LIB) $(OBJS) $(LIBS) -lresolv
+ 
+ $(LIB_DIR)/$(LIB): $(LIB)
+ 	cp $(LIB) $(LIB_DIR)
+diff -ur postfix-2.7.1/src/global/Makefile.in postfix-2.7.1-libs/src/global/Makefile.in
+--- postfix-2.7.1/src/global/Makefile.in	2010-11-08 20:14:18.424139054 +0100
++++ postfix-2.7.1-libs/src/global/Makefile.in	2010-11-08 20:10:05.004139060 +0100
+@@ -120,7 +120,7 @@
+ test:	$(TESTPROG)
+ 
+ $(LIB):	$(OBJS)
+-	gcc -shared -Wl,-soname,libpostfix-global.so.1 -o $(LIB) $(OBJS)
++	gcc -shared -Wl,-soname,libpostfix-global.so.1 -o $(LIB) $(OBJS) $(LIBS)
+ 
+ $(LDAPSO): dict_ldap.o $(LIB)
+ 	gcc -shared -Wl,-soname,dict_ldap.so -o $@ $? -lldap -llber -L../../lib -lutil -L. -lglobal
+diff -ur postfix-2.7.1/src/master/Makefile.in postfix-2.7.1-libs/src/master/Makefile.in
+--- postfix-2.7.1/src/master/Makefile.in	2010-11-08 20:14:18.400139054 +0100
++++ postfix-2.7.1-libs/src/master/Makefile.in	2010-11-08 20:10:24.072139054 +0100
+@@ -39,7 +39,7 @@
+ root_tests:
+ 
+ $(LIB):	$(LIB_OBJ)
+-	gcc -shared -Wl,-soname,libpostfix-master.so.1 -o $(LIB) $(LIB_OBJ)
++	gcc -shared -Wl,-soname,libpostfix-master.so.1 -o $(LIB) $(LIB_OBJ) $(LIBS)
+ 
+ $(LIB_DIR)/$(LIB): $(LIB)
+ 	cp $(LIB) $(LIB_DIR)/$(LIB)
+diff -ur postfix-2.7.1/src/util/Makefile.in postfix-2.7.1-libs/src/util/Makefile.in
+--- postfix-2.7.1/src/util/Makefile.in	2010-11-08 20:14:18.465139054 +0100
++++ postfix-2.7.1-libs/src/util/Makefile.in	2010-11-08 20:12:49.982139058 +0100
+@@ -126,7 +126,7 @@
+ 	gcc -shared -Wl,-soname,dict_pcre.so -o $@ $? -lpcre -L. -lutil
+ 
+ $(LIB):	$(OBJS)
+-	gcc -shared -Wl,-soname,libpostfix-util.so.1 -o $(LIB) $(OBJS) -ldl
++	gcc -shared -Wl,-soname,libpostfix-util.so.1 -o $(LIB) $(OBJS) -ldl -lcdb -lnsl -ldb
+ 
+ $(LIB_DIR)/$(LIB): $(LIB)
+ 	cp $(LIB) $(LIB_DIR)
