@@ -33,7 +33,7 @@ Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	2.7.2
-Release:	1
+Release:	2
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons/SMTP
@@ -367,8 +367,9 @@ if [ "$1" = "1" ]; then
 	# only on installation, not upgrade; set sane defaults
 	# postfix expects gethostname() to return FQDN, which is obviously wrong
 	if ! grep -qE "^my(domain|hostname)" %{_sysconfdir}/mail/main.cf; then
-		[ `/bin/hostname -d` != 'localdomain' ] && \
-			postconf -e mydomain=`/bin/hostname -d`
+		domain=$(/bin/hostname -d 2>/dev/null)
+		[ "$domain" != 'localdomain' ] && \
+			postconf -e mydomain="$domain"
 	fi
 else
 	%{_sbindir}/postfix upgrade-configuration
