@@ -112,7 +112,7 @@ case "$1" in
 	;;
   rebuilddb)
 	standard_db="access canonical relocated transport virtual"
-	extra_db=$(ls -1 /etc/mail/*.db 2> /dev/null | egrep -v '/(access|canonical|relocated|transport|virtual|aliases)\.db$')
+	extra_db=$(ls -1 /etc/mail/*.db 2> /dev/null | grep -Ev '/(access|canonical|relocated|transport|virtual|aliases)\.db$')
 
 	echo -n "Rebuilding databases: "
 	for base in $standard_db $extra_db; do
