@@ -1,0 +1,52 @@
+--- src/global/mail_params.h.orig	2004-06-22 14:32:58.615734426 +0200
++++ src/global/mail_params.h	2004-06-22 14:33:21.260418134 +0200
+@@ -2204,6 +2204,13 @@
+ extern char *var_anvil_service;
+ #endif
+ 
++ /*
++  * SMTPD messages
++  */
++#define VAR_REJECT_REPLY_MSG_ACCESS_DENIED	"smtpd_reject_msg_access_denied"
++#define DEF_REJECT_REPLY_MSG_ACCESS_DENIED	"rejected: Relay access denied."
++extern char *var_reject_reply_msg_access_denied;
++
+ /* LICENSE
+ /* .ad
+ /* .fi
+--- src/smtpd/smtpd.c.orig	2009-05-25 19:13:15.584397697 +0200
++++ src/smtpd/smtpd.c	2009-05-25 19:14:31.066487776 +0200
+@@ -5062,6 +5062,7 @@
+ 	VAR_MILT_DAEMON_NAME, DEF_MILT_DAEMON_NAME, &var_milt_daemon_name, 1, 0,
+ 	VAR_MILT_V, DEF_MILT_V, &var_milt_v, 1, 0,
+ 	VAR_STRESS, DEF_STRESS, &var_stress, 0, 0,
++	VAR_REJECT_REPLY_MSG_ACCESS_DENIED, DEF_REJECT_REPLY_MSG_ACCESS_DENIED, &var_reject_reply_msg_access_denied, 1, 0,
+ 	VAR_UNV_FROM_WHY, DEF_UNV_FROM_WHY, &var_unv_from_why, 0, 0,
+ 	VAR_UNV_RCPT_WHY, DEF_UNV_RCPT_WHY, &var_unv_rcpt_why, 0, 0,
+ 	VAR_REJECT_TMPF_ACT, DEF_REJECT_TMPF_ACT, &var_reject_tmpf_act, 1, 0,
+--- src/global/mail_params.c.orig	2010-04-05 21:25:33.331592727 +0200
++++ src/global/mail_params.c	2010-04-05 21:27:01.504746061 +0200
+@@ -80,6 +80,7 @@
+ /*	char	*var_debug_peer_list;
+ /*	int	var_debug_peer_level;
+ /*	int	var_in_flow_delay;
++/*	char	*var_reject_reply_msg_access_denied;
+ /*	int	var_fault_inj_code;
+ /*	char   *var_bounce_service;
+ /*	char   *var_cleanup_service;
+@@ -265,6 +266,7 @@
+ char   *var_export_environ;
+ char   *var_debug_peer_list;
+ int     var_debug_peer_level;
++char	*var_reject_reply_msg_access_denied;
+ int     var_fault_inj_code;
+ char   *var_bounce_service;
+ char   *var_cleanup_service;
+@@ -569,6 +571,7 @@
+ 	VAR_INT_FILT_CLASSES, DEF_INT_FILT_CLASSES, &var_int_filt_classes, 0, 0,
+ 	/* multi_instance_wrapper may have dependencies but not dependents. */
+ 	VAR_MULTI_WRAPPER, DEF_MULTI_WRAPPER, &var_multi_wrapper, 0, 0,
++	VAR_REJECT_REPLY_MSG_ACCESS_DENIED, DEF_REJECT_REPLY_MSG_ACCESS_DENIED, &var_reject_reply_msg_access_denied, 1, 0,
+ 	0,
+     };
+     static const CONFIG_STR_FN_TABLE function_str_defaults_2[] = {

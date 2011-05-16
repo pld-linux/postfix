@@ -1,0 +1,141 @@
+#!/bin/sh
+#
+# postfix	This shell script takes care of starting and stopping
+#		postfix.
+#
+# chkconfig:	345 80 20
+#
+# description:	Postfix is a Mail Transport Agent, which is the program \
+#		that moves mail from one machine to another.
+
+
+# Source function library
+. /etc/rc.d/init.d/functions
+
+# Get network config
+. /etc/sysconfig/network
+
+# Get service config
+[ -f /etc/sysconfig/postfix ] && . /etc/sysconfig/postfix
+
+# Check that networking is up.
+networking_check() {
+	if is_yes "${NETWORKING}"; then
+		if [ ! -f /var/lock/subsys/network -a "$1" != stop -a "$1" != status ]; then
+			msg_network_down "Postfix"
+			exit 1
+		fi
+	else
+		exit 0
+	fi
+}
+
+start() {
+	if [ -f /var/lock/subsys/postfix ]; then
+		msg_already_running "Postfix"
+		return
+	fi
+
+	local msg
+	msg_starting "Postfix"
+	busy
+	_daemon_set_ulimits
+	msg=$(nice -n ${SERVICE_RUN_NICE_LEVEL:-${DEFAULT_SERVICE_RUN_NICE_LEVEL:-0}} /usr/sbin/postfix start 2>&1)
+	RETVAL=$?
+	if [ $RETVAL -eq 0 ]; then
+		ok
+		touch /var/lock/subsys/postfix
+	else
+		fail
+		echo >&2 "$msg"
+	fi
+}
+
+stop() {
+	if [ ! -f /var/lock/subsys/postfix ]; then
+		msg_not_running "Postfix"
+		return
+	fi
+
+	local msg
+	msg_stopping "Postfix"
+	busy
+	msg=$(/usr/sbin/postfix stop 2>&1)
+	if [ $? -eq 0 ]; then
+		ok
+	else
+		fail
+		echo >&2 "$msg"
+	fi
+	rm -f /var/lock/subsys/postfix >/dev/null 2>&1
+}
+
+reload() {
+	if [ ! -f /var/lock/subsys/postfix ]; then
+		msg_not_running "Postfix"
+		RETVAL=7
+		return
+	fi
+
+	local msg
+	msg_reloading "Postfix"
+	busy
+	msg=$(/usr/sbin/postfix reload 2>&1)
+	RETVAL=$?
+	if [ $RETVAL -eq 0 ]; then
+		ok
+	else
+		fail
+		echo >&2 "$msg"
+		RETVAL=7
+	fi
+}
+
+RETVAL=0
+# See how we were called.
+case "$1" in
+  start)
+  	networking_check
+	start
+	;;
+  stop)
+  	stop
+	;;
+  restart)
+  	networking_check
+	stop
+	start
+	;;
+  reload|force-reload)
+  	networking_check
+	reload
+	;;
+  rebuilddb)
+	standard_db="access canonical relocated transport virtual"
+	extra_db=$(ls -1 /etc/mail/*.db 2> /dev/null | grep -Ev '/(access|canonical|relocated|transport|virtual|aliases)\.db$')
+
+	echo -n "Rebuilding databases: "
+	for base in $standard_db $extra_db; do
+		db=$(basename "$base" .db)
+
+		if [ -f /etc/mail/$db ]; then
+			echo -n "$db "
+			/usr/sbin/postmap hash:/etc/mail/$db < /etc/mail/$db
+		fi
+	done
+	echo "...DONE"
+
+	echo -n "Rebuilding aliases database"
+	/usr/bin/newaliases
+	echo "...DONE"
+	;;
+  status)
+	status master
+	exit $?
+	;;
+  *)
+	msg_usage "$0 {start|stop|restart|reload|force-reload|rebuilddb|status}"
+	exit 3
+esac
+
+exit $RETVAL

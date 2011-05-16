@@ -1,0 +1,5 @@
+#%PAM-1.0
+auth		required	pam_listfile.so item=user sense=deny file=/etc/security/blacklist.smtp onerr=succeed
+auth		include		system-auth
+account		required	pam_nologin.so
+account		include		system-auth
