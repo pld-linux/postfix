@@ -1,0 +1,11 @@
+--- postfix-2.8.3/src/global/scache_clnt.c.orig	2011-05-17 14:24:55.245798704 +0200
++++ postfix-2.8.3/src/global/scache_clnt.c	2011-05-17 14:24:26.382381790 +0200
+@@ -414,7 +414,7 @@
+     sp->scache->size = scache_clnt_size;
+     sp->scache->free = scache_clnt_free;
+ 
+-    service = concatenate("local:private/", server, (char *) 0);
++    service = concatenate("local:private/", var_scache_service, (char *) 0);
+     sp->auto_clnt = auto_clnt_create(service, timeout, idle_limit, ttl_limit);
+     myfree(service);
+ 
