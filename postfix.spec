@@ -297,11 +297,11 @@ sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
 %endif
 
 %build
-%{__make} -f Makefile.init makefiles
-%{__make} tidy
+%{__make} -j1 -f Makefile.init makefiles
+%{__make} -j1 tidy
 CC="%{__cc}"
 export CC
-%{__make} \
+%{__make} -j1 \
 	DEBUG="" \
 	OPT="%{rpmcflags} -D_FILE_OFFSET_BITS=64" \
 	%{!?with_ldap:LDAPSO=""} \
@@ -318,7 +318,7 @@ install -d $RPM_BUILD_ROOT/etc/{cron.daily,rc.d/init.d,sysconfig,pam.d,security,
 	$RPM_BUILD_ROOT{%{_includedir}/postfix,%{_mandir}} \
 	$RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public} \
 	$RPM_BUILD_ROOT%{_var}/lib/postfix
-rm -f html/Makefile.in conf/{LICENSE,main.cf.default}
+%{__rm} html/Makefile.in conf/{LICENSE,main.cf.default}
 
 install -p bin/* $RPM_BUILD_ROOT%{_sbindir}
 install -p libexec/* $RPM_BUILD_ROOT%{_libdir}/postfix
@@ -360,10 +360,10 @@ touch $RPM_BUILD_ROOT/etc/security/blacklist.smtp
 
 > $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
-rm -rf $RPM_BUILD_ROOT%{_sysconfdir}/mail/makedefs.out
-rm -f $RPM_BUILD_ROOT%{_sysconfdir}/mail/TLS_LICENSE
+%{__rm} -r $RPM_BUILD_ROOT%{_sysconfdir}/mail/makedefs.out
+%{__rm} $RPM_BUILD_ROOT%{_sysconfdir}/mail/TLS_LICENSE
 
-rm $RPM_BUILD_ROOT%{_sysconfdir}/mail/{postfix-files,postfix-script,post-install}
+%{__rm} $RPM_BUILD_ROOT%{_sysconfdir}/mail/{postfix-files,postfix-script,post-install}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
