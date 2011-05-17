@@ -3,6 +3,7 @@
 %bcond_without	ldap	# without LDAP map module
 %bcond_without	mysql	# without MySQL map module
 %bcond_without	pgsql	# without PostgreSQL map module
+%bcond_without	sqlite	# without SQLite map module
 %bcond_without	sasl	# without SMTP AUTH support
 %bcond_without	ssl	# without SSL/TLS support
 %bcond_without	cdb	# without cdb map support
@@ -23,7 +24,7 @@
 %bcond_without	epoll	# disable epoll for 2.4 kernels
 %endif
 
-%define		vda_ver 2.7.0
+%define		vda_ver v10-2.8.1
 Summary:	Postfix Mail Transport Agent
 Summary(cs.UTF-8):	Postfix - program pro přepravu pošty (MTA)
 Summary(es.UTF-8):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -32,13 +33,13 @@ Summary(pl.UTF-8):	Serwer SMTP Postfix
 Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
-Version:	2.7.3
-Release:	3
+Version:	2.8.3
+Release:	1
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons/SMTP
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	2bbb529b7bff25f0f38c3c0a5dcf37ca
+# Source0-md5:	b3922ededd3fd6051f759e58a4ada3ae
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
@@ -46,7 +47,7 @@ Source4:	%{name}.sysconfig
 Source5:	%{name}.sasl
 Source6:	%{name}.pamd
 Source7:	http://vda.sourceforge.net/VDA/%{name}-vda-%{vda_ver}.patch
-# Source7-md5:	f73d119fc9e00f31f23599176554e763
+# Source7-md5:	5d5156e51cc07057bf347bbb34934d3e
 Source8:	%{name}-bounce.cf.pl
 # http://postfix.state-of-mind.de/bounce-templates/bounce.de-DE.cf
 Source9:	%{name}-bounce.cf.de
@@ -66,6 +67,7 @@ Patch7:		%{name}-conf.patch
 Patch8:		%{name}-dictname.patch
 Patch9:		%{name}-make-jN.patch
 Patch10:	%{name}-link.patch
+Patch11:	%{name}-scache_clnt.patch
 URL:		http://www.postfix.org/
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db-devel
@@ -80,6 +82,7 @@ BuildRequires:	perl-base
 BuildRequires:	rpm >= 4.4.9-56
 BuildRequires:	rpmbuild(macros) >= 1.268
 BuildRequires:	sed >= 4.0
+%{?with_sqlite:BuildRequires:	sqlite3-devel}
 %{?with_cdb:BuildRequires:	tinycdb-devel}
 %{?with_mysql:BuildRequires:	zlib-devel}
 Requires(post):	/bin/hostname
@@ -218,6 +221,18 @@ This package provides support for PostgreSQL maps in Postfix.
 %description dict-pgsql -l pl.UTF-8
 Ten pakiet dodaje obsługę map PostgreSQL do Postfiksa.
 
+%package dict-sqlite
+Summary:	SQLite map support for Postfix
+Summary(pl.UTF-8):	Obsługa map SQLite dla Postfiksa
+Group:		Networking/Daemons/SMTP
+Requires:	%{name} = %{epoch}:%{version}-%{release}
+
+%description dict-sqlite
+This package provides support for SQLite maps in Postfix.
+
+%description dict-sqlite -l pl.UTF-8
+Ten pakiet dodaje obsługę map SQLite do Postfiksa.
+
 %package qshape
 Summary:	qshape - Print Postfix queue domain and age distribution
 Summary(pl.UTF-8):	qshape - wypisywanie rozkładu domen i wieku z kolejki Postfiksa
@@ -275,6 +290,7 @@ sed -i '/scache_clnt_create/s/server/var_scache_service/' src/global/scache_clnt
 %patch8 -p1
 %patch9 -p1
 %patch10 -p1
+%patch11 -p1
 
 %if %{with tcp}
 sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
@@ -513,6 +529,13 @@ fi
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/dict_pgsql.so
 %{_mandir}/man5/pgsql_table.5*
+%endif
+
+%if %{with sqlite}
+%files dict-sqlite
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/postfix/dict_sqlite.so
+%{_mandir}/man5/sqlite_table.5*
 %endif
 
 %files qshape
