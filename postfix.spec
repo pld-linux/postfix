@@ -297,11 +297,11 @@ sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
 %endif
 
 %build
-%{__make} -j1 -f Makefile.init makefiles
-%{__make} -j1 tidy
+%{__make} -f Makefile.init makefiles
+%{__make} tidy
 CC="%{__cc}"
 export CC
-%{__make} -j1 \
+%{__make} \
 	DEBUG="" \
 	OPT="%{rpmcflags} -D_FILE_OFFSET_BITS=64" \
 	%{!?with_ldap:LDAPSO=""} \
