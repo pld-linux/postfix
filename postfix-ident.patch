@@ -153,21 +153,6 @@ diff -urN -x '*~' postfix-2.2.5/src/smtpd/smtpd_ident.c postfix-2.2.5-ident/src/
 +    return_val = mystrdup(ident_user);
 +    return return_val;
 +}
---- postfix-2.6.1/src/smtpd/Makefile.in.orig	2009-05-25 19:34:22.326563111 +0200
-+++ postfix-2.6.1/src/smtpd/Makefile.in	2009-05-25 19:40:29.642775958 +0200
-@@ -1,10 +1,10 @@
- SHELL	= /bin/sh
- SRCS	= smtpd.c smtpd_token.c smtpd_check.c smtpd_chat.c smtpd_state.c \
- 	smtpd_peer.c smtpd_sasl_proto.c smtpd_sasl_glue.c smtpd_proxy.c \
--	smtpd_xforward.c smtpd_dsn_fix.c smtpd_milter.c smtpd_resolve.c
-+	smtpd_xforward.c smtpd_dsn_fix.c smtpd_milter.c smtpd_resolve.c smtpd_ident.c
- OBJS	= smtpd.o smtpd_token.o smtpd_check.o smtpd_chat.o smtpd_state.o \
- 	smtpd_peer.o smtpd_sasl_proto.o smtpd_sasl_glue.o smtpd_proxy.o \
--	smtpd_xforward.o smtpd_dsn_fix.o smtpd_milter.o smtpd_resolve.o
-+	smtpd_xforward.o smtpd_dsn_fix.o smtpd_milter.o smtpd_resolve.o smtpd_ident.o
- HDRS	= smtpd_token.h smtpd_check.h smtpd_chat.h smtpd_sasl_proto.h \
- 	smtpd_sasl_glue.h smtpd_proxy.h smtpd_dsn_fix.h smtpd_milter.h \
- 	smtpd_resolve.h
 --- postfix-2.3-RC9/src/smtpd/smtpd.c.orig	2006-07-11 20:13:27.780850288 +0200
 +++ postfix-2.3-RC9/src/smtpd/smtpd.c	2006-07-11 20:27:06.515383720 +0200
 @@ -1024,6 +1024,7 @@
@@ -341,3 +326,19 @@ diff -urN -x '*~' postfix-2.2.5/src/smtpd/smtpd_ident.c postfix-2.2.5-ident/src/
 +    myfree(state->ident_user);
      myfree(state->port);
  }
+--- postfix-2.8.3/src/smtpd/Makefile.in~	2011-05-17 14:28:28.406666872 +0200
++++ postfix-2.8.3/src/smtpd/Makefile.in	2011-05-17 14:31:06.946666872 +0200
+@@ -2,11 +2,11 @@
+ SRCS	= smtpd.c smtpd_token.c smtpd_check.c smtpd_chat.c smtpd_state.c \
+ 	smtpd_peer.c smtpd_sasl_proto.c smtpd_sasl_glue.c smtpd_proxy.c \
+ 	smtpd_xforward.c smtpd_dsn_fix.c smtpd_milter.c smtpd_resolve.c \
+-	smtpd_expand.c
++	smtpd_expand.c smtpd_ident.c
+ OBJS	= smtpd.o smtpd_token.o smtpd_check.o smtpd_chat.o smtpd_state.o \
+ 	smtpd_peer.o smtpd_sasl_proto.o smtpd_sasl_glue.o smtpd_proxy.o \
+ 	smtpd_xforward.o smtpd_dsn_fix.o smtpd_milter.o smtpd_resolve.o \
+-	smtpd_expand.o
++	smtpd_expand.o smtpd_ident.o
+ HDRS	= smtpd_token.h smtpd_check.h smtpd_chat.h smtpd_sasl_proto.h \
+ 	smtpd_sasl_glue.h smtpd_proxy.h smtpd_dsn_fix.h smtpd_milter.h \
+ 	smtpd_resolve.h smtpd_expand.h
