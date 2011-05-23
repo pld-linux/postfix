@@ -1,0 +1,4 @@
+- updated to 2.8.3 by shadzik [fixes CVE-2011-1720]
+- fix build (scache_clnt.patch) by shadzik
+- patches updated by shadzik and partly by me
+- add sqlite map support
