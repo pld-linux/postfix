@@ -33,13 +33,13 @@ Summary(pl.UTF-8):	Serwer SMTP Postfix
 Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
-Version:	2.8.3
+Version:	2.8.4
 Release:	1
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons/SMTP
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	b3922ededd3fd6051f759e58a4ada3ae
+# Source0-md5:	a9fdd0f204e7ca0b7d32fd0b9f8f8c72
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
@@ -460,6 +460,7 @@ fi
 %dir %{_libdir}/postfix
 %attr(755,root,root) %{_libdir}/postfix/[!d]*
 %attr(755,root,root) %{_libdir}/postfix/discard
+%attr(755,root,root) %{_libdir}/postfix/dnsblog
 %attr(755,root,root) %dir %{_var}/spool/postfix
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/active
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/bounce
