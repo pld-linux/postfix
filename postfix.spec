@@ -384,7 +384,7 @@ if [ "$1" = "1" ]; then
 	# postfix expects gethostname() to return FQDN, which is obviously wrong
 	if ! grep -qE "^my(domain|hostname)" %{_sysconfdir}/mail/main.cf; then
 		domain=$(/bin/hostname -d 2>/dev/null)
-		[ "$domain" != 'localdomain' ] && \
+		[ -n "$domain" -a "$domain" != 'localdomain' ] && \
 			postconf -e mydomain="$domain"
 	fi
 else
