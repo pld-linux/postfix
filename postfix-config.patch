@@ -1,16 +1,36 @@
-diff -dur postfix-2.1.3.orig/conf/main.cf postfix-2.1.3/conf/main.cf
---- postfix-2.1.3.orig/conf/main.cf	2004-06-06 23:53:58.000000000 +0200
-+++ postfix-2.1.3/conf/main.cf	2004-06-22 14:23:20.533313840 +0200
-@@ -38,7 +38,7 @@
+diff -dur postfix-2.1.3.orig/src/global/mail_params.h postfix-2.1.3/src/global/mail_params.h
+--- postfix-2.1.3.orig/src/global/mail_params.h	2004-06-22 14:20:57.890585644 +0200
++++ postfix-2.1.3/src/global/mail_params.h	2004-06-22 14:21:17.963422126 +0200
+@@ -64,7 +64,7 @@
+ extern gid_t var_owner_gid;
+ 
+ #define VAR_SGID_GROUP		"setgid_group"
+-#define DEF_SGID_GROUP		"postdrop"
++#define DEF_SGID_GROUP		"maildrop"
+ extern char *var_sgid_group;
+ extern gid_t var_sgid_gid;
+ 
+#@@ -231,7 +231,7 @@
+#   */
+# #define VAR_CONFIG_DIR		"config_directory"
+# #ifndef DEF_CONFIG_DIR
+#-#define DEF_CONFIG_DIR		"/etc/postfix"
+#+#define DEF_CONFIG_DIR		"/etc/mail"
+# #endif
+# extern char *var_config_dir;
+# 
+--- postfix-2.9.0/conf/main.cf.orig	2012-02-04 19:05:20.960656539 +0100
++++ postfix-2.9.0/conf/main.cf	2012-02-04 19:12:31.810624906 +0100
+@@ -39,7 +39,7 @@
  # daemon programs (i.e. programs listed in the master.cf file). This
  # directory must be owned by root.
  #
 -daemon_directory = /usr/libexec/postfix
 +daemon_directory = /usr/lib/postfix
  
- # QUEUE AND PROCESS OWNERSHIP
- #
-@@ -56,7 +56,7 @@
+ # The data_directory parameter specifies the location of Postfix-writable
+ # data files (caches, random numbers). This directory must be owned
+@@ -63,7 +63,7 @@
  # These rights are used in the absence of a recipient user context.
  # DO NOT SPECIFY A PRIVILEGED USER OR THE POSTFIX OWNER.
  #
@@ -19,7 +39,7 @@ diff -dur postfix-2.1.3.orig/conf/main.cf postfix-2.1.3/conf/main.cf
  
  # INTERNET HOST AND DOMAIN NAMES
  # 
-@@ -88,7 +88,7 @@
+@@ -95,7 +95,7 @@
  # myorigin also specifies the default domain name that is appended
  # to recipient addresses that have no @domain part.
  #
@@ -28,7 +48,7 @@ diff -dur postfix-2.1.3.orig/conf/main.cf postfix-2.1.3/conf/main.cf
  #myorigin = $mydomain
  
  # RECEIVING MAIL
-@@ -372,7 +372,7 @@
+@@ -379,7 +379,7 @@
  # "postfix reload" to eliminate the delay.
  #
  #alias_maps = dbm:/etc/aliases
@@ -37,7 +57,7 @@ diff -dur postfix-2.1.3.orig/conf/main.cf postfix-2.1.3/conf/main.cf
  #alias_maps = hash:/etc/aliases, nis:mail.aliases
  #alias_maps = netinfo:/aliases
  
-@@ -383,7 +383,7 @@
+@@ -390,7 +390,7 @@
  #
  #alias_database = dbm:/etc/aliases
  #alias_database = dbm:/etc/mail/aliases
@@ -46,7 +66,7 @@ diff -dur postfix-2.1.3.orig/conf/main.cf postfix-2.1.3/conf/main.cf
  #alias_database = hash:/etc/aliases, hash:/opt/majordomo/aliases
  
  # ADDRESS EXTENSIONS (e.g., user+foo)
-@@ -411,7 +411,7 @@
+@@ -418,7 +418,7 @@
  # UNIX-style mailboxes are kept. The default setting depends on the
  # system type.
  #
@@ -55,7 +75,7 @@ diff -dur postfix-2.1.3.orig/conf/main.cf postfix-2.1.3/conf/main.cf
  #mail_spool_directory = /var/spool/mail
  
  # The mailbox_command parameter specifies the optional external
-@@ -433,8 +433,8 @@
+@@ -440,8 +440,8 @@
  # IF YOU USE THIS TO DELIVER MAIL SYSTEM-WIDE, YOU MUST SET UP AN
  # ALIAS THAT FORWARDS MAIL FOR ROOT TO A REAL USER.
  #
@@ -66,11 +86,12 @@ diff -dur postfix-2.1.3.orig/conf/main.cf postfix-2.1.3/conf/main.cf
  
  # The mailbox_transport specifies the optional transport in master.cf
  # to use after processing aliases and .forward files. This parameter
-@@ -588,44 +588,22 @@
- #	echo where) | gdb $daemon_directory/$process_name $process_id 2>&1
- #	>$config_directory/$process_name.$process_id.log & sleep 5
+@@ -613,45 +613,24 @@
+ #	-dmS $process_name gdb $daemon_directory/$process_name
+ #	$process_id & sleep 1
  
 +biff = no
++
  # INSTALL-TIME CONFIGURATION INFORMATION
  #
  # The following parameters are used when installing a new Postfix version.
@@ -95,7 +116,8 @@ diff -dur postfix-2.1.3.orig/conf/main.cf postfix-2.1.3/conf/main.cf
  # is not shared with other accounts, not even with the Postfix account.
  #
 -setgid_group =
--
++setgid_group = maildrop
+ 
 -# html_directory: The location of the Postfix HTML documentation.
 -#
 -html_directory =
@@ -103,54 +125,30 @@ diff -dur postfix-2.1.3.orig/conf/main.cf postfix-2.1.3/conf/main.cf
 -# manpage_directory: The location of the Postfix on-line manual pages.
 -#
 -manpage_directory =
--
++inet_protocols = ipv4
+ 
 -# sample_directory: The location of the Postfix sample configuration files.
 -# This parameter is obsolete as of Postfix 2.1.
--#
--sample_directory =
-+setgid_group = maildrop
- 
--# readme_directory: The location of the Postfix README files.
--#
--readme_directory =
 +# The unknown_address_reject_code parameter specifies the SMTP server
 +# response when a client violates the reject_unknown_sender_domain
 +# or reject_unknown_recipient_domain restrictions.
-+#
+ #
+-sample_directory =
+-
+-# readme_directory: The location of the Postfix README files.
 +# Contrary to what Wietse thinks (450) this should be 550
-+#
+ #
+-readme_directory =
+-inet_protocols = ipv4
 +unknown_address_reject_code = 550
-+
-diff -dur postfix-2.1.3.orig/src/global/mail_params.h postfix-2.1.3/src/global/mail_params.h
---- postfix-2.1.3.orig/src/global/mail_params.h	2004-06-22 14:20:57.890585644 +0200
-+++ postfix-2.1.3/src/global/mail_params.h	2004-06-22 14:21:17.963422126 +0200
-@@ -64,7 +64,7 @@
- extern gid_t var_owner_gid;
- 
- #define VAR_SGID_GROUP		"setgid_group"
--#define DEF_SGID_GROUP		"postdrop"
-+#define DEF_SGID_GROUP		"maildrop"
- extern char *var_sgid_group;
- extern gid_t var_sgid_gid;
- 
-#@@ -231,7 +231,7 @@
-#   */
-# #define VAR_CONFIG_DIR		"config_directory"
-# #ifndef DEF_CONFIG_DIR
-#-#define DEF_CONFIG_DIR		"/etc/postfix"
-#+#define DEF_CONFIG_DIR		"/etc/mail"
-# #endif
-# extern char *var_config_dir;
-# 
-diff -dur postfix-2.1.3.orig/src/util/sys_defs.h postfix-2.1.3/src/util/sys_defs.h
---- postfix-2.1.3.orig/src/util/sys_defs.h	2004-06-22 14:20:58.094573821 +0200
-+++ postfix-2.1.3/src/util/sys_defs.h	2004-06-22 14:21:17.966421952 +0200
-@@ -550,7 +550,7 @@
- #define HAS_FSYNC
- #define HAS_DB
- #define DEF_DB_TYPE	"hash"
+--- postfix-2.9.0/src/util/sys_defs.h.orig	2012-02-04 19:05:23.000000000 +0100
++++ postfix-2.9.0/src/util/sys_defs.h	2012-02-04 19:15:31.153933031 +0100
+@@ -54,7 +54,7 @@
+ #define ALIAS_DB_MAP   "hash:/etc/mail/aliases"	/* OpenBSD 2.7 */
+ #endif
+ #ifndef ALIAS_DB_MAP
 -#define ALIAS_DB_MAP	"hash:/etc/aliases"
 +#define ALIAS_DB_MAP	"hash:/etc/mail/aliases"
- #define HAS_NIS
+ #endif
  #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
  #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"

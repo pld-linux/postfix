@@ -153,9 +153,44 @@ diff -urN -x '*~' postfix-2.2.5/src/smtpd/smtpd_ident.c postfix-2.2.5-ident/src/
 +    return_val = mystrdup(ident_user);
 +    return return_val;
 +}
---- postfix-2.3-RC9/src/smtpd/smtpd.c.orig	2006-07-11 20:13:27.780850288 +0200
-+++ postfix-2.3-RC9/src/smtpd/smtpd.c	2006-07-11 20:27:06.515383720 +0200
-@@ -1024,6 +1024,7 @@
+--- postfix-2.3-RC9/src/smtpd/smtpd.h.orig	2006-07-09 21:49:21.000000000 +0200
++++ postfix-2.3-RC9/src/smtpd/smtpd.h	2006-07-11 20:30:43.993322048 +0200
+@@ -77,6 +77,7 @@
+     char   *addr;			/* client host address string */
+     char   *namaddr;			/* combined name and address */
+     char   *rfc_addr;			/* address for RFC 2821 */
++    char   *ident_user;			/* user name returned by ident RFC 1413 */
+     int     addr_family;		/* address family */
+     struct sockaddr_storage sockaddr;	/* binary client endpoint */
+     int     name_status;		/* 2=ok 4=soft 5=hard 6=forged */
+@@ -266,6 +267,8 @@
+ extern void smtpd_peer_init(SMTPD_STATE *state);
+ extern void smtpd_peer_reset(SMTPD_STATE *state);
+ 
++extern char *smtpd_ident(struct sockaddr_in *peer_addr, struct sockaddr_in *smtpd_addr);
++
+ #define	SMTPD_PEER_CODE_OK	2
+ #define SMTPD_PEER_CODE_TEMP	4
+ #define SMTPD_PEER_CODE_PERM	5
+--- postfix-2.8.3/src/smtpd/Makefile.in~	2011-05-17 14:28:28.406666872 +0200
++++ postfix-2.8.3/src/smtpd/Makefile.in	2011-05-17 14:31:06.946666872 +0200
+@@ -2,11 +2,11 @@
+ SRCS	= smtpd.c smtpd_token.c smtpd_check.c smtpd_chat.c smtpd_state.c \
+ 	smtpd_peer.c smtpd_sasl_proto.c smtpd_sasl_glue.c smtpd_proxy.c \
+ 	smtpd_xforward.c smtpd_dsn_fix.c smtpd_milter.c smtpd_resolve.c \
+-	smtpd_expand.c
++	smtpd_expand.c smtpd_ident.c
+ OBJS	= smtpd.o smtpd_token.o smtpd_check.o smtpd_chat.o smtpd_state.o \
+ 	smtpd_peer.o smtpd_sasl_proto.o smtpd_sasl_glue.o smtpd_proxy.o \
+ 	smtpd_xforward.o smtpd_dsn_fix.o smtpd_milter.o smtpd_resolve.o \
+-	smtpd_expand.o
++	smtpd_expand.o smtpd_ident.o
+ HDRS	= smtpd_token.h smtpd_check.h smtpd_chat.h smtpd_sasl_proto.h \
+ 	smtpd_sasl_glue.h smtpd_proxy.h smtpd_dsn_fix.h smtpd_milter.h \
+ 	smtpd_resolve.h smtpd_expand.h
+--- postfix-2.9.0/src/smtpd/smtpd.c.orig	2012-02-04 19:34:17.737149536 +0100
++++ postfix-2.9.0/src/smtpd/smtpd.c	2012-02-04 19:36:43.414073592 +0100
+@@ -1208,6 +1208,7 @@
  char   *var_local_rwr_clients;
  char   *var_smtpd_ehlo_dis_words;
  char   *var_smtpd_ehlo_dis_maps;
@@ -163,7 +198,7 @@ diff -urN -x '*~' postfix-2.2.5/src/smtpd/smtpd_ident.c postfix-2.2.5-ident/src/
  
  char   *var_smtpd_tls_level;
  bool    var_smtpd_use_tls;
-@@ -1119,6 +1120,11 @@
+@@ -1329,6 +1330,11 @@
  int     smtpd_input_transp_mask;
  
   /*
@@ -175,7 +210,7 @@ diff -urN -x '*~' postfix-2.2.5/src/smtpd/smtpd_ident.c postfix-2.2.5-ident/src/
    * Forward declarations.
    */
  static void helo_reset(SMTPD_STATE *);
-@@ -2503,10 +2509,18 @@
+@@ -2950,10 +2956,18 @@
       * intermediate proxy.
       */
      if (!proxy || state->xforward.flags == 0) {
@@ -198,17 +233,17 @@ diff -urN -x '*~' postfix-2.2.5/src/smtpd/smtpd_ident.c postfix-2.2.5-ident/src/
  
  #define VSTRING_STRDUP(s) vstring_strcpy(vstring_alloc(strlen(s) + 1), (s))
  
-@@ -4451,6 +4451,9 @@
-     xclient_hosts = namadr_list_init(MATCH_FLAG_NONE, var_xclient_hosts);
-     xforward_hosts = namadr_list_init(MATCH_FLAG_NONE, var_xforward_hosts);
-     hogger_list = namadr_list_init(MATCH_FLAG_NONE, var_smtpd_hoggers);
+@@ -4954,6 +4968,9 @@
+     xclient_hosts = namadr_list_init(MATCH_FLAG_RETURN, var_xclient_hosts);
+     xforward_hosts = namadr_list_init(MATCH_FLAG_RETURN, var_xforward_hosts);
+     hogger_list = namadr_list_init(MATCH_FLAG_RETURN, var_smtpd_hoggers);
 +    smtpd_ident_lookup =
 +           namadr_list_init(match_parent_style(VAR_SMTPD_IDENT_LOOKUP),
 +                var_smtpd_ident_lookup);
  
      /*
       * Open maps before dropping privileges so we can read passwords etc.
-@@ -5076,6 +5093,7 @@
+@@ -5382,6 +5399,7 @@
  	VAR_MILT_V, DEF_MILT_V, &var_milt_v, 1, 0,
  	VAR_STRESS, DEF_STRESS, &var_stress, 0, 0,
  	VAR_REJECT_REPLY_MSG_ACCESS_DENIED, DEF_REJECT_REPLY_MSG_ACCESS_DENIED, &var_reject_reply_msg_access_denied, 1, 0,
@@ -216,27 +251,8 @@ diff -urN -x '*~' postfix-2.2.5/src/smtpd/smtpd_ident.c postfix-2.2.5-ident/src/
  	VAR_UNV_FROM_WHY, DEF_UNV_FROM_WHY, &var_unv_from_why, 0, 0,
  	VAR_UNV_RCPT_WHY, DEF_UNV_RCPT_WHY, &var_unv_rcpt_why, 0, 0,
  	VAR_REJECT_TMPF_ACT, DEF_REJECT_TMPF_ACT, &var_reject_tmpf_act, 1, 0,
---- postfix-2.3-RC9/src/smtpd/smtpd.h.orig	2006-07-09 21:49:21.000000000 +0200
-+++ postfix-2.3-RC9/src/smtpd/smtpd.h	2006-07-11 20:30:43.993322048 +0200
-@@ -77,6 +77,7 @@
-     char   *addr;			/* client host address string */
-     char   *namaddr;			/* combined name and address */
-     char   *rfc_addr;			/* address for RFC 2821 */
-+    char   *ident_user;			/* user name returned by ident RFC 1413 */
-     int     addr_family;		/* address family */
-     struct sockaddr_storage sockaddr;	/* binary client endpoint */
-     int     name_status;		/* 2=ok 4=soft 5=hard 6=forged */
-@@ -266,6 +267,8 @@
- extern void smtpd_peer_init(SMTPD_STATE *state);
- extern void smtpd_peer_reset(SMTPD_STATE *state);
- 
-+extern char *smtpd_ident(struct sockaddr_in *peer_addr, struct sockaddr_in *smtpd_addr);
-+
- #define	SMTPD_PEER_CODE_OK	2
- #define SMTPD_PEER_CODE_TEMP	4
- #define SMTPD_PEER_CODE_PERM	5
---- postfix-2.3-RC9/src/smtpd/smtpd_peer.c.orig	2006-07-08 02:51:33.000000000 +0200
-+++ postfix-2.3-RC9/src/smtpd/smtpd_peer.c	2006-07-11 20:41:04.935924424 +0200
+--- postfix-2.9.0/src/smtpd/smtpd_peer.c.orig	2012-02-04 19:34:17.294233547 +0100
++++ postfix-2.9.0/src/smtpd/smtpd_peer.c	2012-02-04 19:40:48.203777370 +0100
 @@ -98,6 +98,7 @@
  
  #include <sys_defs.h>
@@ -245,7 +261,7 @@ diff -urN -x '*~' postfix-2.2.5/src/smtpd/smtpd_ident.c postfix-2.2.5-ident/src/
  #include <netinet/in.h>
  #include <arpa/inet.h>
  #include <stdio.h>			/* strerror() */
-@@ -116,6 +117,7 @@
+@@ -117,6 +118,7 @@
  
  /* Global library. */
  
@@ -253,7 +269,7 @@ diff -urN -x '*~' postfix-2.2.5/src/smtpd/smtpd_ident.c postfix-2.2.5-ident/src/
  #include <mail_proto.h>
  #include <valid_mailhost_addr.h>
  #include <mail_params.h>
-@@ -124,6 +126,8 @@
+@@ -125,6 +127,8 @@
  
  #include "smtpd.h"
  
@@ -262,7 +278,7 @@ diff -urN -x '*~' postfix-2.2.5/src/smtpd/smtpd_ident.c postfix-2.2.5-ident/src/
  /* smtpd_peer_init - initialize peer information */
  
  void    smtpd_peer_init(SMTPD_STATE *state)
-@@ -131,6 +135,9 @@
+@@ -132,6 +136,9 @@
      const char *myname = "smtpd_peer_init";
      SOCKADDR_SIZE sa_length;
      struct sockaddr *sa;
@@ -272,23 +288,23 @@ diff -urN -x '*~' postfix-2.2.5/src/smtpd/smtpd_ident.c postfix-2.2.5-ident/src/
      INET_PROTO_INFO *proto_info = inet_proto_info();
  
      sa = (struct sockaddr *) & (state->sockaddr);
-@@ -177,6 +177,7 @@
+@@ -171,6 +178,7 @@
  	state->addr_family = AF_UNSPEC;
  	state->name_status = SMTPD_PEER_CODE_PERM;
  	state->reverse_name_status = SMTPD_PEER_CODE_PERM;
 +	state->ident_user = mystrdup("NO-USER");
-	state->port = mystrdup(CLIENT_PORT_UNKNOWN);
+ 	state->port = mystrdup(CLIENT_PORT_UNKNOWN);
      }
-
-@@ -302,6 +310,7 @@
+ 
+@@ -342,6 +350,7 @@
  	    if (aierr) {
- 		msg_warn("%s: hostname %s verification failed: %s",
- 			 state->addr, state->name, MAI_STRERROR(aierr));
-+		state->ident_user = mystrdup("NO-USER");
+ 		msg_warn("hostname %s does not resolve to address %s: %s",
+ 			 state->name, state->addr, MAI_STRERROR(aierr));
++                state->ident_user = mystrdup("NO-USER");
  		REJECT_PEER_NAME(state, (TEMP_AI_ERROR(aierr) ?
  			    SMTPD_PEER_CODE_TEMP : SMTPD_PEER_CODE_FORGED));
  	    } else {
-@@ -323,6 +332,20 @@
+@@ -363,6 +372,20 @@
  		freeaddrinfo(res0);
  	    }
  	}
@@ -309,36 +325,18 @@ diff -urN -x '*~' postfix-2.2.5/src/smtpd/smtpd_ident.c postfix-2.2.5-ident/src/
      }
  
      /*
-@@ -390,7 +391,8 @@
+@@ -383,6 +406,7 @@
  	state->name_status = SMTPD_PEER_CODE_OK;
  	state->reverse_name_status = SMTPD_PEER_CODE_OK;
  	state->port = mystrdup("0");		/* XXX bogus. */
--    }
 +	state->ident_user = mystrdup("NO-USER");
-+    }
+     }
  
      /*
-      * Do the name[addr]:port formatting for pretty reports.
-@@ -410,5 +412,6 @@
+@@ -401,5 +425,6 @@
      myfree(state->addr);
      myfree(state->namaddr);
      myfree(state->rfc_addr);
 +    myfree(state->ident_user);
      myfree(state->port);
  }
---- postfix-2.8.3/src/smtpd/Makefile.in~	2011-05-17 14:28:28.406666872 +0200
-+++ postfix-2.8.3/src/smtpd/Makefile.in	2011-05-17 14:31:06.946666872 +0200
-@@ -2,11 +2,11 @@
- SRCS	= smtpd.c smtpd_token.c smtpd_check.c smtpd_chat.c smtpd_state.c \
- 	smtpd_peer.c smtpd_sasl_proto.c smtpd_sasl_glue.c smtpd_proxy.c \
- 	smtpd_xforward.c smtpd_dsn_fix.c smtpd_milter.c smtpd_resolve.c \
--	smtpd_expand.c
-+	smtpd_expand.c smtpd_ident.c
- OBJS	= smtpd.o smtpd_token.o smtpd_check.o smtpd_chat.o smtpd_state.o \
- 	smtpd_peer.o smtpd_sasl_proto.o smtpd_sasl_glue.o smtpd_proxy.o \
- 	smtpd_xforward.o smtpd_dsn_fix.o smtpd_milter.o smtpd_resolve.o \
--	smtpd_expand.o
-+	smtpd_expand.o smtpd_ident.o
- HDRS	= smtpd_token.h smtpd_check.h smtpd_chat.h smtpd_sasl_proto.h \
- 	smtpd_sasl_glue.h smtpd_proxy.h smtpd_dsn_fix.h smtpd_milter.h \
- 	smtpd_resolve.h smtpd_expand.h

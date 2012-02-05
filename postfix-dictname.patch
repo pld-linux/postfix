@@ -1,11 +1,11 @@
---- postfix-2.3.0/src/util/dict_open.c~	2006-07-25 13:36:17.245609587 +0300
-+++ postfix-2.3.0/src/util/dict_open.c	2006-07-25 13:38:52.429059090 +0300
-@@ -327,7 +327,7 @@
- 	lib=vstring_alloc(1);
- 	vstring_sprintf(lib,dl->soname,dict_type);
- 	if (stat(vstring_str(lib),&st) < 0) {
--	    msg_fatal("%s: unsupported dictionary type: %s (%s not found.  Is the postfix-%s package installed?)",
-+	    msg_fatal("%s: unsupported dictionary type: %s (%s not found.  Is the postfix-dict-%s package installed?)",
- 		myname, dict_type, vstring_str(lib), dict_type);
- 	}
- 	func=vstring_alloc(1);
+--- postfix-2.9.0/src/util/dict_open.c.orig	2012-02-04 19:42:26.000000000 +0100
++++ postfix-2.9.0/src/util/dict_open.c	2012-02-04 19:43:42.937093038 +0100
+@@ -365,7 +365,7 @@
+        lib=vstring_alloc(1);
+        vstring_sprintf(lib,dl->soname,dict_type);
+        if (stat(vstring_str(lib),&st) < 0) {
+-           msg_fatal("%s: unsupported dictionary type: %s (%s not found.  Is the postfix-%s package installed?)",
++           msg_fatal("%s: unsupported dictionary type: %s (%s not found.  Is the postfix-dict-%s package installed?)",
+                myname, dict_type, vstring_str(lib), dict_type);
+        }
+        func=vstring_alloc(1);
