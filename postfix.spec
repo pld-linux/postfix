@@ -24,7 +24,7 @@
 %bcond_without	epoll	# disable epoll for 2.4 kernels
 %endif
 
-%define		vda_ver v10-2.8.5
+%define		vda_ver v11-2.9.1
 Summary:	Postfix Mail Transport Agent
 Summary(cs.UTF-8):	Postfix - program pro přepravu pošty (MTA)
 Summary(es.UTF-8):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -34,7 +34,7 @@ Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	2.9.1
-Release:	3
+Release:	4
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons/SMTP
@@ -47,7 +47,7 @@ Source4:	%{name}.sysconfig
 Source5:	%{name}.sasl
 Source6:	%{name}.pamd
 Source7:	http://vda.sourceforge.net/VDA/%{name}-vda-%{vda_ver}.patch
-# Source7-md5:	3292f2ec7c9fb8957f88d8783252d1f8
+# Source7-md5:	a54a21428de5eeae91b4bb670976e37a
 Source8:	%{name}-bounce.cf.pl
 # http://postfix.state-of-mind.de/bounce-templates/bounce.de-DE.cf
 Source9:	%{name}-bounce.cf.de
