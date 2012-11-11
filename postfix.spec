@@ -55,6 +55,7 @@ Source10:	%{name}.monitrc
 Source11:	%{name}-vda-bigquota.patch
 #Source11:	http://vda.sourceforge.net/VDA/%{name}-%{vda_ver}-vda-ng-bigquota.patch.gz
 # -ource11-md5:	d46103195b43ec5784ea2c166b238f71
+Source12:	%{name}.service
 Patch0:		%{name}-config.patch
 Patch1:		%{name}-conf_msg.patch
 Patch2:		%{name}-dynamicmaps.patch
@@ -80,7 +81,7 @@ BuildRequires:	pcre-devel
 BuildRequires:	perl-base
 %{?with_pgsql:BuildRequires:	postgresql-devel}
 BuildRequires:	rpm >= 4.4.9-56
-BuildRequires:	rpmbuild(macros) >= 1.268
+BuildRequires:	rpmbuild(macros) >= 1.644
 BuildRequires:	sed >= 4.0
 %{?with_sqlite:BuildRequires:	sqlite3-devel}
 %{?with_cdb:BuildRequires:	tinycdb-devel}
@@ -100,6 +101,7 @@ Requires:	findutils
 Requires:	rc-scripts
 Requires:	sed
 %{?with_cdb:Requires:tinycdb}
+Requires:	systemd-units >= 38
 Suggests:	cyrus-sasl-saslauthd
 Provides:	group(postfix)
 Provides:	smtpdaemon
@@ -317,7 +319,9 @@ install -d $RPM_BUILD_ROOT/etc/{cron.daily,rc.d/init.d,sysconfig,pam.d,security,
 	$RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,/usr/lib}\
 	$RPM_BUILD_ROOT{%{_includedir}/postfix,%{_mandir}} \
 	$RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public} \
-	$RPM_BUILD_ROOT%{_var}/lib/postfix
+	$RPM_BUILD_ROOT%{_var}/lib/postfix \
+	$RPM_BUILD_ROOT%{systemdunitdir}
+
 %{__rm} html/Makefile.in conf/{LICENSE,main.cf.default}
 
 install -p bin/* $RPM_BUILD_ROOT%{_sbindir}
@@ -346,6 +350,7 @@ cp -a %{SOURCE6} $RPM_BUILD_ROOT/etc/pam.d/smtp
 cp -a %{SOURCE8} $RPM_BUILD_ROOT%{_sysconfdir}/mail/bounce.cf.pl
 cp -a %{SOURCE9} $RPM_BUILD_ROOT%{_sysconfdir}/mail/bounce.cf.de
 cp -a %{SOURCE10} $RPM_BUILD_ROOT/etc/monit/%{name}.monitrc
+cp -a %{SOURCE12} $RPM_BUILD_ROOT%{systemdunitdir}/%{name}.service
 install -p auxiliary/rmail/rmail $RPM_BUILD_ROOT%{_bindir}/rmail
 install -p auxiliary/qshape/qshape.pl $RPM_BUILD_ROOT%{_bindir}/qshape
 
@@ -394,12 +399,14 @@ fi
 %{_bindir}/newaliases
 /sbin/chkconfig --add postfix
 %service postfix restart "Postfix Daemon"
+%systemd_post
 
 %preun
 if [ "$1" = "0" ]; then
 	%service postfix stop
 	/sbin/chkconfig --del postfix
 fi
+%systemd_preun
 
 %postun
 /sbin/ldconfig
@@ -408,6 +415,7 @@ if [ "$1" = "0" ]; then
 	%userremove postfix
 	%groupremove postfix
 fi
+%systemd_postun
 
 %files
 %defattr(644,root,root,755)
@@ -500,6 +508,7 @@ fi
 %{_mandir}/man5/transport.5*
 %{_mandir}/man5/virtual.5*
 %{_mandir}/man8/*.8*
+%{systemdunitdir}/%{name}.service
 
 %files devel
 %defattr(644,root,root,755)
