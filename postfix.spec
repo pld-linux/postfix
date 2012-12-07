@@ -34,7 +34,7 @@ Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	2.9.4
-Release:	4
+Release:	5
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons/SMTP
@@ -69,6 +69,7 @@ Patch8:		%{name}-dictname.patch
 Patch9:		%{name}-make-jN.patch
 Patch10:	%{name}-link.patch
 Patch11:	%{name}-scache_clnt.patch
+Patch12:	format-security.patch
 URL:		http://www.postfix.org/
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db-devel
@@ -293,6 +294,7 @@ sed -i '/scache_clnt_create/s/server/var_scache_service/' src/global/scache_clnt
 %patch9 -p1
 %patch10 -p1
 %patch11 -p1
+%patch12 -p1
 
 %if %{with tcp}
 sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
