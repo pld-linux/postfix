@@ -34,7 +34,7 @@ Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	2.9.6
-Release:	1
+Release:	2
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons/SMTP
@@ -419,7 +419,7 @@ if [ "$1" = "0" ]; then
 	%userremove postfix
 	%groupremove postfix
 fi
-%systemd_postun
+%systemd_reload
 
 %files
 %defattr(644,root,root,755)
