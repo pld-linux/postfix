@@ -7,10 +7,22 @@
 %bcond_without	sasl	# without SMTP AUTH support
 %bcond_without	ssl	# without SSL/TLS support
 %bcond_without	cdb	# without cdb map support
+%if "%{pld_release}" == "th"
+%bcond_without	vda	# without VDA patch
+%else
 %bcond_with	vda	# with VDA patch
+%endif
 %bcond_with	hir	# with Beeth's header_if_reject patch
 %bcond_with	tcp	# with unofficial tcp: lookup table
+%if "%{pld_release}" == "ac"
+%bcond_with		epoll	# enable epoll for 2.6 kernels
+# there didn't exist x86_64 2.4 kernel in PLD, so can safely enable epoll
+%ifarch %{x8664}
+%define		with_epoll	1
+%endif
+%else
 %bcond_without	epoll	# disable epoll for 2.4 kernels
+%endif
 
 %define		vda_ver v11-2.9.1
 Summary:	Postfix Mail Transport Agent
