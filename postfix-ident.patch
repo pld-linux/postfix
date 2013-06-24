@@ -253,7 +253,7 @@ diff -urN -x '*~' postfix-2.2.5/src/smtpd/smtpd_ident.c postfix-2.2.5-ident/src/
  	VAR_REJECT_TMPF_ACT, DEF_REJECT_TMPF_ACT, &var_reject_tmpf_act, 1, 0,
 --- postfix-2.9.0/src/smtpd/smtpd_peer.c.orig	2012-02-04 19:34:17.294233547 +0100
 +++ postfix-2.9.0/src/smtpd/smtpd_peer.c	2012-02-04 19:40:48.203777370 +0100
-@@ -98,6 +98,7 @@
+@@ -103,6 +103,7 @@
  
  #include <sys_defs.h>
  #include <sys/socket.h>
@@ -261,7 +261,7 @@ diff -urN -x '*~' postfix-2.2.5/src/smtpd/smtpd_ident.c postfix-2.2.5-ident/src/
  #include <netinet/in.h>
  #include <arpa/inet.h>
  #include <stdio.h>			/* strerror() */
-@@ -117,6 +118,7 @@
+@@ -123,6 +124,7 @@
  
  /* Global library. */
  
@@ -269,71 +269,79 @@ diff -urN -x '*~' postfix-2.2.5/src/smtpd/smtpd_ident.c postfix-2.2.5-ident/src/
  #include <mail_proto.h>
  #include <valid_mailhost_addr.h>
  #include <mail_params.h>
-@@ -125,6 +127,8 @@
-     }
- }
+@@ -132,6 +134,8 @@
+ 
+ #include "smtpd.h"
  
 +extern NAMADR_LIST *smtpd_ident_lookup;
 +
- /* smtpd_peer_init - initialize peer information */
+ static INET_PROTO_INFO *proto_info;
  
- void    smtpd_peer_init(SMTPD_STATE *state)
-@@ -132,6 +136,9 @@
-     const char *myname = "smtpd_peer_init";
-     SOCKADDR_SIZE sa_length;
-     struct sockaddr *sa;
-+    struct sockaddr_in serv_sin;
-+    char *ident_user = NULL;
-+    SOCKADDR_SIZE sa_len;
-     INET_PROTO_INFO *proto_info = inet_proto_info();
- 
-     sa = (struct sockaddr *) & (state->sockaddr);
-@@ -171,6 +178,7 @@
- 	state->addr_family = AF_UNSPEC;
- 	state->name_status = SMTPD_PEER_CODE_PERM;
- 	state->reverse_name_status = SMTPD_PEER_CODE_PERM;
-+	state->ident_user = mystrdup("NO-USER");
- 	state->port = mystrdup(CLIENT_PORT_UNKNOWN);
-     }
- 
-@@ -342,6 +350,7 @@
- 	    if (aierr) {
- 		msg_warn("hostname %s does not resolve to address %s: %s",
- 			 state->name, state->addr, MAI_STRERROR(aierr));
-+                state->ident_user = mystrdup("NO-USER");
- 		REJECT_PEER_NAME(state, (TEMP_AI_ERROR(aierr) ?
- 			    SMTPD_PEER_CODE_TEMP : SMTPD_PEER_CODE_FORGED));
- 	    } else {
-@@ -363,6 +372,20 @@
- 		freeaddrinfo(res0);
- 	    }
- 	}
-+
-+	if (namadr_list_match(smtpd_ident_lookup, state->name, state->addr)) {
-+	    /* If getsockname fails, just forget it */
-+	    sa_len = sizeof(serv_sin);
-+	    if (getsockname(vstream_fileno(state->client), (struct sockaddr *)&serv_sin, &sa_len) >= 0) {
-+		ident_user = smtpd_ident((struct sockaddr_in *)sa, &serv_sin);
-+		if (ident_user == NULL)
-+		    state->ident_user = mystrdup("NO-USER");
-+		else
-+		    state->ident_user = ident_user;
-+	    } else
-+		msg_warn("getsockname failed while doing ident lookup: %s", strerror(errno));
-+	} else
+  /*
+@@ -345,6 +352,7 @@
+ 	if (aierr) {
+ 	    msg_warn("hostname %s does not resolve to address %s: %s",
+ 		     state->name, state->addr, MAI_STRERROR(aierr));
 +	    state->ident_user = mystrdup("NO-USER");
+ 	    REJECT_PEER_NAME(state, (TEMP_AI_ERROR(aierr) ?
+ 			    SMTPD_PEER_CODE_TEMP : SMTPD_PEER_CODE_FORGED));
+ 	} else {
+@@ -352,6 +360,7 @@
+ 		if (res == 0) {
+ 		    msg_warn("hostname %s does not resolve to address %s",
+ 			     state->name, state->addr);
++		    state->ident_user = mystrdup("NO-USER");
+ 		    REJECT_PEER_NAME(state, SMTPD_PEER_CODE_FORGED);
+ 		    break;
+ 		}
+@@ -366,6 +375,22 @@
+ 	    freeaddrinfo(res0);
+ 	}
      }
++    if (namadr_list_match(smtpd_ident_lookup, state->name, state->addr)) {
++	struct sockaddr_in serv_sin;
++	char *ident_user = NULL;
++
++	/* If getsockname fails, just forget it */
++	sa_length = sizeof(serv_sin);
++	if (getsockname(vstream_fileno(state->client), (struct sockaddr *)&serv_sin, &sa_length) >= 0) {
++	    ident_user = smtpd_ident((struct sockaddr_in *)sa, &serv_sin);
++	    if (ident_user == NULL)
++		state->ident_user = mystrdup("NO-USER");
++	    else
++		state->ident_user = ident_user;
++	} else
++	    msg_warn("getsockname failed while doing ident lookup: %s", strerror(errno));
++    } else
++	    state->ident_user = mystrdup("NO-USER");
+ }
  
-     /*
-@@ -383,6 +406,7 @@
- 	state->name_status = SMTPD_PEER_CODE_OK;
- 	state->reverse_name_status = SMTPD_PEER_CODE_OK;
- 	state->port = mystrdup("0");		/* XXX bogus. */
-+	state->ident_user = mystrdup("NO-USER");
-     }
+ /* smtpd_peer_hostaddr_to_sockaddr - convert numeric string to binary */
+@@ -411,6 +433,7 @@
+     state->addr_family = AF_UNSPEC;
+     state->name_status = SMTPD_PEER_CODE_OK;
+     state->reverse_name_status = SMTPD_PEER_CODE_OK;
++    state->ident_user = mystrdup("NO-USER");
+     state->port = mystrdup("0");		/* XXX bogus. */
+ }
  
-     /*
-@@ -401,6 +425,8 @@
+@@ -426,6 +449,7 @@
+     state->addr_family = AF_UNSPEC;
+     state->name_status = SMTPD_PEER_CODE_PERM;
+     state->reverse_name_status = SMTPD_PEER_CODE_PERM;
++    state->ident_user = mystrdup("NO-USER");
+     state->port = mystrdup(CLIENT_PORT_UNKNOWN);
+ }
+ 
+@@ -554,6 +578,7 @@
+     state->addr = 0;
+     state->namaddr = 0;
+     state->rfc_addr = 0;
++    state->ident_user = 0;
+     state->port = 0;
+     state->dest_addr = 0;
+ 
+@@ -604,6 +629,8 @@
  	myfree(state->namaddr);
      if (state->rfc_addr)
  	myfree(state->rfc_addr);
