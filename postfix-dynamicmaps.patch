@@ -621,9 +621,9 @@ diff -durN postfix-2.1.3.orig/src/util/sys_defs.h postfix-2.1.3/src/util/sys_def
  	write_buf.c write_wait.c sane_basename.c format_tv.c allspace.c \
 -	allascii.c load_file.c killme_after.c vstream_tweak.c \
 +	allascii.c load_file.c killme_after.c vstream_tweak.c load_lib.c \
- 	unix_pass_listen.c unix_pass_trigger.c edit_file.c inet_windowsize.c \
+ 	pass_trigger.c edit_file.c inet_windowsize.c \
  	unix_pass_fd_fix.c dict_cache.c valid_utf_8.c dict_thash.c \
- 	ip_match.c nbbio.c stream_pass_connect.c base32_code.c dict_test.c \
+ 	ip_match.c nbbio.c base32_code.c dict_test.c \
 @@ -41,7 +41,7 @@
  	chroot_uid.o cidr_match.o clean_env.o close_on_exec.o concatenate.o \
  	ctable.o dict.o dict_alloc.o dict_cdb.o dict_cidr.o dict_db.o \
@@ -639,9 +639,9 @@ diff -durN postfix-2.1.3.orig/src/util/sys_defs.h postfix-2.1.3/src/util/sys_def
  	write_buf.o write_wait.o sane_basename.o format_tv.o allspace.o \
 -	allascii.o load_file.o killme_after.o vstream_tweak.o \
 +	allascii.o load_file.o killme_after.o vstream_tweak.o load_lib.o \
- 	unix_pass_listen.o unix_pass_trigger.o edit_file.o inet_windowsize.o \
+ 	pass_trigger.o edit_file.o inet_windowsize.o \
  	unix_pass_fd_fix.o dict_cache.o valid_utf_8.o dict_thash.o \
- 	ip_match.o nbbio.o stream_pass_connect.o base32_code.o dict_test.o \
+ 	ip_match.o nbbio.o base32_code.o dict_test.o \
 @@ -89,7 +89,7 @@
  	sigdelay.h sock_addr.h spawn_command.h split_at.h stat_as.h \
  	stringops.h sys_defs.h timed_connect.h timed_wait.h trigger.h \
