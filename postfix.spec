@@ -403,14 +403,14 @@ fi
 %{_bindir}/newaliases
 /sbin/chkconfig --add postfix
 %service postfix restart "Postfix Daemon"
-%systemd_post
+%systemd_post postfix.service
 
 %preun
 if [ "$1" = "0" ]; then
 	%service postfix stop
 	/sbin/chkconfig --del postfix
 fi
-%systemd_preun
+%systemd_preun postfix.service
 
 %postun
 /sbin/ldconfig
@@ -420,6 +420,9 @@ if [ "$1" = "0" ]; then
 	%groupremove postfix
 fi
 %systemd_reload
+
+%triggerpostun -- postfix < 2:2.9.4-4
+%systemd_trigger postfix.service
 
 %files
 %defattr(644,root,root,755)
