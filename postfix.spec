@@ -24,7 +24,7 @@
 %bcond_without	epoll	# disable epoll for 2.4 kernels
 %endif
 
-%define		vda_ver v11-2.9.1
+%define		vda_ver v13-2.10.0
 Summary:	Postfix Mail Transport Agent
 Summary(cs.UTF-8):	Postfix - program pro přepravu pošty (MTA)
 Summary(es.UTF-8):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -33,13 +33,13 @@ Summary(pl.UTF-8):	Serwer SMTP Postfix
 Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
-Version:	2.10.3
-Release:	1
+Version:	2.11.0
+Release:	0.1
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons/SMTP
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	f984eba77f0c093ec9618fcc4e7305e0
+# Source0-md5:	25fe7dd05f81cc0755131beecee046fd
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
@@ -47,7 +47,7 @@ Source4:	%{name}.sysconfig
 Source5:	%{name}.sasl
 Source6:	%{name}.pamd
 Source7:	http://vda.sourceforge.net/VDA/%{name}-vda-%{vda_ver}.patch
-# Source7-md5:	a54a21428de5eeae91b4bb670976e37a
+# Source7-md5:	01e1b031d79b85f3cb67d98ceddd775d
 Source8:	%{name}-bounce.cf.pl
 # http://postfix.state-of-mind.de/bounce-templates/bounce.de-DE.cf
 Source9:	%{name}-bounce.cf.de
@@ -468,6 +468,7 @@ fi
 %attr(755,root,root) %{_sbindir}/postmulti
 %attr(2755,root,maildrop) %{_sbindir}/postqueue
 %attr(755,root,root) %{_sbindir}/postsuper
+%attr(755,root,root) %{_sbindir}/posttls-finger
 %attr(2755,root,maildrop) %{_sbindir}/postdrop
 %attr(755,root,root) %{_sbindir}/qmqp-sink
 %attr(755,root,root) %{_sbindir}/qmqp-source
@@ -504,6 +505,7 @@ fi
 %{_mandir}/man5/cidr_table.5*
 %{_mandir}/man5/generic.5*
 %{_mandir}/man5/header_checks.5*
+%{_mandir}/man5/lmdb_table.5*
 %{_mandir}/man5/master.5*
 %{_mandir}/man5/memcache_table.5*
 %{_mandir}/man5/nisplus_table.5*
@@ -511,6 +513,7 @@ fi
 %{_mandir}/man5/postfix-wrapper.5*
 %{_mandir}/man5/regexp_table.5*
 %{_mandir}/man5/relocated.5*
+%{_mandir}/man5/socketmap_table.5*
 %{_mandir}/man5/tcp_table.5*
 %{_mandir}/man5/transport.5*
 %{_mandir}/man5/virtual.5*
