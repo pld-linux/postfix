@@ -12,6 +12,7 @@
 # Basic system aliases -- these MUST be present.
 MAILER-DAEMON:	postmaster
 postmaster:	root
+abuse:		root
 
 # General redirections for pseudo accounts.
 bin:		root
