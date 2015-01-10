@@ -285,7 +285,7 @@ sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
 %{__make} tidy
 CC="%{__cc}"
 export CC
-%{__make} \
+%{__make} -j1 \
 	DEBUG="" \
 	OPT="%{rpmcflags} -D_FILE_OFFSET_BITS=64" \
 	%{!?with_ldap:LDAPSO=""} \
