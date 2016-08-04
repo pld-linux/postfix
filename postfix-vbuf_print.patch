@@ -1,0 +1,48 @@
+--- postfix-2.9.4.orig/src/util/vbuf_print.c	2012-09-19 20:00:06.000000000 +0200
++++ postfix-2.9.4/src/util/vbuf_print.c	2012-09-19 20:06:01.000000000 +0200
+@@ -122,7 +122,7 @@
+     unsigned char *cp;
+     int     width;			/* width and numerical precision */
+     int     prec;			/* are signed for overflow defense */
+-    unsigned long_flag;			/* long or plain integer */
++    unsigned long_flag;			/* long long or long or plain integer */
+     int     ch;
+     char   *s;
+ 
+@@ -193,8 +193,17 @@
+ 		msg_warn("%s: bad precision %d in %.50s", myname, prec, format);
+ 		prec = 0;
+ 	    }
+-	    if ((long_flag = (*cp == 'l')) != 0)/* long whatever */
++	    /* long whatever */
++	    long_flag = 0;
++	    if (*cp == 'l') {
++		long_flag++;
+ 		VSTRING_ADDCH(fmt, *cp++);
++
++		if (*cp == 'l') {
++		  long_flag++;
++		  VSTRING_ADDCH(fmt, *cp++);
++		}
++	    }
+ 	    if (*cp == 0)			/* premature end, punt */
+ 		break;
+ 	    VSTRING_ADDCH(fmt, *cp);		/* type (checked below) */
+@@ -220,13 +229,16 @@
+ 		break;
+ 	    case 'c':				/* integral-valued argument */
+ 	    case 'd':
++	    case 'i':
+ 	    case 'u':
+ 	    case 'o':
+ 	    case 'x':
+ 	    case 'X':
+ 		if (VBUF_SPACE(bp, (width > prec ? width : prec) + INT_SPACE))
+ 		    return (bp);
+-		if (long_flag)
++		if (long_flag > 1)
++		    sprintf((char *) bp->ptr, vstring_str(fmt), va_arg(ap, long long));
++		else if (long_flag == 1)
+ 		    sprintf((char *) bp->ptr, vstring_str(fmt), va_arg(ap, long));
+ 		else
+ 		    sprintf((char *) bp->ptr, vstring_str(fmt), va_arg(ap, int));

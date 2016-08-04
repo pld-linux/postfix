@@ -71,6 +71,7 @@ Patch10:	%{name}-link.patch
 Patch11:	%{name}-scache_clnt.patch
 Patch12:	format-security.patch
 Patch13:	%{name}-no_cdb.patch
+Patch14:	%{name}-vbuf_print.patch
 URL:		http://www.postfix.org/
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db-devel
@@ -299,6 +300,7 @@ sed -i '/scache_clnt_create/s/server/var_scache_service/' src/global/scache_clnt
 %patch12 -p1
 %endif
 %{!?with_cdb:%patch13 -p1}
+%patch14 -p1
 
 %if %{with tcp}
 sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
