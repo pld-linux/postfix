@@ -33,21 +33,22 @@ Summary(pl.UTF-8):	Serwer SMTP Postfix
 Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
-Version:	2.11.8
+Version:	2.11.10
 Release:	1
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons/SMTP
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	cbc473f2aaf3d78f500287f370c91324
+# Source0-md5:	0f947753a3864dc3bd40aa211f3202bb
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
 Source4:	%{name}.sysconfig
 Source5:	%{name}.sasl
 Source6:	%{name}.pamd
-Source7:	http://vda.sourceforge.net/VDA/%{name}-vda-%{vda_ver}.patch
-# Source7-md5:	01e1b031d79b85f3cb67d98ceddd775d
+Source7:	%{name}-vda.patch
+#Source7:	http://vda.sourceforge.net/VDA/%{name}-vda-%{vda_ver}.patch
+# -ource7-md5:	01e1b031d79b85f3cb67d98ceddd775d
 Source8:	%{name}-bounce.cf.pl
 # http://postfix.state-of-mind.de/bounce-templates/bounce.de-DE.cf
 Source9:	%{name}-bounce.cf.de
