@@ -7,11 +7,7 @@
 %bcond_without	sasl	# without SMTP AUTH support
 %bcond_without	ssl	# without SSL/TLS support
 %bcond_without	cdb	# without cdb map support
-%if "%{pld_release}" == "th"
-%bcond_without	vda	# without VDA patch
-%else
 %bcond_with	vda	# with VDA patch
-%endif
 %bcond_with	hir	# with Beeth's header_if_reject patch
 %bcond_with	tcp	# with unofficial tcp: lookup table
 %if "%{pld_release}" == "ac"
@@ -33,13 +29,13 @@ Summary(pl.UTF-8):	Serwer SMTP Postfix
 Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
-Version:	2.11.11
-Release:	2
+Version:	3.3.1
+Release:	0.1
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons/SMTP
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	a85b805560c79c4ef775d96ae681b5da
+# Source0-md5:	4381c6492f415e4a69cf5099d4acea76
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
@@ -58,21 +54,17 @@ Source11:	%{name}-vda-bigquota.patch
 # -ource11-md5:	d46103195b43ec5784ea2c166b238f71
 Source12:	%{name}.service
 Patch0:		%{name}-config.patch
-Patch1:		%{name}-conf_msg.patch
-Patch2:		%{name}-dynamicmaps.patch
+
 Patch3:		%{name}-master.cf_cyrus.patch
 # from http://akson.sgh.waw.pl/~chopin/unix/postfix-2.1.5-header_if_reject.diff
 Patch4:		%{name}-header_if_reject.patch
-Patch5:		%{name}-ident.patch
-Patch6:		%{name}-lib64.patch
+
 Patch7:		%{name}-conf.patch
 Patch8:		%{name}-dictname.patch
-Patch9:		%{name}-make-jN.patch
-Patch10:	%{name}-link.patch
+
 Patch11:	%{name}-scache_clnt.patch
 Patch12:	format-security.patch
 Patch13:	%{name}-no_cdb.patch
-Patch14:	%{name}-vbuf_print.patch
 URL:		http://www.postfix.org/
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db-devel
@@ -283,25 +275,19 @@ cat %{SOURCE11} | %{__patch} -p1 -s
 find -type f | xargs sed -i -e 's|/etc/postfix|/etc/mail|g'
 
 %patch0 -p1
-%patch1 -p0
-%patch2 -p1
+
 %patch3 -p1
 %{?with_hir:%patch4 -p0}
-%patch5 -p1
+
 sed -i '/scache_clnt_create/s/server/var_scache_service/' src/global/scache_clnt.c
-%if "%{_lib}" == "lib64"
-%patch6 -p1
-%endif
 %patch7 -p1
 %patch8 -p1
-%patch9 -p1
-%patch10 -p1
+
 %patch11 -p1
 %if %{with vda}
 %patch12 -p1
 %endif
 %{!?with_cdb:%patch13 -p1}
-%patch14 -p1
 
 %if %{with tcp}
 sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
@@ -318,7 +304,7 @@ export CC="%{__cc}"
 	%{!?with_mysql:MYSQLSO=""} \
 	%{!?with_pgsql:PGSQLSO=""} \
 	CCARGS="%{!?with_epoll:-DNO_EPOLL} %{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL} %{?with_ssl:-DUSE_TLS} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB}" \
-	AUXLIBS="-ldb -lresolv %{?with_sasl:-lsasl} %{?with_ssl:-lssl -lcrypto} %{?with_cdb:-lcdb} -lpcre"
+	AUXLIBS="-ldb -lresolv %{?with_mysql:-lmysqlclient} %{?with_pgsql:-lpq} %{?with_sasl:-lsasl} %{?with_ssl:-lssl -lcrypto} %{?with_cdb:-lcdb} -lpcre %{?with_ldap:-lldap -llber}"
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -330,13 +316,10 @@ install -d $RPM_BUILD_ROOT/etc/{cron.daily,rc.d/init.d,sysconfig,pam.d,security,
 	$RPM_BUILD_ROOT%{_var}/lib/postfix \
 	$RPM_BUILD_ROOT%{systemdunitdir}
 
-%{__rm} html/Makefile.in conf/{LICENSE,main.cf.default}
+%{__make} non-interactive-package \
+       install_root=$RPM_BUILD_ROOT
 
-install -p bin/* $RPM_BUILD_ROOT%{_sbindir}
-install -p libexec/* $RPM_BUILD_ROOT%{_libdir}/postfix
-ln $RPM_BUILD_ROOT%{_libdir}/postfix/smtp $RPM_BUILD_ROOT%{_libdir}/postfix/lmtp
-ln $RPM_BUILD_ROOT%{_libdir}/postfix/qmgr $RPM_BUILD_ROOT%{_libdir}/postfix/nqmgr
-cp -a conf/* $RPM_BUILD_ROOT%{_sysconfdir}/mail
+#cp -a conf/* $RPM_BUILD_ROOT%{_sysconfdir}/mail
 sed -e's,^daemon_directory = .*,daemon_directory = %{_libdir}/postfix,' \
 	conf/main.cf > $RPM_BUILD_ROOT%{_sysconfdir}/mail/main.cf
 
@@ -344,7 +327,6 @@ for f in dns global master util ; do
 	cp -a lib/lib${f}.a $RPM_BUILD_ROOT%{_libdir}/libpostfix-${f}.so.1
 	ln -sf lib${f}.so.1 $RPM_BUILD_ROOT%{_libdir}/libpostfix-${f}.so
 done
-install -p lib/dict*.so $RPM_BUILD_ROOT%{_libdir}/postfix
 cp -a include/*.h $RPM_BUILD_ROOT%{_includedir}/postfix
 
 cp -a man/man* $RPM_BUILD_ROOT%{_mandir}

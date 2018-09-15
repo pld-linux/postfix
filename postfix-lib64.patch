@@ -1,8 +1,0 @@
---- postfix-2.3.0/conf/dynamicmaps.cf~	2006-07-25 13:36:17.245609587 +0300
-+++ postfix-2.3.0/conf/dynamicmaps.cf	2006-07-25 13:37:00.056561114 +0300
-@@ -6,4 +6,4 @@
- #
- #type	location of .so file			name of open function
- #====	================================	=====================
--*	/usr/lib/postfix/dict_%s.so		dict_%s_open
-+*	/usr/lib64/postfix/dict_%s.so		dict_%s_open
