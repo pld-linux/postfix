@@ -65,7 +65,6 @@ Patch8:		%{name}-dictname.patch
 
 Patch11:	%{name}-scache_clnt.patch
 Patch12:	format-security.patch
-Patch13:	%{name}-no_cdb.patch
 URL:		http://www.postfix.org/
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db-devel
@@ -245,6 +244,18 @@ This package provides support for LMDB maps in Postfix.
 %description dict-lmdb -l pl.UTF-8
 Ten pakiet dodaje obsługę map LMDB do Postfiksa.
 
+%package dict-cdb
+Summary:	CDB map support for Postfix
+Summary(pl.UTF-8):	Obsługa map CDB dla Postfiksa
+Group:		Networking/Daemons/SMTP
+Requires:	%{name} = %{epoch}:%{version}-%{release}
+
+%description dict-cdb
+This package provides support for CDB maps in Postfix.
+
+%description dict-cdb -l pl.UTF-8
+Ten pakiet dodaje obsługę map CDB do Postfiksa.
+
 %package qshape
 Summary:	qshape - Print Postfix queue domain and age distribution
 Summary(pl.UTF-8):	qshape - wypisywanie rozkładu domen i wieku z kolejki Postfiksa
@@ -301,7 +312,6 @@ sed -i '/scache_clnt_create/s/server/var_scache_service/' src/global/scache_clnt
 %if %{with vda}
 %patch12 -p1
 %endif
-%{!?with_cdb:%patch13 -p1}
 
 %if %{with tcp}
 sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
@@ -484,7 +494,6 @@ fi
 %attr(755,root,root) %{_libdir}/postfix/oqmgr
 %attr(755,root,root) %{_libdir}/postfix/pickup
 %attr(755,root,root) %{_libdir}/postfix/pipe
-%attr(755,root,root) %{_libdir}/postfix/postfix-cdb.so
 %attr(755,root,root) %{_libdir}/postfix/postfix-script
 %attr(755,root,root) %{_libdir}/postfix/postfix-tls-script
 %attr(755,root,root) %{_libdir}/postfix/postfix-wrapper
@@ -587,6 +596,11 @@ fi
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/postfix-lmdb.so
 %{_mandir}/man5/lmdb_table.5*
+%endif
+
+%if %{with cdb}
+%files dict-cdb
+%attr(755,root,root) %{_libdir}/postfix/postfix-cdb.so
 %endif
 
 %files qshape
