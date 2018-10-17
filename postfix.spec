@@ -318,8 +318,17 @@ sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
 %endif
 
 %build
+# export, as the same variables must be passed both to 'make makefiles' and 'make'
 export CCARGS="%{!?with_epoll:-DNO_EPOLL} %{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL} %{?with_ssl:-DUSE_TLS} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB} %{?with_sqlite:-DHAS_SQLITE} %{?with_lmdb:-DHAS_LMDB} -LHAS_SDBM"
-export AUXLIBS="-ldb -lresolv %{?with_mysql:-lmysqlclient} %{?with_pgsql:-lpq} %{?with_sasl:-lsasl} %{?with_ssl:-lssl -lcrypto} %{?with_cdb:-lcdb} -lpcre %{?with_ldap:-lldap -llber}"
+export AUXLIBS="%{rpmldflags} -lsasl -lssl -lcrypto -ldb -lresolv"
+export AUXLIBS_CDB="%{?with_cdb:-lcdb}"
+export AUXLIBS_LDAP="%{?with_ldap:-lldap -llber}"
+export AUXLIBS_LMDB="%{?with_lmdb:-llmdb}"
+export AUXLIBS_MYSQL="%{?with_mysql:-lmysqlclient}"
+export AUXLIBS_PCRE="-lpcre"
+export AUXLIBS_PGSQL="%{?with_pgsql:-lpq}"
+export AUXLIBS_SQLITE="%{?with_sqlite:-lsqlite3}"
+
 export CC="%{__cc}"
 %{__make} makefiles \
 	shared=yes dynamicmaps=yes \
