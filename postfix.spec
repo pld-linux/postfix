@@ -294,8 +294,7 @@ sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
 %endif
 
 %build
-%{__make} -f Makefile.init makefiles
-%{__make} tidy
+%{__make} makefiles shared=yes dynamicmaps=yes
 export CC="%{__cc}"
 %{__make} -j1 \
 	DEBUG="" \
@@ -358,7 +357,7 @@ touch $RPM_BUILD_ROOT/etc/security/blacklist.smtp
 %{__rm} -r $RPM_BUILD_ROOT%{_sysconfdir}/mail/makedefs.out
 %{__rm} $RPM_BUILD_ROOT%{_sysconfdir}/mail/TLS_LICENSE
 
-%{__rm} $RPM_BUILD_ROOT%{_sysconfdir}/mail/{postfix-files,postfix-script,post-install}
+%{__rm} $RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-files
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -429,11 +428,8 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/virtual
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/header_checks
 #%ghost %{_sysconfdir}/mail/*.db
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/dynamicmaps.cf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/main.cf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/master.cf
-%{_sysconfdir}/mail/postfix-wrapper
-%{_sysconfdir}/mail/postmulti-script
 %attr(740,root,root) /etc/cron.daily/postfix
 %attr(754,root,root) /etc/rc.d/init.d/postfix
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/postfix
@@ -454,15 +450,9 @@ fi
 %attr(755,root,root) %{_sbindir}/postmulti
 %attr(2755,root,maildrop) %{_sbindir}/postqueue
 %attr(755,root,root) %{_sbindir}/postsuper
-%attr(755,root,root) %{_sbindir}/posttls-finger
 %attr(2755,root,maildrop) %{_sbindir}/postdrop
-%attr(755,root,root) %{_sbindir}/qmqp-sink
-%attr(755,root,root) %{_sbindir}/qmqp-source
 %attr(755,root,root) /usr/lib/sendmail
 %dir %{_libdir}/postfix
-%attr(755,root,root) %{_libdir}/postfix/[!d]*
-%attr(755,root,root) %{_libdir}/postfix/discard
-%attr(755,root,root) %{_libdir}/postfix/dnsblog
 %attr(755,root,root) %dir %{_var}/spool/postfix
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/active
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/bounce
