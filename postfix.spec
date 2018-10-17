@@ -7,6 +7,7 @@
 %bcond_without	sasl	# without SMTP AUTH support
 %bcond_without	ssl	# without SSL/TLS support
 %bcond_without	cdb	# without cdb map support
+%bcond_without	lmdb	# without lmdb map support
 %bcond_with	vda	# with VDA patch
 %bcond_with	hir	# with Beeth's header_if_reject patch
 %bcond_with	tcp	# with unofficial tcp: lookup table
@@ -30,7 +31,7 @@ Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	3.3.1
-Release:	0.1
+Release:	1
 Epoch:		2
 License:	distributable
 Group:		Networking/Daemons/SMTP
@@ -70,6 +71,7 @@ URL:		http://www.postfix.org/
 BuildRequires:	db-devel
 # getifaddrs() with IPv6 support
 BuildRequires:	glibc-devel >= 6:2.3.4
+%{?with_lmbd:BuildRequires:	lmdb-devel}
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.0.12}
 %{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7l}
@@ -231,6 +233,18 @@ This package provides support for SQLite maps in Postfix.
 %description dict-sqlite -l pl.UTF-8
 Ten pakiet dodaje obsługę map SQLite do Postfiksa.
 
+%package dict-lmdb
+Summary:	LMDB map support for Postfix
+Summary(pl.UTF-8):	Obsługa map LMDB dla Postfiksa
+Group:		Networking/Daemons/SMTP
+Requires:	%{name} = %{epoch}:%{version}-%{release}
+
+%description dict-lmdb
+This package provides support for LMDB maps in Postfix.
+
+%description dict-lmdb -l pl.UTF-8
+Ten pakiet dodaje obsługę map LMDB do Postfiksa.
+
 %package qshape
 Summary:	qshape - Print Postfix queue domain and age distribution
 Summary(pl.UTF-8):	qshape - wypisywanie rozkładu domen i wieku z kolejki Postfiksa
@@ -294,16 +308,18 @@ sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
 %endif
 
 %build
-%{__make} makefiles shared=yes dynamicmaps=yes
+export CCARGS="%{!?with_epoll:-DNO_EPOLL} %{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL} %{?with_ssl:-DUSE_TLS} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB} %{?with_sqlite:-DHAS_SQLITE} %{?with_lmdb:-DHAS_LMDB} -LHAS_SDBM"
+export AUXLIBS="-ldb -lresolv %{?with_mysql:-lmysqlclient} %{?with_pgsql:-lpq} %{?with_sasl:-lsasl} %{?with_ssl:-lssl -lcrypto} %{?with_cdb:-lcdb} -lpcre %{?with_ldap:-lldap -llber}"
 export CC="%{__cc}"
+%{__make} makefiles \
+	shared=yes dynamicmaps=yes \
+	daemon_directory="%{_libdir}/postfix" \
+	shlib_directory="%{_libdir}/postfix" \
+	manpage_directory="%{_mandir}"
+
 %{__make} -j1 \
 	DEBUG="" \
-	OPT="%{rpmcflags} %{rpmcppflags} -D_FILE_OFFSET_BITS=64" \
-	%{!?with_ldap:LDAPSO=""} \
-	%{!?with_mysql:MYSQLSO=""} \
-	%{!?with_pgsql:PGSQLSO=""} \
-	CCARGS="%{!?with_epoll:-DNO_EPOLL} %{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL} %{?with_ssl:-DUSE_TLS} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB}" \
-	AUXLIBS="-ldb -lresolv %{?with_mysql:-lmysqlclient} %{?with_pgsql:-lpq} %{?with_sasl:-lsasl} %{?with_ssl:-lssl -lcrypto} %{?with_cdb:-lcdb} -lpcre %{?with_ldap:-lldap -llber}"
+	OPT="%{rpmcflags} %{rpmcppflags} -D_FILE_OFFSET_BITS=64"
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -322,13 +338,7 @@ install -d $RPM_BUILD_ROOT/etc/{cron.daily,rc.d/init.d,sysconfig,pam.d,security,
 sed -e's,^daemon_directory = .*,daemon_directory = %{_libdir}/postfix,' \
 	conf/main.cf > $RPM_BUILD_ROOT%{_sysconfdir}/mail/main.cf
 
-for f in dns global master util ; do
-	cp -a lib/lib${f}.a $RPM_BUILD_ROOT%{_libdir}/libpostfix-${f}.so.1
-	ln -sf lib${f}.so.1 $RPM_BUILD_ROOT%{_libdir}/libpostfix-${f}.so
-done
 cp -a include/*.h $RPM_BUILD_ROOT%{_includedir}/postfix
-
-cp -a man/man* $RPM_BUILD_ROOT%{_mandir}
 
 cp -a %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/mail/aliases
 install -p %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.daily/postfix
@@ -355,9 +365,7 @@ touch $RPM_BUILD_ROOT/etc/security/blacklist.smtp
 > $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
 %{__rm} -r $RPM_BUILD_ROOT%{_sysconfdir}/mail/makedefs.out
-%{__rm} $RPM_BUILD_ROOT%{_sysconfdir}/mail/TLS_LICENSE
-
-%{__rm} $RPM_BUILD_ROOT%{_sysconfdir}/mail/postfix-files
+%{__rm} $RPM_BUILD_ROOT%{_sysconfdir}/mail/{,TLS_}LICENSE
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -428,15 +436,19 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/virtual
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/header_checks
 #%ghost %{_sysconfdir}/mail/*.db
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/dynamicmaps.cf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/main.cf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/main.cf.default
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/main.cf.proto
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/master.cf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/master.cf.proto
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/postfix-files
 %attr(740,root,root) /etc/cron.daily/postfix
 %attr(754,root,root) /etc/rc.d/init.d/postfix
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/postfix
 %config(noreplace) %verify(not md5 mtime size) /etc/pam.d/smtp
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/security/blacklist.smtp
 %{?with_sasl:%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/sasl/smtpd.conf}
-%attr(755,root,root) %{_libdir}/libpostfix-*.so.*
 %attr(755,root,root) %{_bindir}/mailq
 %attr(755,root,root) %{_bindir}/newaliases
 %attr(755,root,root) %{_bindir}/rmail
@@ -453,6 +465,45 @@ fi
 %attr(2755,root,maildrop) %{_sbindir}/postdrop
 %attr(755,root,root) /usr/lib/sendmail
 %dir %{_libdir}/postfix
+%attr(755,root,root) %{_libdir}/postfix/anvil
+%attr(755,root,root) %{_libdir}/postfix/bounce
+%attr(755,root,root) %{_libdir}/postfix/cleanup
+%attr(755,root,root) %{_libdir}/postfix/discard
+%attr(755,root,root) %{_libdir}/postfix/dnsblog
+%attr(755,root,root) %{_libdir}/postfix/error
+%attr(755,root,root) %{_libdir}/postfix/flush
+%attr(755,root,root) %{_libdir}/postfix/libpostfix-dns.so
+%attr(755,root,root) %{_libdir}/postfix/libpostfix-global.so
+%attr(755,root,root) %{_libdir}/postfix/libpostfix-master.so
+%attr(755,root,root) %{_libdir}/postfix/libpostfix-tls.so
+%attr(755,root,root) %{_libdir}/postfix/libpostfix-util.so
+%attr(755,root,root) %{_libdir}/postfix/lmtp
+%attr(755,root,root) %{_libdir}/postfix/local
+%attr(755,root,root) %{_libdir}/postfix/master
+%attr(755,root,root) %{_libdir}/postfix/nqmgr
+%attr(755,root,root) %{_libdir}/postfix/oqmgr
+%attr(755,root,root) %{_libdir}/postfix/pickup
+%attr(755,root,root) %{_libdir}/postfix/pipe
+%attr(755,root,root) %{_libdir}/postfix/postfix-cdb.so
+%attr(755,root,root) %{_libdir}/postfix/postfix-script
+%attr(755,root,root) %{_libdir}/postfix/postfix-tls-script
+%attr(755,root,root) %{_libdir}/postfix/postfix-wrapper
+%attr(755,root,root) %{_libdir}/postfix/post-install
+%attr(755,root,root) %{_libdir}/postfix/postmulti-script
+%attr(755,root,root) %{_libdir}/postfix/postscreen
+%attr(755,root,root) %{_libdir}/postfix/proxymap
+%attr(755,root,root) %{_libdir}/postfix/qmgr
+%attr(755,root,root) %{_libdir}/postfix/qmqpd
+%attr(755,root,root) %{_libdir}/postfix/scache
+%attr(755,root,root) %{_libdir}/postfix/showq
+%attr(755,root,root) %{_libdir}/postfix/smtp
+%attr(755,root,root) %{_libdir}/postfix/smtpd
+%attr(755,root,root) %{_libdir}/postfix/spawn
+%attr(755,root,root) %{_libdir}/postfix/tlsmgr
+%attr(755,root,root) %{_libdir}/postfix/tlsproxy
+%attr(755,root,root) %{_libdir}/postfix/trivial-rewrite
+%attr(755,root,root) %{_libdir}/postfix/verify
+%attr(755,root,root) %{_libdir}/postfix/virtual
 %attr(755,root,root) %dir %{_var}/spool/postfix
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/active
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/bounce
@@ -470,9 +521,7 @@ fi
 %{_mandir}/man1/mailq.1*
 %{_mandir}/man1/newaliases.1*
 %{_mandir}/man1/post*.1*
-%{_mandir}/man1/qmqp-*.1*
 %{_mandir}/man1/sendmail.1*
-%{_mandir}/man1/smtp-*.1*
 %{_mandir}/man5/access.5*
 %{_mandir}/man5/aliases.5*
 %{_mandir}/man5/body_checks.5*
@@ -481,7 +530,6 @@ fi
 %{_mandir}/man5/cidr_table.5*
 %{_mandir}/man5/generic.5*
 %{_mandir}/man5/header_checks.5*
-%{_mandir}/man5/lmdb_table.5*
 %{_mandir}/man5/master.5*
 %{_mandir}/man5/memcache_table.5*
 %{_mandir}/man5/nisplus_table.5*
@@ -498,47 +546,52 @@ fi
 
 %files devel
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libpostfix-*.so
 %{_includedir}/postfix
 
 %if %{with ldap}
 %files dict-ldap
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/postfix/dict_ldap.so
+%attr(755,root,root) %{_libdir}/postfix/postfix-ldap.so
 %{_mandir}/man5/ldap_table.5*
 %endif
 
 %if %{with mysql}
 %files dict-mysql
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/postfix/dict_mysql.so
+%attr(755,root,root) %{_libdir}/postfix/postfix-mysql.so
 %{_mandir}/man5/mysql_table.5*
 %endif
 
 %files dict-pcre
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/postfix/dict_pcre.so
+%attr(755,root,root) %{_libdir}/postfix/postfix-pcre.so
 #%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/pcre_table
 %{_mandir}/man5/pcre_table.5*
 
 %if %{with pgsql}
 %files dict-pgsql
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/postfix/dict_pgsql.so
+%attr(755,root,root) %{_libdir}/postfix/postfix-pgsql.so
 %{_mandir}/man5/pgsql_table.5*
 %endif
 
 %if %{with sqlite}
 %files dict-sqlite
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/postfix/dict_sqlite.so
+%attr(755,root,root) %{_libdir}/postfix/postfix-sqlite.so
 %{_mandir}/man5/sqlite_table.5*
+%endif
+
+%if %{with lmdb}
+%files dict-lmdb
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/postfix/postfix-lmdb.so
+%{_mandir}/man5/lmdb_table.5*
 %endif
 
 %files qshape
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/qshape
-%{_mandir}/man1/qshape.1*
 
 %files -n monit-rc-%{name}
 %defattr(644,root,root,755)
