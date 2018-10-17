@@ -512,7 +512,7 @@ fi
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/deferred
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/incoming
 %attr(1730,postfix,maildrop) %dir %{_var}/spool/postfix/maildrop
-%attr(755,postfix,root) %dir %{_var}/spool/postfix/pid
+%attr(755,root,root) %dir %{_var}/spool/postfix/pid
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/private
 %attr(710,postfix,maildrop) %dir %{_var}/spool/postfix/public
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/saved
