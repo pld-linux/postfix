@@ -70,6 +70,7 @@ URL:		http://www.postfix.org/
 BuildRequires:	db-devel
 # getifaddrs() with IPv6 support
 BuildRequires:	glibc-devel >= 6:2.3.4
+BuildRequires:	libicu-devel
 %{?with_lmbd:BuildRequires:	lmdb-devel}
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.0.12}
