@@ -1,0 +1,22 @@
+--- postfix-3.3.7/makedefs~	2020-02-08 13:42:07.000000000 +0100
++++ postfix-3.3.7/makedefs	2020-02-08 13:42:53.604246413 +0100
+@@ -546,7 +546,7 @@ EOF
+ 		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
+ 		: ${PLUGIN_LD="${CC-gcc} -shared"}
+ 		;;
+-  Linux.[34].*)	SYSTYPE=LINUX$RELEASE_MAJOR
++  Linux.[3456].*)	SYSTYPE=LINUX$RELEASE_MAJOR
+ 		case "$CCARGS" in
+ 		 *-DNO_DB*) ;;
+ 		 *-DHAS_DB*) ;;
+--- postfix-3.3.7/src/util/sys_defs.h~	2020-02-08 13:43:34.000000000 +0100
++++ postfix-3.3.7/src/util/sys_defs.h	2020-02-08 13:44:42.064282215 +0100
+@@ -748,7 +748,7 @@ extern int initgroups(const char *, int)
+  /*
+   * LINUX.
+   */
+-#if defined(LINUX2) || defined(LINUX3) || defined(LINUX4)
++#if defined(LINUX2) || defined(LINUX3) || defined(LINUX4) || defined(LINUX5) || defined(LINUX6)
+ #define SUPPORTED
+ #define UINT32_TYPE	unsigned int
+ #define UINT16_TYPE	unsigned short
