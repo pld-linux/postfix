@@ -5,7 +5,7 @@
  #
  #cyrus     unix  -       n       n       -       -       pipe
 -#  flags=DRX user=cyrus argv=/cyrus/bin/deliver -e -r ${sender} -m ${extension} ${user}
-+#  flags=DRX user=cyrus argv=/usr/lib/cyrus//deliver -e -r ${sender} -m ${extension} ${user}
++#  flags=DRX user=cyrus argv=/usr/sbin/deliver -e -r ${sender} -m ${extension} ${user}
  #
  # ====================================================================
  #
@@ -13,7 +13,7 @@
  #
  #old-cyrus unix  -       n       n       -       -       pipe
 -#  flags=R user=cyrus argv=/cyrus/bin/deliver -e -m ${extension} ${user}
-+#  flags=R user=cyrus argv=/usr/lib/cyrus/deliver -e -m ${extension} ${user}
++#  flags=R user=cyrus argv=/usr/sbin/deliver -e -m ${extension} ${user}
  #
  # ====================================================================
  #

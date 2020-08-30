@@ -1,24 +1,24 @@
 #
 # Conditional build:
-%bcond_without	ldap	# without LDAP map module
-%bcond_without	mysql	# without MySQL map module
-%bcond_without	pgsql	# without PostgreSQL map module
-%bcond_without	sqlite	# without SQLite map module
-%bcond_without	sasl	# without SMTP AUTH support
-%bcond_without	ssl	# without SSL/TLS support
-%bcond_without	cdb	# without cdb map support
-%bcond_without	lmdb	# without lmdb map support
-%bcond_with	vda	# with VDA patch
-%bcond_with	hir	# with Beeth's header_if_reject patch
-%bcond_with	tcp	# with unofficial tcp: lookup table
+%bcond_without	ldap	# LDAP map module
+%bcond_without	mysql	# MySQL map module
+%bcond_without	pgsql	# PostgreSQL map module
+%bcond_without	sqlite	# SQLite map module
+%bcond_without	sasl	# SMTP AUTH support
+%bcond_without	ssl	# SSL/TLS support
+%bcond_without	cdb	# cdb map support
+%bcond_without	lmdb	# lmdb map support
+%bcond_with	vda	# VDA patch
+%bcond_with	hir	# Beeth's header_if_reject patch
+%bcond_with	tcp	# unofficial tcp: lookup table
 %if "%{pld_release}" == "ac"
-%bcond_with		epoll	# enable epoll for 2.6 kernels
+%bcond_with	epoll	# epoll support for 2.6 kernels
 # there didn't exist x86_64 2.4 kernel in PLD, so can safely enable epoll
 %ifarch %{x8664}
 %define		with_epoll	1
 %endif
 %else
-%bcond_without	epoll	# disable epoll for 2.4 kernels
+%bcond_without	epoll	# epoll support (Linux >= 2.6)
 %endif
 
 %define		vda_ver v13-2.10.0
@@ -30,13 +30,13 @@ Summary(pl.UTF-8):	Serwer SMTP Postfix
 Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
-Version:	3.5.0
-Release:	2
+Version:	3.5.6
+Release:	1
 Epoch:		2
-License:	distributable
+License:	IBM Public License or Eclipse Public License v2.0
 Group:		Networking/Daemons/SMTP
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	f6a48f369cf8d693d7b0f8ab51f0fc9b
+# Source0-md5:	c5819f40ffbe22bc785a30905b1f1c7a
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
@@ -71,6 +71,7 @@ BuildRequires:	db-devel
 # getifaddrs() with IPv6 support
 BuildRequires:	glibc-devel >= 6:2.3.4
 BuildRequires:	libicu-devel
+BuildRequires:	libnsl-devel
 %{?with_lmbd:BuildRequires:	lmdb-devel}
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.0.12}
@@ -321,7 +322,7 @@ sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
 %build
 # export, as the same variables must be passed both to 'make makefiles' and 'make'
 export CCARGS="%{!?with_epoll:-DNO_EPOLL} %{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL} %{?with_ssl:-DUSE_TLS} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB} %{?with_sqlite:-DHAS_SQLITE} %{?with_lmdb:-DHAS_LMDB} -LHAS_SDBM"
-export AUXLIBS="%{rpmldflags} -lsasl -lssl -lcrypto -ldb -lresolv"
+export AUXLIBS="%{rpmldflags} -lsasl -lssl -lcrypto"
 export AUXLIBS_CDB="%{?with_cdb:-lcdb}"
 export AUXLIBS_LDAP="%{?with_ldap:-lldap -llber}"
 export AUXLIBS_LMDB="%{?with_lmdb:-llmdb}"
