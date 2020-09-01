@@ -299,14 +299,14 @@ cat %{SOURCE7} | %{__patch} -p1 -s
 cat %{SOURCE11} | %{__patch} -p1 -s
 %endif
 
-find -type f | xargs sed -i -e 's|/etc/postfix|/etc/mail|g'
+find -type f | xargs %{__sed} -i -e 's|/etc/postfix|/etc/mail|g'
 
 %patch0 -p1
 
 %patch3 -p1
 %{?with_hir:%patch4 -p0}
 
-sed -i '/scache_clnt_create/s/server/var_scache_service/' src/global/scache_clnt.c
+%{__sed} -i -e '/scache_clnt_create/s/server/var_scache_service/' src/global/scache_clnt.c
 %patch7 -p1
 %patch8 -p1
 
@@ -318,6 +318,8 @@ sed -i '/scache_clnt_create/s/server/var_scache_service/' src/global/scache_clnt
 %if %{with tcp}
 sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
 %endif
+
+%{__sed} -i -e 's,/lib64\>,/%{_lib},' makedefs
 
 %build
 # export, as the same variables must be passed both to 'make makefiles' and 'make'
@@ -333,7 +335,8 @@ export AUXLIBS_SQLITE="%{?with_sqlite:-lsqlite3}"
 
 export CC="%{__cc}"
 %{__make} makefiles \
-	shared=yes dynamicmaps=yes \
+	shared=yes \
+	dynamicmaps=yes \
 	daemon_directory="%{_libdir}/postfix" \
 	shlib_directory="%{_libdir}/postfix" \
 	manpage_directory="%{_mandir}"
