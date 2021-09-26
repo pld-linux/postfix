@@ -1,0 +1,10 @@
+--- postfix-3.5.11/src/util/sys_defs.h~	2021-09-26 23:25:46.000000000 +0200
++++ postfix-3.5.11/src/util/sys_defs.h	2021-09-26 23:32:57.661271117 +0200
+@@ -774,6 +774,7 @@
+ #define PREPEND_PLUS_TO_OPTSTRING
+ #define HAS_POSIX_REGEXP
+ #define HAS_DLOPEN
++#define HAS_CLOSEFROM
+ #define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
+ #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
+ #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"

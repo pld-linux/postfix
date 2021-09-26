@@ -30,13 +30,13 @@ Summary(pl.UTF-8):	Serwer SMTP Postfix
 Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
-Version:	3.5.11
-Release:	2
+Version:	3.6.2
+Release:	1
 Epoch:		2
 License:	IBM Public License or Eclipse Public License v2.0
 Group:		Networking/Daemons/SMTP
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	e970e8723e1b114643dc37e436bd5937
+# Source0-md5:	4718b498fa4285cf275f506c169f4746
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
@@ -65,6 +65,7 @@ Patch8:		%{name}-dictname.patch
 
 Patch11:	%{name}-scache_clnt.patch
 Patch12:	format-security.patch
+Patch13:	glibc-2.34.patch
 URL:		http://www.postfix.org/
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db-devel
@@ -314,6 +315,7 @@ find -type f | xargs %{__sed} -i -e 's|/etc/postfix|/etc/mail|g'
 %if %{with vda}
 %patch12 -p1
 %endif
+%patch13 -p1
 
 %if %{with tcp}
 sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
