@@ -30,13 +30,13 @@ Summary(pl.UTF-8):	Serwer SMTP Postfix
 Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
-Version:	3.6.2
-Release:	2
+Version:	3.6.6
+Release:	1
 Epoch:		2
 License:	IBM Public License or Eclipse Public License v2.0
 Group:		Networking/Daemons/SMTP
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	4718b498fa4285cf275f506c169f4746
+# Source0-md5:	891ea3d4e2d7a9a82c0363ce9de2abda
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
@@ -73,7 +73,8 @@ BuildRequires:	db-devel
 BuildRequires:	glibc-devel >= 6:2.3.4
 BuildRequires:	libicu-devel
 BuildRequires:	libnsl-devel
-%{?with_lmbd:BuildRequires:	lmdb-devel}
+BuildRequires:	m4
+%{?with_lmdb:BuildRequires:	lmdb-devel}
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.0.12}
 %{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7l}
