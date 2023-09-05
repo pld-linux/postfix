@@ -30,13 +30,13 @@ Summary(pl.UTF-8):	Serwer SMTP Postfix
 Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
-Version:	3.6.10
+Version:	3.6.11
 Release:	1
 Epoch:		2
 License:	IBM Public License or Eclipse Public License v2.0
 Group:		Networking/Daemons/SMTP
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	3190ba172cf52d2780713a331c731785
+# Source0-md5:	787dbc0585fc87460f18138ea4400fae
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
@@ -55,6 +55,7 @@ Source11:	%{name}-vda-bigquota.patch
 # -ource11-md5:	d46103195b43ec5784ea2c166b238f71
 Source12:	%{name}.service
 Patch0:		%{name}-config.patch
+Patch1:         %{name}-egrep.patch
 
 Patch3:		%{name}-master.cf_cyrus.patch
 # from http://akson.sgh.waw.pl/~chopin/unix/postfix-2.1.5-header_if_reject.diff
@@ -304,6 +305,7 @@ cat %{SOURCE11} | %{__patch} -p1 -s
 find -type f | xargs %{__sed} -i -e 's|/etc/postfix|/etc/mail|g'
 
 %patch0 -p1
+%patch1 -p1
 
 %patch3 -p1
 %{?with_hir:%patch4 -p0}

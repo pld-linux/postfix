@@ -1,0 +1,42 @@
+diff -urN postfix-3.6.11.org/conf/postfix-script postfix-3.6.11/conf/postfix-script
+--- postfix-3.6.11.org/conf/postfix-script	2019-02-02 17:17:50.000000000 +0100
++++ postfix-3.6.11/conf/postfix-script	2023-09-05 10:22:52.909999216 +0200
+@@ -328,7 +328,7 @@
+ 	# Check Postfix mail_owner-owned directory tree owner.
+ 
+ 	find `ls -d $queue_directory/* | \
+-	    egrep '/(saved|incoming|active|defer|deferred|bounce|hold|trace|corrupt|public|private|flush)$'` \
++	    grep -E '/(saved|incoming|active|defer|deferred|bounce|hold|trace|corrupt|public|private|flush)$'` \
+ 	    ! \( -type p -o -type s \) ! -user $mail_owner \
+ 		-exec $WARN not owned by $mail_owner: {} \;
+ 
+diff -urN postfix-3.6.11.org/conf/postfix-tls-script postfix-3.6.11/conf/postfix-tls-script
+--- postfix-3.6.11.org/conf/postfix-tls-script	2020-05-30 16:37:04.000000000 +0200
++++ postfix-3.6.11/conf/postfix-tls-script	2023-09-05 10:22:41.113332549 +0200
+@@ -333,7 +333,7 @@
+ }
+ rsa=
+ ecdsa=
+-for _algo in `$postconf -T public-key-algorithms | egrep '^(rsa|ecdsa)$'`
++for _algo in `$postconf -T public-key-algorithms | grep -E '^(rsa|ecdsa)$'`
+ do
+     eval $_algo=$_algo
+ done
+@@ -415,7 +415,7 @@
+     for cmd in ec rsa; do
+ 	$openssl $cmd -passin "pass:umask 077" -in "$1" -pubout |
+ 	$openssl $cmd -pubin -outform DER |
+-	hex_sha256 | egrep -v "${null256}" && return 0
++	hex_sha256 | grep -E -v "${null256}" && return 0
+     done 2>/dev/null
+     return 1
+ }
+@@ -429,7 +429,7 @@
+     for cmd in ec rsa; do
+ 	$openssl x509 -pubkey -noout -in "$1" |
+ 	$openssl $cmd -pubin -outform DER |
+-	hex_sha256 | egrep -v "${null256}" && return 0
++	hex_sha256 | grep -E -v "${null256}" && return 0
+     done 2>/dev/null
+     return 1
+ }
