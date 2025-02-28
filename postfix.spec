@@ -30,13 +30,13 @@ Summary(pl.UTF-8):	Serwer SMTP Postfix
 Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
-Version:	3.6.15
-Release:	2
+Version:	3.6.18
+Release:	1
 Epoch:		2
 License:	IBM Public License or Eclipse Public License v2.0
 Group:		Networking/Daemons/SMTP
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	88471ed95d8f779d16e5c77c000367d5
+# Source0-md5:	10aed60e989a78df19b093e077c58dcc
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
@@ -304,21 +304,21 @@ cat %{SOURCE11} | %{__patch} -p1 -s
 
 find -type f | xargs %{__sed} -i -e 's|/etc/postfix|/etc/mail|g'
 
-%patch0 -p1
-%patch1 -p1
+%patch -P0 -p1
+%patch -P1 -p1
 
-%patch3 -p1
-%{?with_hir:%patch4 -p0}
+%patch -P3 -p1
+%{?with_hir:%patch -P4 -p0}
 
 %{__sed} -i -e '/scache_clnt_create/s/server/var_scache_service/' src/global/scache_clnt.c
-%patch7 -p1
-%patch8 -p1
+%patch -P7 -p1
+%patch -P8 -p1
 
-%patch11 -p1
+%patch -P11 -p1
 %if %{with vda}
-%patch12 -p1
+%patch -P12 -p1
 %endif
-%patch13 -p1
+%patch -P13 -p1
 
 %if %{with tcp}
 sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
