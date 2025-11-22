@@ -31,7 +31,7 @@ Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	3.6.18
-Release:	3
+Release:	4
 Epoch:		2
 License:	IBM Public License or Eclipse Public License v2.0
 Group:		Networking/Daemons/SMTP
@@ -329,7 +329,7 @@ sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
 
 %build
 # export, as the same variables must be passed both to 'make makefiles' and 'make'
-export CCARGS="%{!?with_epoll:-DNO_EPOLL} %{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL} %{?with_ssl:-DUSE_TLS} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB} %{?with_sqlite:-DHAS_SQLITE} %{?with_lmdb:-DHAS_LMDB} -LHAS_SDBM"
+export CCARGS="-std=gnu17 %{!?with_epoll:-DNO_EPOLL} %{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL} %{?with_ssl:-DUSE_TLS} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB} %{?with_sqlite:-DHAS_SQLITE} %{?with_lmdb:-DHAS_LMDB} -LHAS_SDBM"
 export AUXLIBS="%{rpmldflags} -lsasl -lssl -lcrypto"
 export AUXLIBS_CDB="%{?with_cdb:-lcdb}"
 export AUXLIBS_LDAP="%{?with_ldap:-lldap -llber}"
