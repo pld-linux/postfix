@@ -112,16 +112,21 @@ case "$1" in
 	;;
   rebuilddb)
 	standard_db="access canonical relocated transport virtual"
-	extra_db=$(ls -1 /etc/mail/*.db 2> /dev/null | grep -Ev '/(access|canonical|relocated|transport|virtual|aliases)\.db$')
 
 	echo -n "Rebuilding databases: "
-	for base in $standard_db $extra_db; do
-		db=$(basename "$base" .db)
+	# /etc/mail is still scanned for maps left there before the config
+	# directory moved to /etc/postfix
+	for dir in /etc/postfix /etc/mail; do
+		extra_db=$(ls -1 $dir/*.db 2> /dev/null | grep -Ev '/(access|canonical|relocated|transport|virtual|aliases)\.db$')
 
-		if [ -f /etc/mail/$db ]; then
-			echo -n "$db "
-			/usr/sbin/postmap hash:/etc/mail/$db < /etc/mail/$db
-		fi
+		for base in $standard_db $extra_db; do
+			db=$(basename "$base" .db)
+
+			if [ -f $dir/$db ]; then
+				echo -n "$db "
+				/usr/sbin/postmap hash:$dir/$db < $dir/$db
+			fi
+		done
 	done
 	echo "...DONE"
 

@@ -283,8 +283,6 @@ Plik monitrc do monitorowania serwera Postfix.
 %prep
 %setup -q
 
-find -type f | xargs %{__sed} -i -e 's|/etc/postfix|/etc/mail|g'
-
 %patch -P0 -p1
 
 %patch -P3 -p1
@@ -314,6 +312,7 @@ export CC="%{__cc}"
 %{__make} makefiles \
 	shared=yes \
 	dynamicmaps=yes \
+	config_directory="%{_sysconfdir}/postfix" \
 	daemon_directory="%{_libdir}/postfix" \
 	shlib_directory="%{_libdir}/postfix" \
 	manpage_directory="%{_mandir}"
@@ -325,31 +324,33 @@ export CC="%{__cc}"
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/{cron.daily,rc.d/init.d,sysconfig,pam.d,security,monit} \
-	$RPM_BUILD_ROOT%{_sysconfdir}/{mail,sasl} \
-	$RPM_BUILD_ROOT%{_sysconfdir}/mail/{dynamicmaps.cf.d,postfix-files.d} \
+	$RPM_BUILD_ROOT%{_sysconfdir}/{mail,postfix,sasl} \
+	$RPM_BUILD_ROOT%{_sysconfdir}/postfix/{dynamicmaps.cf.d,postfix-files.d} \
 	$RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,/usr/lib}\
 	$RPM_BUILD_ROOT{%{_includedir}/postfix,%{_mandir}} \
-	$RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public} \
+	$RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,flush,hold,incoming,pid,public,trace} \
 	$RPM_BUILD_ROOT%{_var}/lib/postfix \
 	$RPM_BUILD_ROOT%{systemdunitdir}
 
 %{__make} non-interactive-package \
        install_root=$RPM_BUILD_ROOT
 
-#cp -a conf/* $RPM_BUILD_ROOT%{_sysconfdir}/mail
 %{__sed} -e 's,^daemon_directory = .*,daemon_directory = %{_libdir}/postfix,' \
-	conf/main.cf > $RPM_BUILD_ROOT%{_sysconfdir}/mail/main.cf
+	conf/main.cf > $RPM_BUILD_ROOT%{_sysconfdir}/postfix/main.cf
 
 cp -a include/*.h $RPM_BUILD_ROOT%{_includedir}/postfix
 
-cp -a %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/mail/aliases
+cp -a %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/postfix/aliases
+# listed in alias_maps: postfix aborts on a missing map, so it must exist even
+# when no list manager has appended to it yet
+: > $RPM_BUILD_ROOT%{_sysconfdir}/mail/aliases
 install -p %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.daily/postfix
 install -p %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/postfix
 cp -a %{SOURCE4} $RPM_BUILD_ROOT/etc/sysconfig/postfix
 cp -a %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/sasl/smtpd.conf
 cp -a %{SOURCE6} $RPM_BUILD_ROOT/etc/pam.d/smtp
-cp -a %{SOURCE8} $RPM_BUILD_ROOT%{_sysconfdir}/mail/bounce.cf.pl
-cp -a %{SOURCE9} $RPM_BUILD_ROOT%{_sysconfdir}/mail/bounce.cf.de
+cp -a %{SOURCE8} $RPM_BUILD_ROOT%{_sysconfdir}/postfix/bounce.cf.pl
+cp -a %{SOURCE9} $RPM_BUILD_ROOT%{_sysconfdir}/postfix/bounce.cf.de
 cp -a %{SOURCE10} $RPM_BUILD_ROOT/etc/monit/%{name}.monitrc
 cp -a %{SOURCE12} $RPM_BUILD_ROOT%{systemdunitdir}/%{name}.service
 install -p auxiliary/rmail/rmail $RPM_BUILD_ROOT%{_bindir}/rmail
@@ -359,18 +360,52 @@ ln -sf %{_sbindir}/sendmail $RPM_BUILD_ROOT%{_bindir}/mailq
 ln -sf %{_sbindir}/sendmail $RPM_BUILD_ROOT%{_bindir}/newaliases
 ln -sf %{_sbindir}/sendmail $RPM_BUILD_ROOT/usr/lib/sendmail
 
-touch $RPM_BUILD_ROOT%{_sysconfdir}/mail/\
-	{aliases,access,canonical,relocated,transport,virtual}{,.db}
-
 touch $RPM_BUILD_ROOT/etc/security/blacklist.smtp
 
 > $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
-%{__rm} $RPM_BUILD_ROOT%{_sysconfdir}/mail/makedefs.out
-%{__rm} $RPM_BUILD_ROOT%{_sysconfdir}/mail/{,TLS_}LICENSE
+%{__rm} $RPM_BUILD_ROOT%{_sysconfdir}/postfix/makedefs.out
+%{__rm} $RPM_BUILD_ROOT%{_sysconfdir}/postfix/{,TLS_}LICENSE
 
 # mongodb map is not built - no libmongoc in PLD
 %{__rm} $RPM_BUILD_ROOT%{_mandir}/man5/mongodb_table.5
+
+cfgdir=$RPM_BUILD_ROOT%{_sysconfdir}/postfix
+
+# post-install chowns every postfix-files entry with no existence check, so the
+# inventory has to describe exactly what is shipped: rpm compresses manpages,
+# and the files removed above must not be listed. Only entries flagged 'o'
+# (obsolete) are skipped; 'c' just means create-missing may build it, which
+# does not save set-permissions from failing on it.
+%{__sed} -i -r -e 's|(/man[158]/[^:]+\.[158]):f|\1.gz:f|' $cfgdir/postfix-files
+# ...except the one-line ".so" redirect stubs, which rpm leaves alone
+for m in $(cd $RPM_BUILD_ROOT%{_mandir} && grep -rl '^\.so ' man1 man5 man8); do
+	%{__sed} -i -e "s|/$m\.gz:|/$m:|" $cfgdir/postfix-files
+done
+%{__sed} -i \
+	-e '\|^\$meta_directory/makedefs\.out|d' \
+	-e '\|^\$config_directory/LICENSE|d' \
+	-e '\|^\$config_directory/TLS_LICENSE|d' \
+	-e '\|^\$manpage_directory/man5/mongodb_table\.5|d' \
+	$cfgdir/postfix-files
+
+# Give every map its own registry fragment so a postfix-dict-* subpackage can
+# be absent: one monolithic list makes "postfix set-permissions" abort on the
+# first plugin that is not installed.
+for map in %{?with_cdb:cdb} %{?with_ldap:ldap} %{?with_lmdb:lmdb} \
+		%{?with_mysql:mysql} pcre %{?with_pgsql:pgsql} %{?with_sqlite:sqlite}; do
+	grep -E "^$map[[:space:]]" $cfgdir/dynamicmaps.cf > $cfgdir/dynamicmaps.cf.d/$map
+	%{__sed} -i -e "/^$map[[:space:]]/d" $cfgdir/dynamicmaps.cf
+
+	grep -E "^\\\$shlib_directory/postfix-$map\.so:" $cfgdir/postfix-files \
+		> $cfgdir/postfix-files.d/$map
+	%{__sed} -i -e "\|^\\\$shlib_directory/postfix-$map\.so:|d" $cfgdir/postfix-files
+
+	# cdb has no table manpage
+	grep -E "^\\\$manpage_directory/man5/${map}_table\.5" $cfgdir/postfix-files \
+		>> $cfgdir/postfix-files.d/$map || :
+	%{__sed} -i -e "\|^\\\$manpage_directory/man5/${map}_table\.5|d" $cfgdir/postfix-files
+done
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -382,19 +417,58 @@ rm -rf $RPM_BUILD_ROOT
 
 %post
 /sbin/ldconfig
-if ! grep -q "^postmaster:" %{_sysconfdir}/mail/aliases; then
-	echo "Adding Entry for postmaster in %{_sysconfdir}/mail/aliases" >&2
-	echo "postmaster: root" >>%{_sysconfdir}/mail/aliases
+if ! grep -q "^postmaster:" %{_sysconfdir}/postfix/aliases; then
+	echo "Adding Entry for postmaster in %{_sysconfdir}/postfix/aliases" >&2
+	echo "postmaster: root" >>%{_sysconfdir}/postfix/aliases
 fi
 if [ "$1" = "1" ]; then
 	# only on installation, not upgrade; set sane defaults
 	# postfix expects gethostname() to return FQDN, which is obviously wrong
-	if ! grep -qE "^my(domain|hostname)" %{_sysconfdir}/mail/main.cf; then
+	if ! grep -qE "^my(domain|hostname)" %{_sysconfdir}/postfix/main.cf; then
 		domain=$(/bin/hostname -d 2>/dev/null)
 		[ -n "$domain" -a "$domain" != 'localdomain' ] && \
 			postconf -e mydomain="$domain"
 	fi
 else
+	# config_directory moved from /etc/mail to /etc/postfix. rpm removes the
+	# old copies only after this runs, so carry them over first: whatever the
+	# admin had in /etc/mail wins, since %%config(noreplace) cannot follow a
+	# rename.
+	if [ -f %{_sysconfdir}/mail/main.cf ]; then
+		# only basenames this package owned: /etc/mail also holds sympa,
+		# spamassassin and milter-greylist files that keep their paths
+		tables="access canonical generic header_checks relocated transport virtual bounce.cf.pl bounce.cf.de"
+		for f in main.cf master.cf $tables; do
+			[ -f %{_sysconfdir}/mail/$f ] || continue
+			cp -p %{_sysconfdir}/mail/$f %{_sysconfdir}/postfix/$f
+			# indexed copies are path-independent; -p keeps them newer
+			# than their source so "postfix check" stays quiet
+			for db in db cdb lmdb; do
+				[ -f %{_sysconfdir}/mail/$f.$db ] && \
+					cp -p %{_sysconfdir}/mail/$f.$db %{_sysconfdir}/postfix/$f.$db
+			done
+		done
+		# bounce.cf.default is repointed but never copied: it is the package's
+		# own defaults reference, already installed at the new path
+		alt=$(echo $tables bounce.cf.default | %{__sed} -e 's,\.,\\.,g' -e 's, ,|,g')
+		# the match must end at a map-list separator, not at a word boundary:
+		# /etc/mail/access.local and /etc/mail/transport-out are admin files
+		# that were never copied, so they have to keep pointing at /etc/mail
+		%{__sed} -i -r -e "s,%{_sysconfdir}/mail/($alt)([,}[:space:]]|\$),%{_sysconfdir}/postfix/\1\2,g" \
+			%{_sysconfdir}/postfix/main.cf %{_sysconfdir}/postfix/master.cf
+		# aliases stays shared and is searched first, so entries the admin
+		# redirected there still beat the package template. Only the previous
+		# default value is upgraded, leaving a hand-built alias_maps alone.
+		for p in alias_maps alias_database; do
+			case "$(postconf -h $p 2>/dev/null)" in
+			"hash:%{_sysconfdir}/mail/aliases"|"%{_sysconfdir}/mail/aliases")
+				postconf -e "$p = hash:%{_sysconfdir}/mail/aliases, hash:%{_sysconfdir}/postfix/aliases"
+				;;
+			esac
+		done
+		echo "postfix: configuration moved to %{_sysconfdir}/postfix, main.cf and master.cf repointed" >&2
+		echo "postfix: modified %{_sysconfdir}/mail files are left as *.rpmsave; run 'postfix check'" >&2
+	fi
 	%{_sbindir}/postfix upgrade-configuration
 fi
 
@@ -430,33 +504,36 @@ fi
 %doc html COMPATIBILITY HISTORY LICENSE RELEASE_NOTES* TLS_*
 %doc README_FILES/*README
 %doc examples/smtpd-policy
+%dir %{_sysconfdir}/postfix
+# shared with the other MTAs and with the list managers that append to it;
+# searched before %%{_sysconfdir}/postfix/aliases so local edits win over the
+# package template
 %dir %{_sysconfdir}/mail
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/access
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/aliases
-%lang(de) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/bounce.cf.de
-%lang(pl) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/bounce.cf.pl
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/canonical
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/generic
-#%%config(noreplace) %%verify(not md5 mtime size) %%{_sysconfdir}/mail/regexp_table
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/relocated
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/transport
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/virtual
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/header_checks
-#%%ghost %%{_sysconfdir}/mail/*.db
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/main.cf
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/master.cf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/postfix/access
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/postfix/aliases
+%lang(de) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/postfix/bounce.cf.de
+%lang(pl) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/postfix/bounce.cf.pl
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/postfix/canonical
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/postfix/generic
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/postfix/relocated
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/postfix/transport
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/postfix/virtual
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/postfix/header_checks
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/postfix/main.cf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/postfix/master.cf
 # package-owned reference and generated files, so let upgrades replace them:
 # a stale postfix-files would revert postlog's setgid bit and a stale
 # dynamicmaps.cf would list the wrong plugins. Local additions belong in
 # main.cf, master.cf or the matching *.d directory.
-%config %verify(not md5 mtime size) %{_sysconfdir}/mail/bounce.cf.default
-%config %verify(not md5 mtime size) %{_sysconfdir}/mail/dynamicmaps.cf
-%config %verify(not md5 mtime size) %{_sysconfdir}/mail/main.cf.default
-%config %verify(not md5 mtime size) %{_sysconfdir}/mail/main.cf.proto
-%config %verify(not md5 mtime size) %{_sysconfdir}/mail/master.cf.proto
-%config %verify(not md5 mtime size) %{_sysconfdir}/mail/postfix-files
-%dir %{_sysconfdir}/mail/dynamicmaps.cf.d
-%dir %{_sysconfdir}/mail/postfix-files.d
+%config %verify(not md5 mtime size) %{_sysconfdir}/postfix/bounce.cf.default
+%config %verify(not md5 mtime size) %{_sysconfdir}/postfix/dynamicmaps.cf
+%config %verify(not md5 mtime size) %{_sysconfdir}/postfix/main.cf.default
+%config %verify(not md5 mtime size) %{_sysconfdir}/postfix/main.cf.proto
+%config %verify(not md5 mtime size) %{_sysconfdir}/postfix/master.cf.proto
+%config %verify(not md5 mtime size) %{_sysconfdir}/postfix/postfix-files
+%dir %{_sysconfdir}/postfix/dynamicmaps.cf.d
+%dir %{_sysconfdir}/postfix/postfix-files.d
 %attr(740,root,root) /etc/cron.daily/postfix
 %attr(754,root,root) /etc/rc.d/init.d/postfix
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/postfix
@@ -487,11 +564,11 @@ fi
 %attr(755,root,root) %{_libdir}/postfix/dnsblog
 %attr(755,root,root) %{_libdir}/postfix/error
 %attr(755,root,root) %{_libdir}/postfix/flush
-%{_libdir}/postfix/libpostfix-dns.so
-%{_libdir}/postfix/libpostfix-global.so
-%{_libdir}/postfix/libpostfix-master.so
-%{_libdir}/postfix/libpostfix-tls.so
-%{_libdir}/postfix/libpostfix-util.so
+%attr(755,root,root) %{_libdir}/postfix/libpostfix-dns.so
+%attr(755,root,root) %{_libdir}/postfix/libpostfix-global.so
+%attr(755,root,root) %{_libdir}/postfix/libpostfix-master.so
+%attr(755,root,root) %{_libdir}/postfix/libpostfix-tls.so
+%attr(755,root,root) %{_libdir}/postfix/libpostfix-util.so
 %attr(755,root,root) %{_libdir}/postfix/lmtp
 %attr(755,root,root) %{_libdir}/postfix/local
 %attr(755,root,root) %{_libdir}/postfix/master
@@ -521,18 +598,21 @@ fi
 %attr(755,root,root) %{_libdir}/postfix/trivial-rewrite
 %attr(755,root,root) %{_libdir}/postfix/verify
 %attr(755,root,root) %{_libdir}/postfix/virtual
-%dir %{_var}/spool/postfix
+%attr(755,root,root) %dir %{_var}/spool/postfix
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/active
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/bounce
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/corrupt
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/defer
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/deferred
+%attr(700,postfix,root) %dir %{_var}/spool/postfix/flush
+%attr(700,postfix,root) %dir %{_var}/spool/postfix/hold
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/incoming
 %attr(1730,postfix,maildrop) %dir %{_var}/spool/postfix/maildrop
-%dir %{_var}/spool/postfix/pid
+%attr(755,root,root) %dir %{_var}/spool/postfix/pid
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/private
 %attr(710,postfix,maildrop) %dir %{_var}/spool/postfix/public
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/saved
+%attr(700,postfix,root) %dir %{_var}/spool/postfix/trace
 %attr(644,postfix,root) %{_var}/spool/postfix/.nofinger
 %attr(700,postfix,root) %{_var}/lib/postfix
 %{_mandir}/man1/mailq.1*
@@ -569,6 +649,8 @@ fi
 %files dict-ldap
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/postfix-ldap.so
+%config %{_sysconfdir}/postfix/dynamicmaps.cf.d/ldap
+%config %{_sysconfdir}/postfix/postfix-files.d/ldap
 %{_mandir}/man5/ldap_table.5*
 %endif
 
@@ -576,18 +658,24 @@ fi
 %files dict-mysql
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/postfix-mysql.so
+%config %{_sysconfdir}/postfix/dynamicmaps.cf.d/mysql
+%config %{_sysconfdir}/postfix/postfix-files.d/mysql
 %{_mandir}/man5/mysql_table.5*
 %endif
 
 %files dict-pcre
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/postfix-pcre.so
+%config %{_sysconfdir}/postfix/dynamicmaps.cf.d/pcre
+%config %{_sysconfdir}/postfix/postfix-files.d/pcre
 %{_mandir}/man5/pcre_table.5*
 
 %if %{with pgsql}
 %files dict-pgsql
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/postfix-pgsql.so
+%config %{_sysconfdir}/postfix/dynamicmaps.cf.d/pgsql
+%config %{_sysconfdir}/postfix/postfix-files.d/pgsql
 %{_mandir}/man5/pgsql_table.5*
 %endif
 
@@ -595,6 +683,8 @@ fi
 %files dict-sqlite
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/postfix-sqlite.so
+%config %{_sysconfdir}/postfix/dynamicmaps.cf.d/sqlite
+%config %{_sysconfdir}/postfix/postfix-files.d/sqlite
 %{_mandir}/man5/sqlite_table.5*
 %endif
 
@@ -602,6 +692,8 @@ fi
 %files dict-lmdb
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/postfix-lmdb.so
+%config %{_sysconfdir}/postfix/dynamicmaps.cf.d/lmdb
+%config %{_sysconfdir}/postfix/postfix-files.d/lmdb
 %{_mandir}/man5/lmdb_table.5*
 %endif
 
@@ -609,6 +701,8 @@ fi
 %files dict-cdb
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/postfix-cdb.so
+%config %{_sysconfdir}/postfix/dynamicmaps.cf.d/cdb
+%config %{_sysconfdir}/postfix/postfix-files.d/cdb
 %endif
 
 %files qshape

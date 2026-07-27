@@ -1,5 +1,5 @@
---- postfix-3.11.5.orig/conf/main.cf	2026-07-27 11:59:09.224019293 +0200
-+++ postfix-3.11.5/conf/main.cf	2026-07-27 12:00:21.726549083 +0200
+--- postfix-3.11.5.orig/conf/main.cf	2026-03-05 16:59:44.000000000 +0100
++++ postfix-3.11.5/conf/main.cf	2026-07-27 13:28:04.723215629 +0200
 @@ -62,7 +62,7 @@ command_directory = /usr/sbin
  # daemon programs (i.e. programs listed in the master.cf file). This
  # directory must be owned by root.
@@ -32,7 +32,7 @@
  #
  #alias_maps = dbm:/etc/aliases
 -#alias_maps = hash:/etc/aliases
-+alias_maps = hash:/etc/mail/aliases
++alias_maps = hash:/etc/mail/aliases, hash:/etc/postfix/aliases
  #alias_maps = hash:/etc/aliases, nis:mail.aliases
  #alias_maps = netinfo:/aliases
  
@@ -41,7 +41,7 @@
  #alias_database = dbm:/etc/aliases
  #alias_database = dbm:/etc/mail/aliases
 -#alias_database = hash:/etc/aliases
-+alias_database = hash:/etc/mail/aliases
++alias_database = hash:/etc/mail/aliases, hash:/etc/postfix/aliases
  #alias_database = hash:/etc/aliases, hash:/opt/majordomo/aliases
  
  # ADDRESS EXTENSIONS (e.g., user+foo)
@@ -125,12 +125,12 @@
 -
 -# meta_directory: The location of non-executable files that are shared
 -# between multiple Postfix instances.
--meta_directory = /etc/mail
+-meta_directory = /etc/postfix
 -
 -inet_protocols = ipv4
 +unknown_address_reject_code = 550
---- postfix-3.11.5.orig/src/global/mail_params.h	2026-07-27 11:59:09.412311163 +0200
-+++ postfix-3.11.5/src/global/mail_params.h	2026-07-27 11:59:49.280874790 +0200
+--- postfix-3.11.5.orig/src/global/mail_params.h	2026-03-10 23:57:57.000000000 +0100
++++ postfix-3.11.5/src/global/mail_params.h	2026-07-27 13:27:28.440618660 +0200
 @@ -116,7 +116,7 @@ extern uid_t var_owner_uid;
  extern gid_t var_owner_gid;
  
@@ -140,14 +140,14 @@
  extern char *var_sgid_group;
  extern gid_t var_sgid_gid;
  
---- postfix-3.11.5.orig/src/util/sys_defs.h	2026-07-27 11:59:09.514459752 +0200
-+++ postfix-3.11.5/src/util/sys_defs.h	2026-07-27 12:00:34.123215747 +0200
+--- postfix-3.11.5.orig/src/util/sys_defs.h	2026-05-15 19:31:55.000000000 +0200
++++ postfix-3.11.5/src/util/sys_defs.h	2026-07-27 13:27:28.441338647 +0200
 @@ -777,7 +777,7 @@ extern int initgroups(const char *, int)
  #define HAS_FSYNC
  #define HAS_DB
  #define NATIVE_DB_TYPE	"hash"
 -#define ALIAS_DB_MAP	"$default_database_type:/etc/aliases"
-+#define ALIAS_DB_MAP	"$default_database_type:/etc/mail/aliases"
++#define ALIAS_DB_MAP	"$default_database_type:/etc/postfix/aliases"
  #ifndef NO_NIS
  #define HAS_NIS
  #endif
