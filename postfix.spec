@@ -8,8 +8,6 @@
 %bcond_without	ssl	# SSL/TLS support
 %bcond_without	cdb	# cdb map support
 %bcond_without	lmdb	# lmdb map support
-%bcond_with	vda	# VDA patch
-%bcond_with	hir	# Beeth's header_if_reject patch
 %bcond_with	tcp	# unofficial tcp: lookup table
 %if "%{pld_release}" == "ac"
 %bcond_with	epoll	# epoll support for 2.6 kernels
@@ -21,7 +19,6 @@
 %bcond_without	epoll	# epoll support (Linux >= 2.6)
 %endif
 
-%define		vda_ver v13-2.10.0
 Summary:	Postfix Mail Transport Agent
 Summary(cs.UTF-8):	Postfix - program pro přepravu pošty (MTA)
 Summary(es.UTF-8):	Postfix - Un MTA (Mail Transport Agent) de alto desempeño
@@ -30,43 +27,30 @@ Summary(pl.UTF-8):	Serwer SMTP Postfix
 Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
-Version:	3.6.18
-Release:	5
+Version:	3.11.5
+Release:	1
 Epoch:		2
 License:	IBM Public License or Eclipse Public License v2.0
 Group:		Networking/Daemons/SMTP
 Source0:	ftp://ftp.porcupine.org/mirrors/postfix-release/official/%{name}-%{version}.tar.gz
-# Source0-md5:	10aed60e989a78df19b093e077c58dcc
+# Source0-md5:	bf04d33ca8050322160df2d8d88a13e4
 Source1:	%{name}.aliases
 Source2:	%{name}.cron
 Source3:	%{name}.init
 Source4:	%{name}.sysconfig
 Source5:	%{name}.sasl
 Source6:	%{name}.pamd
-Source7:	%{name}-vda.patch
-#Source7:	http://vda.sourceforge.net/VDA/%{name}-vda-%{vda_ver}.patch
-# -ource7-md5:	01e1b031d79b85f3cb67d98ceddd775d
 Source8:	%{name}-bounce.cf.pl
 # http://postfix.state-of-mind.de/bounce-templates/bounce.de-DE.cf
 Source9:	%{name}-bounce.cf.de
 Source10:	%{name}.monitrc
-Source11:	%{name}-vda-bigquota.patch
-#Source11:	http://vda.sourceforge.net/VDA/%{name}-%{vda_ver}-vda-ng-bigquota.patch.gz
-# -ource11-md5:	d46103195b43ec5784ea2c166b238f71
 Source12:	%{name}.service
 Patch0:		%{name}-config.patch
-Patch1:         %{name}-egrep.patch
 
 Patch3:		%{name}-master.cf_cyrus.patch
-# from http://akson.sgh.waw.pl/~chopin/unix/postfix-2.1.5-header_if_reject.diff
-Patch4:		%{name}-header_if_reject.patch
 
 Patch7:		%{name}-conf.patch
 Patch8:		%{name}-dictname.patch
-
-Patch11:	%{name}-scache_clnt.patch
-Patch12:	format-security.patch
-Patch13:	glibc-2.34.patch
 URL:		http://www.postfix.org/
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db-devel
@@ -74,12 +58,12 @@ BuildRequires:	db-devel
 BuildRequires:	glibc-devel >= 6:2.3.4
 BuildRequires:	libicu-devel
 BuildRequires:	libnsl-devel
-BuildRequires:	m4
 %{?with_lmdb:BuildRequires:	lmdb-devel}
+BuildRequires:	m4
 %{?with_mysql:BuildRequires:	mysql-devel}
 %{?with_ldap:BuildRequires:	openldap-devel >= 2.0.12}
-%{?with_ssl:BuildRequires:	openssl-devel >= 0.9.7l}
-BuildRequires:	pcre-devel
+%{?with_ssl:BuildRequires:	openssl-devel >= 1.1.1}
+BuildRequires:	pcre2-8-devel
 BuildRequires:	perl-base
 %{?with_pgsql:BuildRequires:	postgresql-devel}
 BuildRequires:	rpm >= 4.4.9-56
@@ -102,8 +86,8 @@ Requires:	diffutils
 Requires:	findutils
 Requires:	rc-scripts
 Requires:	sed
-%{?with_cdb:Requires:tinycdb}
 Requires:	systemd-units >= 38
+%{?with_cdb:Requires:	tinycdb}
 Suggests:	cyrus-sasl-saslauthd
 Provides:	group(maildrop)
 Provides:	group(postfix)
@@ -125,7 +109,7 @@ desea tener un servidor SMTP *rápido*, debe instalar este paquete.
 %description -l fr.UTF-8
 Postfix (voir http://www.postfix.org/) se veut une alternative à
 sendmail, responsable de l'acheminement de 70% des courriers
-électroniques sur Internet. IBM en a suppotré le développement, mais
+électroniques sur Internet. IBM en a supporté le développement, mais
 ne contrôle pas son évolution. Le but est d'installer Postfix sur le
 plus grand nombre de systèmes possible. Dans cette optique, il a été
 écrit pour être totalement sous le contrôle de l'utilisateur.
@@ -298,44 +282,31 @@ Plik monitrc do monitorowania serwera Postfix.
 
 %prep
 %setup -q
-%if %{with vda}
-cat %{SOURCE7} | %{__patch} -p1 -s
-cat %{SOURCE11} | %{__patch} -p1 -s
-%endif
 
 find -type f | xargs %{__sed} -i -e 's|/etc/postfix|/etc/mail|g'
 
 %patch -P0 -p1
-%patch -P1 -p1
 
 %patch -P3 -p1
-%{?with_hir:%patch -P4 -p0}
 
-%{__sed} -i -e '/scache_clnt_create/s/server/var_scache_service/' src/global/scache_clnt.c
 %patch -P7 -p1
 %patch -P8 -p1
 
-%patch -P11 -p1
-%if %{with vda}
-%patch -P12 -p1
-%endif
-%patch -P13 -p1
-
 %if %{with tcp}
-sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
+%{__sed} -i -e 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
 %endif
 
 %{__sed} -i -e 's,/lib64\>,/%{_lib},' makedefs
 
 %build
 # export, as the same variables must be passed both to 'make makefiles' and 'make'
-export CCARGS="-std=gnu17 %{!?with_epoll:-DNO_EPOLL} %{?with_ldap:-DHAS_LDAP} -DHAS_PCRE %{?with_sasl:-DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL} %{?with_ssl:-DUSE_TLS} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB} %{?with_sqlite:-DHAS_SQLITE} %{?with_lmdb:-DHAS_LMDB} -LHAS_SDBM"
+export CCARGS="%{!?with_epoll:-DNO_EPOLL} %{?with_ldap:-DHAS_LDAP} -DHAS_PCRE=2 %{?with_sasl:-DUSE_SASL_AUTH -DUSE_CYRUS_SASL -I/usr/include/sasl} %{?with_mysql:-DHAS_MYSQL -I/usr/include/mysql} %{?with_pgsql:-DHAS_PGSQL} %{?with_ssl:-DUSE_TLS} -DMAX_DYNAMIC_MAPS %{?with_cdb:-DHAS_CDB} %{?with_sqlite:-DHAS_SQLITE} %{?with_lmdb:-DHAS_LMDB}"
 export AUXLIBS="%{rpmldflags} -lsasl -lssl -lcrypto"
 export AUXLIBS_CDB="%{?with_cdb:-lcdb}"
 export AUXLIBS_LDAP="%{?with_ldap:-lldap -llber}"
 export AUXLIBS_LMDB="%{?with_lmdb:-llmdb}"
 export AUXLIBS_MYSQL="%{?with_mysql:-lmysqlclient}"
-export AUXLIBS_PCRE="-lpcre"
+export AUXLIBS_PCRE="-lpcre2-8"
 export AUXLIBS_PGSQL="%{?with_pgsql:-lpq}"
 export AUXLIBS_SQLITE="%{?with_sqlite:-lsqlite3}"
 
@@ -355,6 +326,7 @@ export CC="%{__cc}"
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/{cron.daily,rc.d/init.d,sysconfig,pam.d,security,monit} \
 	$RPM_BUILD_ROOT%{_sysconfdir}/{mail,sasl} \
+	$RPM_BUILD_ROOT%{_sysconfdir}/mail/{dynamicmaps.cf.d,postfix-files.d} \
 	$RPM_BUILD_ROOT{%{_bindir},%{_sbindir},%{_libdir}/postfix,/usr/lib}\
 	$RPM_BUILD_ROOT{%{_includedir}/postfix,%{_mandir}} \
 	$RPM_BUILD_ROOT%{_var}/spool/postfix/{active,corrupt,deferred,maildrop,private,saved,bounce,defer,incoming,pid,public} \
@@ -365,14 +337,14 @@ install -d $RPM_BUILD_ROOT/etc/{cron.daily,rc.d/init.d,sysconfig,pam.d,security,
        install_root=$RPM_BUILD_ROOT
 
 #cp -a conf/* $RPM_BUILD_ROOT%{_sysconfdir}/mail
-sed -e's,^daemon_directory = .*,daemon_directory = %{_libdir}/postfix,' \
+%{__sed} -e 's,^daemon_directory = .*,daemon_directory = %{_libdir}/postfix,' \
 	conf/main.cf > $RPM_BUILD_ROOT%{_sysconfdir}/mail/main.cf
 
 cp -a include/*.h $RPM_BUILD_ROOT%{_includedir}/postfix
 
 cp -a %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/mail/aliases
 install -p %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.daily/postfix
-install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/postfix
+install -p %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/postfix
 cp -a %{SOURCE4} $RPM_BUILD_ROOT/etc/sysconfig/postfix
 cp -a %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/sasl/smtpd.conf
 cp -a %{SOURCE6} $RPM_BUILD_ROOT/etc/pam.d/smtp
@@ -394,8 +366,11 @@ touch $RPM_BUILD_ROOT/etc/security/blacklist.smtp
 
 > $RPM_BUILD_ROOT/var/spool/postfix/.nofinger
 
-%{__rm} -r $RPM_BUILD_ROOT%{_sysconfdir}/mail/makedefs.out
+%{__rm} $RPM_BUILD_ROOT%{_sysconfdir}/mail/makedefs.out
 %{__rm} $RPM_BUILD_ROOT%{_sysconfdir}/mail/{,TLS_}LICENSE
+
+# mongodb map is not built - no libmongoc in PLD
+%{__rm} $RPM_BUILD_ROOT%{_mandir}/man5/mongodb_table.5
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -427,6 +402,9 @@ fi
 /sbin/chkconfig --add postfix
 %service postfix restart "Postfix Daemon"
 %systemd_post postfix.service
+# %%service only restarts under SysV init; 3.10 changed the delivery agent
+# protocol, so a running master must be restarted or deliveries fail
+%systemd_service_restart postfix.service
 
 %preun
 if [ "$1" = "0" ]; then
@@ -455,24 +433,30 @@ fi
 %dir %{_sysconfdir}/mail
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/access
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/aliases
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/bounce.cf.default
 %lang(de) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/bounce.cf.de
 %lang(pl) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/bounce.cf.pl
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/canonical
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/generic
-#%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/regexp_table
+#%%config(noreplace) %%verify(not md5 mtime size) %%{_sysconfdir}/mail/regexp_table
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/relocated
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/transport
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/virtual
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/header_checks
-#%ghost %{_sysconfdir}/mail/*.db
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/dynamicmaps.cf
+#%%ghost %%{_sysconfdir}/mail/*.db
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/main.cf
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/main.cf.default
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/main.cf.proto
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/master.cf
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/master.cf.proto
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/postfix-files
+# package-owned reference and generated files, so let upgrades replace them:
+# a stale postfix-files would revert postlog's setgid bit and a stale
+# dynamicmaps.cf would list the wrong plugins. Local additions belong in
+# main.cf, master.cf or the matching *.d directory.
+%config %verify(not md5 mtime size) %{_sysconfdir}/mail/bounce.cf.default
+%config %verify(not md5 mtime size) %{_sysconfdir}/mail/dynamicmaps.cf
+%config %verify(not md5 mtime size) %{_sysconfdir}/mail/main.cf.default
+%config %verify(not md5 mtime size) %{_sysconfdir}/mail/main.cf.proto
+%config %verify(not md5 mtime size) %{_sysconfdir}/mail/master.cf.proto
+%config %verify(not md5 mtime size) %{_sysconfdir}/mail/postfix-files
+%dir %{_sysconfdir}/mail/dynamicmaps.cf.d
+%dir %{_sysconfdir}/mail/postfix-files.d
 %attr(740,root,root) /etc/cron.daily/postfix
 %attr(754,root,root) /etc/rc.d/init.d/postfix
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/postfix
@@ -486,7 +470,8 @@ fi
 %attr(755,root,root) %{_sbindir}/postfix
 %attr(755,root,root) %{_sbindir}/postalias
 %attr(755,root,root) %{_sbindir}/postkick
-%attr(755,root,root) %{_sbindir}/postl*
+%attr(755,root,root) %{_sbindir}/postlock
+%attr(2755,root,maildrop) %{_sbindir}/postlog
 %attr(755,root,root) %{_sbindir}/postc*
 %attr(755,root,root) %{_sbindir}/postmap
 %attr(755,root,root) %{_sbindir}/postmulti
@@ -502,18 +487,20 @@ fi
 %attr(755,root,root) %{_libdir}/postfix/dnsblog
 %attr(755,root,root) %{_libdir}/postfix/error
 %attr(755,root,root) %{_libdir}/postfix/flush
-%attr(755,root,root) %{_libdir}/postfix/libpostfix-dns.so
-%attr(755,root,root) %{_libdir}/postfix/libpostfix-global.so
-%attr(755,root,root) %{_libdir}/postfix/libpostfix-master.so
-%attr(755,root,root) %{_libdir}/postfix/libpostfix-tls.so
-%attr(755,root,root) %{_libdir}/postfix/libpostfix-util.so
+%{_libdir}/postfix/libpostfix-dns.so
+%{_libdir}/postfix/libpostfix-global.so
+%{_libdir}/postfix/libpostfix-master.so
+%{_libdir}/postfix/libpostfix-tls.so
+%{_libdir}/postfix/libpostfix-util.so
 %attr(755,root,root) %{_libdir}/postfix/lmtp
 %attr(755,root,root) %{_libdir}/postfix/local
 %attr(755,root,root) %{_libdir}/postfix/master
+%attr(755,root,root) %{_libdir}/postfix/nbdb_reindexd
 %attr(755,root,root) %{_libdir}/postfix/nqmgr
 %attr(755,root,root) %{_libdir}/postfix/oqmgr
 %attr(755,root,root) %{_libdir}/postfix/pickup
 %attr(755,root,root) %{_libdir}/postfix/pipe
+%attr(755,root,root) %{_libdir}/postfix/postfix-non-bdb-script
 %attr(755,root,root) %{_libdir}/postfix/postfix-script
 %attr(755,root,root) %{_libdir}/postfix/postfix-tls-script
 %attr(755,root,root) %{_libdir}/postfix/postlogd
@@ -534,7 +521,7 @@ fi
 %attr(755,root,root) %{_libdir}/postfix/trivial-rewrite
 %attr(755,root,root) %{_libdir}/postfix/verify
 %attr(755,root,root) %{_libdir}/postfix/virtual
-%attr(755,root,root) %dir %{_var}/spool/postfix
+%dir %{_var}/spool/postfix
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/active
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/bounce
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/corrupt
@@ -542,7 +529,7 @@ fi
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/deferred
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/incoming
 %attr(1730,postfix,maildrop) %dir %{_var}/spool/postfix/maildrop
-%attr(755,root,root) %dir %{_var}/spool/postfix/pid
+%dir %{_var}/spool/postfix/pid
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/private
 %attr(710,postfix,maildrop) %dir %{_var}/spool/postfix/public
 %attr(700,postfix,root) %dir %{_var}/spool/postfix/saved
@@ -595,7 +582,6 @@ fi
 %files dict-pcre
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/postfix-pcre.so
-#%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/mail/pcre_table
 %{_mandir}/man5/pcre_table.5*
 
 %if %{with pgsql}
@@ -621,6 +607,7 @@ fi
 
 %if %{with cdb}
 %files dict-cdb
+%defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/postfix/postfix-cdb.so
 %endif
 

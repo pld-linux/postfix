@@ -1,7 +1,6 @@
-diff -dur -x '*~' -x '*.orig' -x '*.rej' postfix-2.11.0.orig/conf/main.cf postfix-2.11.0/conf/main.cf
---- postfix-2.11.0.orig/conf/main.cf	2014-03-05 17:54:24.197406701 +0100
-+++ postfix-2.11.0/conf/main.cf	2014-03-05 17:54:54.260740308 +0100
-@@ -39,7 +39,7 @@
+--- postfix-3.11.5.orig/conf/main.cf	2026-07-27 11:59:09.224019293 +0200
++++ postfix-3.11.5/conf/main.cf	2026-07-27 12:00:21.726549083 +0200
+@@ -62,7 +62,7 @@ command_directory = /usr/sbin
  # daemon programs (i.e. programs listed in the master.cf file). This
  # directory must be owned by root.
  #
@@ -10,7 +9,7 @@ diff -dur -x '*~' -x '*.orig' -x '*.rej' postfix-2.11.0.orig/conf/main.cf postfi
  
  # The data_directory parameter specifies the location of Postfix-writable
  # data files (caches, random numbers). This directory must be owned
-@@ -63,7 +63,7 @@
+@@ -86,7 +86,7 @@ mail_owner = postfix
  # These rights are used in the absence of a recipient user context.
  # DO NOT SPECIFY A PRIVILEGED USER OR THE POSTFIX OWNER.
  #
@@ -19,7 +18,7 @@ diff -dur -x '*~' -x '*.orig' -x '*.rej' postfix-2.11.0.orig/conf/main.cf postfi
  
  # INTERNET HOST AND DOMAIN NAMES
  # 
-@@ -95,7 +95,7 @@
+@@ -118,7 +118,7 @@ mail_owner = postfix
  # myorigin also specifies the default domain name that is appended
  # to recipient addresses that have no @domain part.
  #
@@ -28,7 +27,7 @@ diff -dur -x '*~' -x '*.orig' -x '*.rej' postfix-2.11.0.orig/conf/main.cf postfi
  #myorigin = $mydomain
  
  # RECEIVING MAIL
-@@ -379,7 +379,7 @@
+@@ -407,7 +407,7 @@ unknown_local_recipient_reject_code = 55
  # "postfix reload" to eliminate the delay.
  #
  #alias_maps = dbm:/etc/aliases
@@ -37,7 +36,7 @@ diff -dur -x '*~' -x '*.orig' -x '*.rej' postfix-2.11.0.orig/conf/main.cf postfi
  #alias_maps = hash:/etc/aliases, nis:mail.aliases
  #alias_maps = netinfo:/aliases
  
-@@ -390,7 +390,7 @@
+@@ -418,7 +418,7 @@ unknown_local_recipient_reject_code = 55
  #
  #alias_database = dbm:/etc/aliases
  #alias_database = dbm:/etc/mail/aliases
@@ -46,7 +45,7 @@ diff -dur -x '*~' -x '*.orig' -x '*.rej' postfix-2.11.0.orig/conf/main.cf postfi
  #alias_database = hash:/etc/aliases, hash:/opt/majordomo/aliases
  
  # ADDRESS EXTENSIONS (e.g., user+foo)
-@@ -418,7 +418,7 @@
+@@ -446,7 +446,7 @@ unknown_local_recipient_reject_code = 55
  # UNIX-style mailboxes are kept. The default setting depends on the
  # system type.
  #
@@ -55,7 +54,7 @@ diff -dur -x '*~' -x '*.orig' -x '*.rej' postfix-2.11.0.orig/conf/main.cf postfi
  #mail_spool_directory = /var/spool/mail
  
  # The mailbox_command parameter specifies the optional external
-@@ -440,8 +440,8 @@
+@@ -468,8 +468,8 @@ unknown_local_recipient_reject_code = 55
  # IF YOU USE THIS TO DELIVER MAIL SYSTEM-WIDE, YOU MUST SET UP AN
  # ALIAS THAT FORWARDS MAIL FOR ROOT TO A REAL USER.
  #
@@ -66,7 +65,7 @@ diff -dur -x '*~' -x '*.orig' -x '*.rej' postfix-2.11.0.orig/conf/main.cf postfi
  
  # The mailbox_transport specifies the optional transport in master.cf
  # to use after processing aliases and .forward files. This parameter
-@@ -613,45 +613,24 @@
+@@ -641,54 +641,24 @@ debugger_command =
  #	-dmS $process_name gdb $daemon_directory/$process_name
  #	$process_id & sleep 1
  
@@ -119,12 +118,20 @@ diff -dur -x '*~' -x '*.orig' -x '*.rej' postfix-2.11.0.orig/conf/main.cf postfi
 +# Contrary to what Wietse thinks (450) this should be 550
  #
 -readme_directory =
+-
+-# shlib_directory: The location of the Postfix *.so library files and
+-# database plugins.
+-shlib_directory =
+-
+-# meta_directory: The location of non-executable files that are shared
+-# between multiple Postfix instances.
+-meta_directory = /etc/mail
+-
 -inet_protocols = ipv4
 +unknown_address_reject_code = 550
-diff -dur -x '*~' -x '*.orig' -x '*.rej' postfix-2.11.0.orig/src/global/mail_params.h postfix-2.11.0/src/global/mail_params.h
---- postfix-2.11.0.orig/src/global/mail_params.h	2014-03-05 17:54:24.730740039 +0100
-+++ postfix-2.11.0/src/global/mail_params.h	2014-03-05 17:54:54.260740308 +0100
-@@ -67,7 +67,7 @@
+--- postfix-3.11.5.orig/src/global/mail_params.h	2026-07-27 11:59:09.412311163 +0200
++++ postfix-3.11.5/src/global/mail_params.h	2026-07-27 11:59:49.280874790 +0200
+@@ -116,7 +116,7 @@ extern uid_t var_owner_uid;
  extern gid_t var_owner_gid;
  
  #define VAR_SGID_GROUP		"setgid_group"
@@ -133,15 +140,14 @@ diff -dur -x '*~' -x '*.orig' -x '*.rej' postfix-2.11.0.orig/src/global/mail_par
  extern char *var_sgid_group;
  extern gid_t var_sgid_gid;
  
-diff -dur -x '*~' -x '*.orig' -x '*.rej' postfix-2.11.0.orig/src/util/sys_defs.h postfix-2.11.0/src/util/sys_defs.h
---- postfix-2.11.0.orig/src/util/sys_defs.h	2014-03-05 17:54:24.944073374 +0100
-+++ postfix-2.11.0/src/util/sys_defs.h	2014-03-05 17:58:20.204075514 +0100
-@@ -769,7 +769,7 @@
+--- postfix-3.11.5.orig/src/util/sys_defs.h	2026-07-27 11:59:09.514459752 +0200
++++ postfix-3.11.5/src/util/sys_defs.h	2026-07-27 12:00:34.123215747 +0200
+@@ -777,7 +777,7 @@ extern int initgroups(const char *, int)
  #define HAS_FSYNC
  #define HAS_DB
  #define NATIVE_DB_TYPE	"hash"
--#define ALIAS_DB_MAP	DEF_DB_TYPE ":/etc/aliases"
-+#define ALIAS_DB_MAP	DEF_DB_TYPE ":/etc/mail/aliases"
+-#define ALIAS_DB_MAP	"$default_database_type:/etc/aliases"
++#define ALIAS_DB_MAP	"$default_database_type:/etc/mail/aliases"
  #ifndef NO_NIS
  #define HAS_NIS
  #endif
