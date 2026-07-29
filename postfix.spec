@@ -31,7 +31,7 @@ Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	3.6.18
-Release:	5
+Release:	6
 Epoch:		2
 License:	IBM Public License or Eclipse Public License v2.0
 Group:		Networking/Daemons/SMTP
@@ -67,6 +67,7 @@ Patch8:		%{name}-dictname.patch
 Patch11:	%{name}-scache_clnt.patch
 Patch12:	format-security.patch
 Patch13:	glibc-2.34.patch
+Patch14:	linux-7.patch
 URL:		http://www.postfix.org/
 %{?with_sasl:BuildRequires:	cyrus-sasl-devel}
 BuildRequires:	db-devel
@@ -320,6 +321,7 @@ find -type f | xargs %{__sed} -i -e 's|/etc/postfix|/etc/mail|g'
 %patch -P12 -p1
 %endif
 %patch -P13 -p1
+%patch -P14 -p1
 
 %if %{with tcp}
 sed -i 's/ifdef SNAPSHOT/if 1/' src/util/dict_open.c
