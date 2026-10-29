@@ -28,7 +28,7 @@ Summary(pt_BR.UTF-8):	Postfix - Um MTA (Mail Transport Agent) de alto desempenho
 Summary(sk.UTF-8):	Agent prenosu pošty Postfix
 Name:		postfix
 Version:	3.11.7
-Release:	1
+Release:	2
 Epoch:		2
 License:	IBM Public License or Eclipse Public License v2.0
 Group:		Networking/Daemons/SMTP
@@ -308,6 +308,9 @@ export AUXLIBS_PCRE="-lpcre2-8"
 export AUXLIBS_PGSQL="%{?with_pgsql:-lpq}"
 export AUXLIBS_SQLITE="%{?with_sqlite:-lsqlite3}"
 
+# makedefs refuses to run with LD_LIBRARY_PATH set, and build hosts may export
+# one from profile.d scripts (gnustep-make GNUstep.sh does)
+unset LD_LIBRARY_PATH
 export CC="%{__cc}"
 %{__make} makefiles \
 	shared=yes \
